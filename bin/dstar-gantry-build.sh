@@ -18,9 +18,9 @@ prog=$(basename "$0")
 show_usage() {
     cat <<EOF >&2
 
-Usage: $prog [GANTRY_OPTIONS] [-- [DOCKER_OPTIONS] [-- [CONTAINER_BUILD_ARGS]]]
+Usage: $prog [GANTRY_OPTS] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]]]
 
- Gantry Options:
+ $prog Options (GANTRY_OPTS):
    -h, -help             # this help message
    -n, -dry-run          # just print what we would do
    -c CORPUS_ROOT        # (required) host path for dstar corpus root checkout
@@ -37,15 +37,10 @@ Usage: $prog [GANTRY_OPTIONS] [-- [DOCKER_OPTIONS] [-- [CONTAINER_BUILD_ARGS]]]
    -g GROUP              # build group or GID (default=$gantry_group)
    ...                   # other gantry options are passed to container docker/build script
 
- Docker Options (see also docker-run(1))
-   -p HPORT:CPORT        # map host port HPORT to container port CPORT
-   -v /PATH:/MOUNT       # mount host /PATH in container at /MOUNT
-   -e VAR=VALUE          # set container environment variable
-   --env-file=ENV_FILE   # set container environment variables from FILE
+ Docker Options (DOCKER_OPTS)
+   See docker-run(1).
 
- Container docker/build Arguments (see also dstar/docker/build):
-   -c, -command          # treat CONTAINER_BUILD_ARGS as raw docker command
-
+ Container docker/build Arguments (BUILD_ARGS; see also dstar/docker/build):
    help                  # show help for container docker/build script
    exec CMD...           # just execute CMD... in container
    build                 # index a corpus in CORPUS_ROOT/build from sources in CORPUS_SRC/
@@ -59,10 +54,10 @@ Usage: $prog [GANTRY_OPTIONS] [-- [DOCKER_OPTIONS] [-- [CONTAINER_BUILD_ARGS]]]
    run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
 
  Host Environment Variables:
-   SSH_AUTH_SOCK         # (required) socket ssh-agent(1) 
+   SSH_AUTH_SOCK         # (required) ssh-agent(1) socket
 
  Container Environment Variables:
-   see \`$prog help\`
+   See \`$prog help\`
 
 EOF
 }
