@@ -12,6 +12,7 @@
 
 prog=$(basename "$0")
 dstar_root_default=~/dstar
+gantry_rcfile_default=~/.dstar-gantry.rc
 
 ##======================================================================
 ## Utils
@@ -25,12 +26,13 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
  $prog Options (GANTRY_OPTS):
    -h, -help             # this help message
    -n, -dry-run          # just print what we would do
-   -c CORPUS             # dstar corpus label (required)
+   -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$dstar_root_default)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
    -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/(current/) if present)
    -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
    -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
+   -f RCFILE             # read gantry variables from RCFILE (bash source; default=$gantry_rcfile_default)
    -i IMAGE              # use docker image IMAGE (default=$gantry_docker_image)
    -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
    -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
@@ -113,6 +115,14 @@ runordie_ro() {
     local _dry_run="$gantry_dry_run"
     gantry_dry_run=""
     runordie "$@"
+}
+
+##--------------------------------------------------------------
+read_rcfile() {
+    local rcfile="$1"
+    [ -e "$rcfile" ] || die "config-file '$rcfile' is not readable"
+    vinfo "reading gantry config-file '$rcfile'"
+    . "$rcfile"
 }
 
 ##======================================================================
@@ -249,6 +259,10 @@ if [ -z "$gantry_group" ] ; then
     gantry_group=${gantry_user:-${SUDO_GID:-$(id -gn)}}
 fi
 
+##-- default rcfile
+[ \! -e $gantry_rcfile_default ] \
+    || read_rcfile $gantry_rcfile_default
+
 while [ $# -gt 0 ] ; do
     arg="$1"
     shift
@@ -259,14 +273,16 @@ while [ $# -gt 0 ] ; do
 	-c) gantry_corpus="$1"; shift;;
 	-c*) gantry_corpus="${arg#-c}";;
 	-d) DSTAR_ROOT="$1"; shift;;
-	-d*) DSTAR_ROOT="${1#-d}";;
+	-d*) DSTAR_ROOT="${arg#-d}";;
 	-C) gantry_corpus_root="$1"; shift;;
 	-C*) gantry_corpus_root="${arg#-c}";;
 	-S) gantry_corpus_src="$1"; shift;;
 	-S*) gantry_corpus_src="${arg#-s}";;
 	-RO) gantry_cabdir_ro=":ro";;
 	-R) gantry_cabdir="$1"; shift;;
-	-R*) gantry_cabdir="${1#-R}";;
+	-R*) gantry_cabdir="${arg#-R}";;
+	-f) read_rcfile "$1"; shift;;
+	-f*) read_rcfile "${arg#-f}";;
 	-i) gantry_docker_image="$1"; shift;;
 	-i*) gantry_docker_image="${arg#-i}";;
 	-e) gantry_docker_opts[${#gantry_docker_opts[@]}]="-e$1"; shift;;
@@ -343,7 +359,7 @@ elif [ -z "$gantry_corpus_root" -a -n "$gantry_corpus" ] ; then
 	##-- gantry_corpus_root: use persistent DSTAR_ROOT/corpora/
 	gantry_corpus_root="$DSTAR_ROOT/corpora/$gantry_corpus"
     fi
-    info "setting CORPUS_ROOT=$gantry_corpus_root"
+    vinfo "setting CORPUS_ROOT=$gantry_corpus_root"
 elif [ -n "$gantry_corpus_root" -a -z "$gantry_corpus" ] ; then
     ##-- gantry_corpus: from user-specified gantry_corpus_root
     gantry_corpus=$(basename "$gantry_corpus_root")
@@ -374,7 +390,7 @@ if [ -z "$gantry_cabdir" -a "${DSTAR_ROOT:-no}" != "no" -a -e "$DSTAR_ROOT/resou
 fi
 
 ##-- sanity check(s)
-[ ! -e "$gantry_corpus_root" ] \
+[ -e "$gantry_corpus_root" ] \
     || warn "CORPUS_ROOT=$gantry_corpus_root does not exist (continuing anyway, YMMV)"
 [ -n "$SSH_AUTH_SOCK" ] \
     || die "SSH_AUTH_SOCK variable is unset (is your ssh-agent running?)"
