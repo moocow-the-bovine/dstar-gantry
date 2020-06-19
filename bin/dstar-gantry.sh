@@ -53,6 +53,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
 
  Container docker/build Arguments (BUILD_ARGS; see also dstar/docker/build):
    help                  # show help for container docker/build script
+   self-test             # run rudimentary self-test(s)
    build                 # index a corpus in CORPUS_ROOT/build from sources in CORPUS_SRC/
    update                # update an existing index in CORPUS_ROOT/build/ from CORPUS_SRC/
    update-meta           # update index metadata in in CORPUS_ROOT/build/ from CORPUS_SRC/
@@ -126,7 +127,7 @@ read_rcfile() {
 }
 
 ##======================================================================
-## Host-local Actions
+## Gantry Actions
 
 ##--------------------------------------------------------------
 set_dstar_root() {
@@ -229,7 +230,6 @@ act_gantry_gc() {
     local iids=($(runordie_ro docker images -qa $gantry_gc_filter))
     runordie docker rmi "${iids[@]}"
 }
-
 
 ##======================================================================
 ## Command-line
