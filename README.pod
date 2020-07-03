@@ -105,6 +105,11 @@ L<C<RUNHOST>|$doc/README.html#RUNHOST>,
 and/or L<C<WEBHOST>|$doc/README.html#WEBHOST> D* host roles,
 but is mostly intended to act as a (virtual) C<BUILDHOST>.
 
+See L</INSTALLATION> for instructions on installing C<dstar-gantry> on
+your local machine, see L</USAGE> for details on the various options
+and arguments, and see L</EXAMPLES> for some example C<dstar-gantry.sh>
+calls.
+
 =cut
 
 ##======================================================================
@@ -113,6 +118,7 @@ but is mostly intended to act as a (virtual) C<BUILDHOST>.
 =head1 INSTALLATION
 
 This section describes the installation procedure for debian-based linux machines.
+C<dstar-gantry> was developed and tested on an x86_64 machine running Debian GNU/Linux 10 (buster).
 You can probably run gantry on other architectures, but I can't tell you how to do that.
 
 =cut
@@ -133,9 +139,10 @@ You can probably run gantry on other architectures, but I can't tell you how to 
 =item docker
 
 You will need L<docker|https://docs.docker.com/get-docker/> installed on your local machine
-with an appropriate L<docker storage driver|docker storage drivers>,
+with an appropriate L<docker storage driver|/docker storage drivers>,
 and the requisite L<permissions|https://docs.docker.com/engine/install/linux-postinstall/>
-for your local user account.
+for your local user account.  C<dstar-gantry> was developed and tested using
+the C<docker-ce> and C<docker-ce-client> packages version 19.03.8.
 
 =item registry credentials
 
@@ -175,6 +182,8 @@ C<${PUBLISH_DEST}> and/or C<${WEB_PUBLISH_DEST}> (typically C<ddc-admin@{data,ka
 
 See L<C<dstar/doc/README_ssh.txt>|$doc/README_ssh.html> for more details.
 
+=back
+
 =cut
 
 ##--------------------------------------------------------------
@@ -182,12 +191,14 @@ See L<C<dstar/doc/README_ssh.txt>|$doc/README_ssh.html> for more details.
 
 =head2 Installation Procedure
 
-=head3 download gantry
+=over 4
+
+=item download gantry
 
 Checkout the gantry project itself from SVN to your local machine,
 for example to $HOME/dstar-gantry:
 
- $ svn co svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
+ $ svn checkout svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
 
 Example output (trimmed):
 
@@ -196,7 +207,7 @@ Example output (trimmed):
  ...
  Checked out revision 32806.
 
-=head3 PATH (optional)
+=item setup PATH
 
 Put the C<dstar-gantry.sh> script in your C<PATH> (optional, recommended):
 
@@ -206,7 +217,7 @@ Put the C<dstar-gantry.sh> script in your C<PATH> (optional, recommended):
 
  $ sudo ln -s $HOME/dstar-gantry/bin/*.sh /usr/local/bin
 
-=head3 initialize persistent data
+=item initialize persistent data
 
 Initialize persistent sparse local dstar checkout in $HOME/dstar:
 
@@ -220,7 +231,7 @@ Example output (trimmed):
  ...
  dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
 
-=head3 retrieve docker image
+=item retrieve docker image
 
 Download the latest C<dstar-buildhost> image from the ZDL docker registry:
 
@@ -236,7 +247,7 @@ Example output (trimmed):
  lex.dwds.de:443/dstar/dstar-buildhost:latest
  dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
 
-=head3 self-test
+=item run self-test
 
 Run rudimentary self-tests:
 
@@ -263,14 +274,443 @@ Example output (trimmed):
  build INFO: TEST: publish to default webhost (ssh "ddc-admin@kaskade.dwds.de" /bin/true)
  build INFO: self-test: all tests passed (6/6)
 
+=back
 
 =cut
 
+##======================================================================
+=pod
+
+=head1 USAGE
+
+ dstar-gantry.sh [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]]]
+
+The C<dstar-gantry.sh> wrapper script is a command-line tool in the UNIX tradition,
+and as such accepts a number of options and arguments:
+
+=over 4
+
+=item L<GANTRY_OPTS|/Gantry Options>
+
+C<GANTRY_OPTS> options are interpreted by the C<dstar-gantry.sh> script itself,
+including some convenience wrappers for some common
+L</Docker Options>.
+
+=item L<GANTRY_ACTION(s)|/Gantry Actions>
+
+C<GANTRY_ACTION(s)> indicate which operation(s) are to be performed,
+typically corresponding directly to the L</Container Actions> of the same name.
+
+=item L<DOCKER_OPTS|/Docker Options>
+
+C<DOCKER_OPTS> are passed to
+the L<C<docker-run>|https://docs.docker.com/engine/reference/run/>
+subprocess.
+
+=item L<BUILD_ARGS|/Container Arguments>
+
+C<BUILD_ARGS> are passed to the
+C</dstar/docker/build> script in the invoked C<dstar-buildhost> container.
+
+=back
+
+=cut
 
 ##--------------------------------------------------------------
 =pod
 
+=head2 Gantry Options
+
+=over 4
+
+=item -h, -help
+
+Display a brief help message.
+
+=item -n, -dry-run
+
+If specified, just prints what would have been done, but doesn't perform any destructive actions.
+
+=item -c CORPUS
+
+Specifies the dstar corpus label ("collection label") for the operand corpus.
+Required for most operations.
+
+=item -d DSTAR_ROOT
+
+Specifies the host path used for (sparse) persistent dstar superstructure (default=C<$HOME/dstar>).
+By default, persistent CAB resources and index data will be created here.  The directory
+will be a sparse checkout of the C<dstar project|https://kaskade.dwds.de/dstar/doc/README.html#Project-Directory-Structure>
+containing only partial checkouts of the
+L<C<doc/>|https://kaskade.dwds.de/dstar/doc/README.html#doc>,
+L<C<corpora/>|https://kaskade.dwds.de/dstar/doc/README.html#corpora>,
+L<C<sources/>|https://kaskade.dwds.de/dstar/doc/README.html#sources>,
+and L<C<resources/>|https://kaskade.dwds.de/dstar/doc/README.html#resources>
+subdirectories.
+
+
+=item -C CORPUS_ROOT
+
+Specifies the host path used for dstar corpus checkout (default=C<DSTAR_ROOT/corpora/CORPUS>).
+Implies L<C<-v CORPUS_ROOT:/dstar/corpora/CORPUS>|/-v /PATH:/MOUNT>.
+
+=item -S CORPUS_SRC
+
+Specifies the host path where dstar corpus sources reside (default=C<DSTAR_ROOT/sources/CORPUS/current/>
+if present, otherwise C<DSTAR_ROOT/sources/CORPUS/> if present, otherwise required).
+Implies L<C<-v CORPUS_SRC:/dstar/sources/CORPUS:ro>|/-v /PATH:/MOUNT>.
+
+=item -R RESOURCES_DIR
+
+Specifies the host path for persistent CAB resources (default=C<DSTAR_ROOT/resources/> if present).
+Implies L<C<-v RESOURCES_DIR:/dstar/resources>|/-v /PATH:/MOUNT>.
+
+=item -RO
+
+If specified and L<RESOURCES_DIR|/-R RESOURCES_DIR> is present on the local machine,
+then C<RESOURCES_DIR> will be mounted read-only in the container, which suppresses resource
+synchronization by container (saves synchronization overhead and ensures resource consistency).
+
+=item -f RCFILE
+
+Reads gantry configuration variables from C<RCFILE> on the host machine.
+C<RCFILE> is evaluated as bash source; default=C<$HOME/.dstar-gantry.rc>.
+
+=item -i IMAGE
+
+Specifies the docker image to be L<pulled|/pull> and/or invoked via
+L<C<docker run>|https://docs.docker.com/engine/reference/run/>.
+Default is C<lex.dwds.de:443/dstar/dstar-buildhost:latest>.
+
+=item -e VAR=VALUE
+
+Specify an environment variable override for the container
+via L<C<docker run -e VAR=VALUE>|https://docs.docker.com/engine/reference/run/#env-environment-variables>.
+
+=item -E ENV_FILE
+
+Specify a file containing environment variable overrides for the container,
+via L<C<docker run --env-file ENV_FILE>|https://docs.docker.com/engine/reference/run/#env-environment-variables>.
+
+=item -v /PATH:/MOUNT
+
+Mounts the host directory C</PATH> as a volume into the container at C</MOUNT>,
+passed to L<C<docker_run -v>|https://docs.docker.com/engine/reference/run/#volume-shared-filesystems>.
+
+Potentially useful volume mounts C</MOUNT> include:
+
+  /dstar/config/            # global dstar configuration (read-only)
+  /dstar/resources/         # CAB analysis resources (read-only)
+
+=item -x CABX_RUN
+
+Select container-internal CAB server(s) to start for container L<run|/run> action;
+default=C<dstar-http-9096>.
+
+=item -p HTTP_PORT
+
+Map containers port 80 to host port C<HTTP_PORT> for L<C<run>|/run> action
+via L<C<docker run -p HTTP_PORT:80>|https://docs.docker.com/engine/reference/run/#expose-incoming-ports>.
+
+=item -u USER
+
+Specifies username or UID of host build user (default=C<ddc-admin> if present,
+otherwise current user).
+If the UID does not exist in the container (it probably doesn't), it will be created.
+
+=item -g GROUP
+
+Specifies group name or GID of host build user (default=C<ddc-admin> if present,
+otherwise current group).
+If the GID does not exist in the container (it probably doesn't), it will be created.
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Gantry Actions
+
+=over 4
+
+=item init
+
+(Re-)initializes persistent sparse local L<C<DSTAR_ROOT>|/-d DSTAR_ROOT> checkout
+on the local host (usually C<$HOME/dstar>).
+You should only have to call this once per host,
+before performing any other C<dstar-gantry.sh> actions.
+
+=item sync
+
+Synchronizes the persistent sparse local L<C<DSTAR_ROOT>|/-d DSTAR_ROOT> checkout
+on the local host (usually C<$HOME/dstar>) via `svn update`.  You should typically
+call this before each C<dstar-gantry.sh> session, in order to ensure that your
+C<DSTAR_ROOT> checkout is up-to-date.
+
+Note that this action does B<NOT> synchronize gantry itself (maybe it will someday),
+so to ensure that your C<dstar-gantry.sh> project is up-to-date, you should update
+it manually:
+
+ $ svn update ~/dstar-gantry
+
+=item pull
+
+Retrieves the selected L<C<dstar-buildhost> IMAGE|/-i IMAGE> from
+the ZDL docker registry.  May require a preceding L<C<docker login>|/registry credentials>.
+
+=item gc
+
+Cleans up stale C<dstar-buildhost> docker images on the local host.
+
+=item L<BUILD_ACTION...|/Container Actions>
+
+Other non-option arguments (not beginning with a dash "-")
+are passed verbatim as L</Container Actions> to the
+C</dstar/docker/build> script in the suborinate container.
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Docker Options
+
+Docker options following the first C<--> on the C<dstar-gantry.sh> command-line are passed
+verbatim to the L<C<docker run>|https://docs.docker.com/engine/reference/run/> subprocess
+for the selected L<C<dstar-buildhost> IMAGE|/-i IMAGE>.  If you need to tweak the
+C<docker run> call with more than the
+C<-e|/-e VAR=VALUE>,
+C<-E|/-E ENV_FILE>,
+or C<-v|/-v /PATH:/MOUNT>
+options, this is how to do it.
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Container Actions
+
+All arguments following the second C<--> on the C<dstar-gantry.sh> command-line are passed
+verbatim to the C</dstar/docker/build> script call in the subordinate
+L<C<dstar-buildhost>|/-i IMAGE> container.  See the output of
+C<dstar-gantry.sh help> for a synopsis of the C</dstar/docker/build> calling
+conventions.
+
+=over 4
+
+=item help
+
+Shows a brief help message from the container C</dstar/docker/build> script.
+
+=item self-test
+
+Runs some rudimentary self-test(s) and reports results.
+Not all self-tests need to pass in order for C<dstar-gantry.sh> to be useful;
+the functionality you need depends on what you're trying to do
+and your personal preferences.
+
+=item build
+
+(Re-)indexes a corpus in
+L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+from TEI-XML sources in
+L<C<CORPUS_SRC/>|/-S CORPUS_SRC>.
+This is basically a wrapper for
+L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
+and
+L<C<CORPUS_ROOT/build/build.sh -build>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+i.e.
+a C<full corpus re-build|$doc/talks/corpus-ops-2019/#howto-build>.
+
+=item update
+
+Updates an existing corpus index in
+L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+from TEI-XML sources in
+L<C<CORPUS_SRC/>|/-S CORPUS_SRC>.
+This is basically a wrapper for
+L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
+and
+L<C<CORPUS_ROOT/build/build.sh -update>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+i.e.
+C<incremental corpus update|https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-update>
+
+=item update-meta
+
+Updates metadata for an existing corpus index in
+L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+from TEI-XML sources in
+L<C<CORPUS_SRC/>|/-S CORPUS_SRC>.
+This is basically a wrapper for
+L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
+and
+L<C<CORPUS_ROOT/build/build.sh -update-meta>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+i.e.
+C<corpus metadata update|$doc/HOWTO_build.html#Consistency-Testing>.
+
+=item test
+
+Runs automated consistency tests for an existing corpus build in
+L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>.
+This is basically a wrapper for
+L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
+and
+L<C<CORPUS_ROOT/build/build.sh -test>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+i.e.
+C<corpus consistency tests|$doc/HOWTO.html#Consistency-Tests>.
+
+=item archive-build
+
+Archives an existing
+L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+to C<${dstar_archive_dir}>
+
+=item archive-publish
+
+Archives publishable corpus data 
+from L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+to C<${dstar_archive_dir}>.
+
+=item install
+
+Installs an existing corpus index from
+L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+to
+L<C<CORPUS_ROOT/{server,web}>|/-C CORPUS_ROOT>
+within the running C<dstar-buildhost> container.
+
+=item publish
+
+Deploy an existing corpus index from
+L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+to production host(s) as selected by the
+dstar make variables
+C<PUBLISH_DEST> and/or C<WEB_PUBLISH_DEST>.
+
+=item run
+
+Runs a L<C<CORPUS>|/-c CORPUS> instance
+from
+L<C<CORPUS_ROOT/{server,web}>|/-C CORPUS_ROOT>
+in the temporary container.
+For this action, you will probably also want to specify
+L<C<-p HTTP_PORT>|/-p HTTP_PORT>.
+If specified, this must be the last container action executed.
+
+=item exec CMD
+
+Just executs C<CMD...> in the subordinate container.
+If specified, this must be the final container action executed.
+Use with B<extreme caution>.
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Container Environment Variables
+
+The following environment variables influence operations in the
+subordinate C<dstar-buildhost> container:
+
+B<CONTINUE HERE>
+
+=over 4
+
+=item SSH_AUTH_SOCK
+
+ssh-agent socket (should probably be a bind-mount)
+
+=item dstar_init_hooks
+
+default INIT_HOOK_DIRS (=)
+
+=item dstar_build_uid
+
+user-id in host system (=`id -u`)
+
+=item dstar_build_gid
+
+group-id in host system (=`id -g`)
+
+=item dstar_build_umask
+
+umask for build process (=022)
+
+
+=item dstar_corpora
+
+corpora to operate on (whitespace-separated list)
+
+=item dstar_corpus
+
+alias for dstar_corpora (=)
+
+=item dstar_archive_dir
+
+target directory for archive-* targets (=)
+
+
+=item dstar_sync_resources
+
+sync resources (auto|no|force; default=auto)
+
+=item dstar_sync_rcfiles
+
+resources to be synchronized (default:empty -> all)
+
+=item dstar_checkout_corpus_opts
+
+options for dstar-checkout-corpus.sh (=-force -local-config)
+
+=item dstar_build_sh_opts
+
+options for CORPUS/build/build.sh (=-echo-preset=make-info)
+
+=item dstar_cabx_run
+
+cabx expanders to run (=dstar-http-9096)
+
+=item dstar_relay_conf
+
+socat relay configuration (=/etc/default/dstar-relay)
+
+
+=item VAR
+
+all environment variables are passed down to child processes (e.g. make)
+
+=back
+
+=cut
+
+
+
+##======================================================================
+=pod
+
+=head1 CONTINUE HERE
+
+=cut
+  
+##--------------------------------------------------------------
+=pod
+
 =head2 continue here
+
+=cut
+
+##======================================================================
+=pod
+
+=head1 EXAMPLES
 
 =cut
 
@@ -283,8 +723,8 @@ Example output (trimmed):
 =head2 docker storage drivers
 
 Problems with runtime cross-layer copy operations have been observed using the C<overlay2> docker storage driver,
-which is the default in some installations.  The C<aufs> docker storage driver does not exhibit
-these problemes; see https://docs.docker.com/storage/storagedriver/aufs-driver/ for details.
+which is the default in recent version of the C<docker-ce> package.  The C<aufs> docker storage driver does not exhibit
+these problemes; see L<https://docs.docker.com/storage/storagedriver/aufs-driver/> for details.
 Typically, the C<aufs> driver can be enabled by editing the file F</etc/docker/daemon.json> to contain:
 
 
@@ -344,6 +784,7 @@ for details on docker options.
 
 =head1 AUTHOR
 
-Bryan Jurish E<lt>jurish@bbaw.deE<gt> created the ddc-dstar corpus administration system.
+Bryan Jurish E<lt>jurish@bbaw.deE<gt> created the ddc-dstar corpus administration system
+and the C<dstar-gantry> wrappers.
 
 =cut
