@@ -1,0 +1,349 @@
+=encoding utf8
+
+=head1 NAME
+
+dstar-gantry - convenience wrapper for container-based dstar corpus operations
+
+=cut
+
+##======================================================================
+=pod
+
+=head1 SYNOPSIS
+
+ dstar-gantry.sh [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]]]
+
+ dstar-gantry.sh Options (GANTRY_OPTS):
+   -h, -help             # this help message
+   -n, -dry-run          # just print what we would do
+   -c CORPUS             # dstar corpus label (required for most operations)
+   -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
+   -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
+   -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/(current/) if present)
+   -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
+   -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
+   -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
+   -i IMAGE              # use docker image IMAGE (default=lex.dwds.de:443/dstar/dstar-buildhost:latest)
+   -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
+   -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
+   -v /PATH:/MOUNT       # volume options are are passed to docker-run(1) -v
+   -x CABX_RUN           # cabx servers for container 'run' action (default=dstar-http-9096)
+   -p HTTP_PORT          # map container port 80 to host HTTP_PORT for 'run' action
+   -u USER               # build user or UID (default=ddc-admin)
+   -g GROUP              # build group or GID (default=ddc-admin)
+
+ dstar-gantry.sh Actions (GANTRY_ACTION(s)):
+   init                  # (re-)initialize persistent sparse local DSTAR_ROOT checkout
+   sync                  # syncronize local DSTAR_ROOT checkout via `svn update`
+   pull                  # retrieve selected IMAGE from docker registry (may require `docker login`)
+   gc                    # clean up stale local dstar-buildhost docker images
+   ...                   # other actions are passed to container docker/build script (see below)
+
+ Docker Options (DOCKER_OPTS): see docker-run(1).
+
+ Container docker/build Arguments (BUILD_ARGS; see also `dstar-gantry.sh help`):
+   help                  # show help for container docker/build script
+   self-test             # run rudimentary self-test(s)
+   build                 # index a corpus in CORPUS_ROOT/build from sources in CORPUS_SRC/
+   update                # update an existing index in CORPUS_ROOT/build/ from CORPUS_SRC/
+   update-meta           # update index metadata in in CORPUS_ROOT/build/ from CORPUS_SRC/
+   test                  # test a corpus build in CORPUS_ROOT/build/
+   archive-build         # archive CORPUS_ROOT/build/ to ${dstar_archive_dir}
+   archive-publish       # archive publishable corpus data to ${dstar_archive_dir}
+   install               # install CORPUS_ROOT/build/ to CORPUS_ROOT/{server,web}/
+   publish               # deploy CORPUS_ROOT/build/ to production host(s)
+   run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
+   exec CMD...           # just execute CMD... in container
+
+ Useful container mounts under /dstar:
+  config/                # global dstar configuration (read-only)
+  resources/             # CAB analysis resources (read-only)
+  sources/CORPUS/        # corpus TEI-XML sources (read-only)
+  corpora/CORPUS/        # corpus instance checkout (read-write, required)
+  corpora/CORPUS/config.local
+                         # local corpus configuration overrides
+
+ Host Environment Variables:
+   SSH_AUTH_SOCK         # (required) ssh-agent(1) socket
+
+ Container Environment Variables:
+  SSH_AUTH_SOCK               # ssh-agent socket (should probably be a bind-mount)
+  dstar_init_hooks            # default INIT_HOOK_DIRS (=)
+
+  dstar_build_uid             # user-id in host system (=`id -u`)
+  dstar_build_gid             # group-id in host system (=`id -g`)
+  dstar_build_umask           # umask for build process (=022)
+
+  dstar_corpora               # corpora to operate on (whitespace-separated list)
+  dstar_corpus                # alias for dstar_corpora (=)
+  dstar_archive_dir           # target directory for archive-* targets (=)
+
+  dstar_sync_resources        # sync resources (auto|no|force; default=auto)
+  dstar_sync_rcfiles          # resources to be synchronized (default:empty -> all)
+  dstar_checkout_corpus_opts  # options for dstar-checkout-corpus.sh (=-force -local-config)
+  dstar_build_sh_opts         # options for CORPUS/build/build.sh (=-echo-preset=make-info)
+  dstar_cabx_run              # cabx expanders to run (=dstar-http-9096)
+  dstar_relay_conf            # socat relay configuration (=/etc/default/dstar-relay)
+
+  ...                         # all environment variables are passed down to child processes (e.g. make)
+
+=cut
+
+##======================================================================
+=pod
+
+=head1 DESCRIPTION
+
+The C<dstar-gantry> project provides a thin top-level wrapper script
+(C<dstar-gantry.sh>) for
+D* corpus operations using the latest C<dstar-buildhost> docker image
+pulled from the ZDL docker registry at https://lex.dwds.de:443.
+The C<dstar-buildhost> docker container invoked
+by C<dstar-gantry.sh> can simulate any of the
+L<C<BUILDHOST>|$doc/README.html#BUILDHOST>,
+L<C<RUNHOST>|$doc/README.html#RUNHOST>,
+and/or L<C<WEBHOST>|$doc/README.html#WEBHOST> D* host roles,
+but is mostly intended to act as a (virtual) C<BUILDHOST>.
+
+=cut
+
+##======================================================================
+=pod
+
+=head1 INSTALLATION
+
+This section describes the installation procedure for debian-based linux machines.
+You can probably run gantry on other architectures, but I can't tell you how to do that.
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Requirements
+
+=over 4
+
+=item debian packages
+
+ bash
+ openssh-client
+ subversion
+
+=item docker
+
+You will need L<docker|https://docs.docker.com/get-docker/> installed on your local machine
+with an appropriate L<docker storage driver|docker storage drivers>,
+and the requisite L<permissions|https://docs.docker.com/engine/install/linux-postinstall/>
+for your local user account.
+
+=item registry credentials
+
+If you wish to make use of gantry's C<pull> action to acquire the
+lastest C<dstar-buildhost> docker image (recommended), you will
+need credentials (username and password) for the ZDL docker registry,
+and will need to manually log into the registry
+using L<C<docker login>|https://docs.docker.com/engine/reference/commandline/login/>:
+
+ $ docker login https://lex.dwds.de:443
+ Username: zdl
+ Password: XXXXXXX
+ Login Succeeded
+
+=item ssh-agent
+
+You will need an accessible L<ssh-agent|https://en.wikipedia.org/wiki/Ssh-agent>
+for your local user account as indicated by the C<SSH_AUTH_SOCK> environment variable,
+with at least one registered identity (public+private key-pair).
+
+In order to avoid password prompts during sparse subversion checkouts on the local host
+(recommended), your ssh identity should be authorized for password-free access to
+C<${USER}@odo.dwds.de>, where I<${USER}> is your username.
+
+In order to avoid password prompts during implicit subversion operations in the
+C<dstar-buildhost> container invoked by gantry (recommended), your ssh identity should be
+authorized for password-free access to C<ddc@odo.dwds.de>.
+
+If you wish to make use of gantry's
+automatic resource synchronization features (default, recommended),
+your identity should be authorized for password-free access
+to C<${CABRC_RSYNC_USER}@${CABRC_SYNCHOST}> (typically C<ddc@data.dwds.de>).
+
+In order to publish corpus indices via gantry to remote RUNHOSTs and/or WEBHOSTs,
+your identity will need to be authorized for password-free access to
+C<${PUBLISH_DEST}> and/or C<${WEB_PUBLISH_DEST}> (typically C<ddc-admin@{data,kaskade}.dwds.de>).
+
+See L<C<dstar/doc/README_ssh.txt>|$doc/README_ssh.html> for more details.
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Installation Procedure
+
+=head3 download gantry
+
+Checkout the gantry project itself from SVN to your local machine,
+for example to $HOME/dstar-gantry:
+
+ $ svn co svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
+
+Example output (trimmed):
+
+ A    ~/dstar-gantry/bin
+ A    ~/dstar-gantry/bin/dstar-gantry.sh
+ ...
+ Checked out revision 32806.
+
+=head3 PATH (optional)
+
+Put the C<dstar-gantry.sh> script in your C<PATH> (optional, recommended):
+
+ $ export PATH=$PATH:$HOME/dstar-gantry/bin
+
+... or just symlink it into some directory already in your C<PATH>:
+
+ $ sudo ln -s $HOME/dstar-gantry/bin/*.sh /usr/local/bin
+
+=head3 initialize persistent data
+
+Initialize persistent sparse local dstar checkout in $HOME/dstar:
+
+ $ dstar-gantry.sh init
+
+Example output (trimmed):
+
+ dstar-gantry.sh: INFO: init: (re-)initializing sparse persistent DSTAR_ROOT=/home/USER/dstar
+ dstar-gantry.sh: CMD: svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk /home/USER/dstar
+ A    /home/USER/dstar/.DSTAR_ROOT
+ ...
+ dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
+
+=head3 retrieve docker image
+
+Download the latest C<dstar-buildhost> image from the ZDL docker registry:
+
+ $ dstar-gantry.sh pull
+
+Example output (trimmed):
+
+ dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
+ latest: Pulling from dstar/dstar-buildhost
+ 
+ Digest: sha256:e5b47f225619e6b433df0dbcdcdfdfdb93e703893ceb6ed9f78f338e77358a77
+ Status: Downloaded newer image for lex.dwds.de:443/dstar/dstar-buildhost:latest
+ lex.dwds.de:443/dstar/dstar-buildhost:latest
+ dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
+
+=head3 self-test
+
+Run rudimentary self-tests:
+
+ $ dstar-gantry.sh self-test
+
+Example output (trimmed):
+
+ dstar-gantry.sh: INFO: using DSTAR_ROOT=/home/USER/dstar
+ dstar-gantry.sh: WARNING: neither CORPUS nor CORPUS_ROOT specified (use the -c or -C options)
+ dstar-gantry.sh: WARNING: no CORPUS_SRC directory specified (expect trouble if you're trying to (re-)index a corpus)
+ dstar-gantry.sh: INFO: setting RESOURCE_DIR=/local/home/ddc-dstar/dstar/resources
+ dstar-gantry.sh: WARNING: CORPUS_ROOT= does not exist (continuing anyway, YMMV)
+ dstar-gantry.sh: CMD: docker run --rm -ti --name=dstar-gantry- -v/run/user/1000/ssh-agent.sock:/tmp/ssh-auth-gantry.sock -eSSH_AUTH_SOCK=/tmp/ssh-auth-gantry.sock -v/local/home/ddc-dstar/dstar/resources:/dstar/resources -edstar_build_uid=1008 -edstar_build_gid=1008 -eDSTAR_USER=moocow -edstar_cabx_run=dstar-http-9096 -edstar_corpora= lex.dwds.de:443/dstar/dstar-buildhost:latest /dstar/docker/build self-test
+ ...
+ build INFO: running self-test(s)
+ build INFO: TEST: checking for ssh-agent socket (dstar-nice.sh test -w '/tmp/ssh-agent-wrap.sock')
+ build INFO: TEST: checking for ssh-agent identity (test -n "`dstar-nice.sh ssh-add -l | fgrep -v \"no identities\"`")
+ build INFO: TEST: svn+ssh access (dstar-nice.sh svn st -u .DSTAR_ROOT)
+ Status against revision:  32806
+ build INFO: TEST: sync resources (dstar-nice.sh make -C resources sync-test)
+ make: Entering directory '/home/ddc-dstar/dstar/resources'
+ make: Leaving directory '/home/ddc-dstar/dstar/resources'
+ build INFO: TEST: publish to default runhost (ssh "ddc-admin@data.dwds.de" /bin/true)
+ build INFO: TEST: publish to default webhost (ssh "ddc-admin@kaskade.dwds.de" /bin/true)
+ build INFO: self-test: all tests passed (6/6)
+
+
+=cut
+
+
+##--------------------------------------------------------------
+=pod
+
+=head2 continue here
+
+=cut
+
+
+##======================================================================
+=pod
+
+=head1 CAVEATS
+
+=head2 docker storage drivers
+
+Problems with runtime cross-layer copy operations have been observed using the C<overlay2> docker storage driver,
+which is the default in some installations.  The C<aufs> docker storage driver does not exhibit
+these problemes; see https://docs.docker.com/storage/storagedriver/aufs-driver/ for details.
+Typically, the C<aufs> driver can be enabled by editing the file F</etc/docker/daemon.json> to contain:
+
+
+ {
+  "storage-driver":"aufs"
+ }
+
+... and re-starting any docker services on the host machine.
+
+=cut
+
+##======================================================================
+=pod
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+The L<C<dstar/doc/README.txt>|$doc/README.html> and the references mentioned therein
+describe the D* framework in more detail.  Most of the D* documentation
+available under L<D* README|$doc/> predates the existence of C<dstar-gantry>
+and of the C<dstar-buildhost> image itself, and in the context of
+C<dstar-gantry> should be interpreted relative to the running C<dstar-buildhost>
+container.
+
+=item *
+
+L<C<dstar/doc/README_sources.txt>|$doc/README_sources.html>
+contains details on corpus source TEI-XML conventions.
+
+=item *
+
+L<C<dstar/doc/README_ssh.txt>$doc/README_ssh.html>
+may provide some help setting up a new ssh identity.  Note that C<dstar-gantry> requires
+an accessible C<ssh-agent>, so if you want to run C<dstar-gantry>
+on your local workstation or some other non-production host, you may
+need to L<run ssh-agent manually|$doc/README_ssh.html#Manual-ssh-agent-daemon>.
+
+=item *
+
+L<C<dstar/doc/Changes.txt>|$doc/Changes.html>
+contains a manual log of D*-related changes.
+
+=item *
+
+See the L<C<docker-run>|https://docs.docker.com/engine/reference/run/> manpage
+for details on docker options.
+
+=back
+
+=cut
+
+##======================================================================
+=pod
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>jurish@bbaw.deE<gt> created the ddc-dstar corpus administration system.
+
+=cut
