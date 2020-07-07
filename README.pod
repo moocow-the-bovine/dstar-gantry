@@ -72,7 +72,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
 
   dstar_build_uid             # user-id in host system (=`id -u`)
   dstar_build_gid             # group-id in host system (=`id -g`)
-  dstar_build_umask           # umask for build process (=022)
+  dstar_build_umask           # umask for build process (=002)
 
   dstar_corpora               # corpora to operate on (whitespace-separated list)
   dstar_corpus                # alias for dstar_corpora (=)
@@ -97,7 +97,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
 The C<dstar-gantry> project provides a thin top-level wrapper script
 (C<dstar-gantry.sh>) for
 D* corpus operations using the latest C<dstar-buildhost> docker image
-pulled from the ZDL docker registry at https://lex.dwds.de:443.
+pulled from the ZDL docker registry at C<https://lex.dwds.de:443>.
 The C<dstar-buildhost> docker container invoked
 by C<dstar-gantry.sh> can simulate any of the
 L<C<BUILDHOST>|$doc/README.html#BUILDHOST>,
@@ -165,7 +165,8 @@ with at least one registered identity (public+private key-pair).
 
 In order to avoid password prompts during sparse subversion checkouts on the local host
 (recommended), your ssh identity should be authorized for password-free access to
-C<${USER}@odo.dwds.de>, where I<${USER}> is your username.
+C<odo.dwds.de>, as whatever user your L<C<~/.ssh/config>|https://linux.die.net/man/5/ssh_config>
+specifies (by default the same username as on your local machine).
 
 In order to avoid password prompts during implicit subversion operations in the
 C<dstar-buildhost> container invoked by gantry (recommended), your ssh identity should be
@@ -321,22 +322,20 @@ C</dstar/docker/build> script in the invoked C<dstar-buildhost> container.
 
 =head2 Gantry Options
 
-=over 4
-
-=item -h, -help
+=head3 -h, -help
 
 Display a brief help message.
 
-=item -n, -dry-run
+=head3 -n, -dry-run
 
 If specified, just prints what would have been done, but doesn't perform any destructive actions.
 
-=item -c CORPUS
+=head3 -c CORPUS
 
 Specifies the dstar corpus label ("collection label") for the operand corpus.
 Required for most operations.
 
-=item -d DSTAR_ROOT
+=head3 -d DSTAR_ROOT
 
 Specifies the host path used for (sparse) persistent dstar superstructure (default=C<$HOME/dstar>).
 By default, persistent CAB resources and index data will be created here.  The directory
@@ -349,50 +348,53 @@ and L<C<resources/>|https://kaskade.dwds.de/dstar/doc/README.html#resources>
 subdirectories.
 
 
-=item -C CORPUS_ROOT
+=head3 -C CORPUS_ROOT
 
-Specifies the host path used for dstar corpus checkout (default=C<DSTAR_ROOT/corpora/CORPUS>).
+Specifies the host path used for dstar corpus checkout (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/corpora/L<CORPUS|/-c CORPUS>>).
 Implies L<C<-v CORPUS_ROOT:/dstar/corpora/CORPUS>|/-v /PATH:/MOUNT>.
 
-=item -S CORPUS_SRC
+=head3 -S CORPUS_SRC
 
-Specifies the host path where dstar corpus sources reside (default=C<DSTAR_ROOT/sources/CORPUS/current/>
-if present, otherwise C<DSTAR_ROOT/sources/CORPUS/> if present, otherwise required).
+Specifies the host path where dstar corpus sources reside (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/sources/L<CORPUS|/-c CORPUS>/current/>
+if present, otherwise C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/sources/L<CORPUS|/-c CORPUS>/> if present, otherwise required).
 Implies L<C<-v CORPUS_SRC:/dstar/sources/CORPUS:ro>|/-v /PATH:/MOUNT>.
 
-=item -R RESOURCES_DIR
+=head3 -R RESOURCES_DIR
 
-Specifies the host path for persistent CAB resources (default=C<DSTAR_ROOT/resources/> if present).
+Specifies the host path for persistent CAB resources (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/resources/> if present).
 Implies L<C<-v RESOURCES_DIR:/dstar/resources>|/-v /PATH:/MOUNT>.
 
-=item -RO
+=head3 -RO
 
-If specified and L<RESOURCES_DIR|/-R RESOURCES_DIR> is present on the local machine,
-then C<RESOURCES_DIR> will be mounted read-only in the container, which suppresses resource
-synchronization by container (saves synchronization overhead and ensures resource consistency).
+If the C<-RO> option is specified and C<L<RESOURCES_DIR|/-R RESOURCES_DIR>> is present on the local machine,
+then C<L<RESOURCES_DIR|/-R RESOURCES_DIR>> will be mounted read-only in the container, which suppresses resource
+synchronization in the running container.  If you want each container invocation to ensure that its
+CAB resources are fully up-to-date, you should B<NOT> use this option.
+It can be useful to bypass synchronization overhead, minimize network bandwidth, and ensure resource consistency
+for post-hoc updates of existing corpora though.  Use with consideration.
 
-=item -f RCFILE
+=head3 -f RCFILE
 
 Reads gantry configuration variables from C<RCFILE> on the host machine.
 C<RCFILE> is evaluated as bash source; default=C<$HOME/.dstar-gantry.rc>.
 
-=item -i IMAGE
+=head3 -i IMAGE
 
 Specifies the docker image to be L<pulled|/pull> and/or invoked via
 L<C<docker run>|https://docs.docker.com/engine/reference/run/>.
 Default is C<lex.dwds.de:443/dstar/dstar-buildhost:latest>.
 
-=item -e VAR=VALUE
+=head3 -e VAR=VALUE
 
 Specify an environment variable override for the container
 via L<C<docker run -e VAR=VALUE>|https://docs.docker.com/engine/reference/run/#env-environment-variables>.
 
-=item -E ENV_FILE
+=head3 -E ENV_FILE
 
 Specify a file containing environment variable overrides for the container,
 via L<C<docker run --env-file ENV_FILE>|https://docs.docker.com/engine/reference/run/#env-environment-variables>.
 
-=item -v /PATH:/MOUNT
+=head3 -v /PATH:/MOUNT
 
 Mounts the host directory C</PATH> as a volume into the container at C</MOUNT>,
 passed to L<C<docker_run -v>|https://docs.docker.com/engine/reference/run/#volume-shared-filesystems>.
@@ -402,29 +404,27 @@ Potentially useful volume mounts C</MOUNT> include:
   /dstar/config/            # global dstar configuration (read-only)
   /dstar/resources/         # CAB analysis resources (read-only)
 
-=item -x CABX_RUN
+=head3 -x CABX_RUN
 
 Select container-internal CAB server(s) to start for container L<run|/run> action;
 default=C<dstar-http-9096>.
 
-=item -p HTTP_PORT
+=head3 -p HTTP_PORT
 
 Map containers port 80 to host port C<HTTP_PORT> for L<C<run>|/run> action
 via L<C<docker run -p HTTP_PORT:80>|https://docs.docker.com/engine/reference/run/#expose-incoming-ports>.
 
-=item -u USER
+=head3 -u USER
 
 Specifies username or UID of host build user (default=C<ddc-admin> if present,
 otherwise current user).
 If the UID does not exist in the container (it probably doesn't), it will be created.
 
-=item -g GROUP
+=head3 -g GROUP
 
 Specifies group name or GID of host build user (default=C<ddc-admin> if present,
 otherwise current group).
 If the GID does not exist in the container (it probably doesn't), it will be created.
-
-=back
 
 =cut
 
@@ -433,21 +433,19 @@ If the GID does not exist in the container (it probably doesn't), it will be cre
 
 =head2 Gantry Actions
 
-=over 4
-
-=item init
+=head3 init
 
 (Re-)initializes persistent sparse local L<C<DSTAR_ROOT>|/-d DSTAR_ROOT> checkout
 on the local host (usually C<$HOME/dstar>).
 You should only have to call this once per host,
 before performing any other C<dstar-gantry.sh> actions.
 
-=item sync
+=head3 sync
 
 Synchronizes the persistent sparse local L<C<DSTAR_ROOT>|/-d DSTAR_ROOT> checkout
 on the local host (usually C<$HOME/dstar>) via `svn update`.  You should typically
 call this before each C<dstar-gantry.sh> session, in order to ensure that your
-C<DSTAR_ROOT> checkout is up-to-date.
+C<L<DSTAR_ROOT|/-d DSTAR_ROOT>> checkout is up-to-date.
 
 Note that this action does B<NOT> synchronize gantry itself (maybe it will someday),
 so to ensure that your C<dstar-gantry.sh> project is up-to-date, you should update
@@ -455,22 +453,20 @@ it manually:
 
  $ svn update ~/dstar-gantry
 
-=item pull
+=head3 pull
 
 Retrieves the selected L<C<dstar-buildhost> IMAGE|/-i IMAGE> from
 the ZDL docker registry.  May require a preceding L<C<docker login>|/registry credentials>.
 
-=item gc
+=head3 gc
 
 Cleans up stale C<dstar-buildhost> docker images on the local host.
 
-=item L<BUILD_ACTION...|/Container Actions>
+=head3 L<BUILD_ACTION...|/Container Actions>
 
 Other non-option arguments (not beginning with a dash "-")
 are passed verbatim as L</Container Actions> to the
 C</dstar/docker/build> script in the suborinate container.
-
-=back
 
 =cut
 
@@ -483,9 +479,9 @@ Docker options following the first C<--> on the C<dstar-gantry.sh> command-line 
 verbatim to the L<C<docker run>|https://docs.docker.com/engine/reference/run/> subprocess
 for the selected L<C<dstar-buildhost> IMAGE|/-i IMAGE>.  If you need to tweak the
 C<docker run> call with more than the
-C<-e|/-e VAR=VALUE>,
-C<-E|/-E ENV_FILE>,
-or C<-v|/-v /PATH:/MOUNT>
+L<C<-e VAR=VALUE>|/-e VAR=VALUE>,
+L<C<-E ENV_FILE>|/-E ENV_FILE>,
+or L<C<-v /PATH:/MOUNT>|/-v /PATH:/MOUNT>
 options, this is how to do it.
 
 =cut
@@ -501,46 +497,44 @@ L<C<dstar-buildhost>|/-i IMAGE> container.  See the output of
 C<dstar-gantry.sh help> for a synopsis of the C</dstar/docker/build> calling
 conventions.
 
-=over 4
-
-=item help
+=head3 help
 
 Shows a brief help message from the container C</dstar/docker/build> script.
 
-=item self-test
+=head3 self-test
 
 Runs some rudimentary self-test(s) and reports results.
 Not all self-tests need to pass in order for C<dstar-gantry.sh> to be useful;
 the functionality you need depends on what you're trying to do
 and your personal preferences.
 
-=item build
+=head3 build
 
 (Re-)indexes a corpus in
-L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
 from TEI-XML sources in
 L<C<CORPUS_SRC/>|/-S CORPUS_SRC>.
 This is basically a wrapper for
 L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
 and
-L<C<CORPUS_ROOT/build/build.sh -build>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+L<C<CORPUS_ROOT/build/build.sh -build>|$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
 i.e.
-a C<full corpus re-build|$doc/talks/corpus-ops-2019/#howto-build>.
+a L<full corpus re-build|$doc/talks/corpus-ops-2019/#howto-build>.
 
-=item update
+=head3 update
 
 Updates an existing corpus index in
-L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
 from TEI-XML sources in
 L<C<CORPUS_SRC/>|/-S CORPUS_SRC>.
 This is basically a wrapper for
 L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
 and
-L<C<CORPUS_ROOT/build/build.sh -update>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+L<C<CORPUS_ROOT/build/build.sh -update>|$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
 i.e.
-C<incremental corpus update|https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-update>
+L<incremental corpus update|https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-update>
 
-=item update-meta
+=head3 update-meta
 
 Updates metadata for an existing corpus index in
 L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
@@ -549,66 +543,70 @@ L<C<CORPUS_SRC/>|/-S CORPUS_SRC>.
 This is basically a wrapper for
 L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
 and
-L<C<CORPUS_ROOT/build/build.sh -update-meta>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+L<C<CORPUS_ROOT/build/build.sh -update-meta>|$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
 i.e.
-C<corpus metadata update|$doc/HOWTO_build.html#Consistency-Testing>.
+L<corpus metadata update|$doc/HOWTO_build.html#Consistency-Testing>.
 
-=item test
+=head3 test
 
 Runs automated consistency tests for an existing corpus build in
-L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>.
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/test/>.
 This is basically a wrapper for
 L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
 and
-L<C<CORPUS_ROOT/build/build.sh -test>|/$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
+L<C<CORPUS_ROOT/build/build.sh -test>|$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>,
 i.e.
-C<corpus consistency tests|$doc/HOWTO.html#Consistency-Tests>.
+L<corpus consistency tests|$doc/HOWTO.html#Consistency-Tests>.
 
-=item archive-build
+=head3 archive-build
 
 Archives an existing
-L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
-to C<${dstar_archive_dir}>
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
+to L<C<${dstar_archive_dir}>|/dstar_archive_dir> if set,
+otherwise to the (corpus-specific) directory specified by the 
+C<ARC_BUILD_DIR> dstar make variable; 
+usually C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>.
 
-=item archive-publish
+=head3 archive-publish
 
 Archives publishable corpus data 
-from L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
-to C<${dstar_archive_dir}>.
+from C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
+to L<C<${dstar_archive_dir}>|/dstar_archive_dir> if set,
+otherwise to the (corpus-specific) directory specified by the 
+C<ARC_PUBLISH_DIR> dstar make variable; 
+usually C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>.
 
-=item install
+=head3 install
 
 Installs an existing corpus index from
-L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
 to
-L<C<CORPUS_ROOT/{server,web}>|/-C CORPUS_ROOT>
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/{server,web}/>
 within the running C<dstar-buildhost> container.
 
-=item publish
+=head3 publish
 
 Deploy an existing corpus index from
-L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
 to production host(s) as selected by the
 dstar make variables
 C<PUBLISH_DEST> and/or C<WEB_PUBLISH_DEST>.
 
-=item run
+=head3 run
 
 Runs a L<C<CORPUS>|/-c CORPUS> instance
 from
-L<C<CORPUS_ROOT/{server,web}>|/-C CORPUS_ROOT>
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/{server,web}/>
 in the temporary container.
 For this action, you will probably also want to specify
 L<C<-p HTTP_PORT>|/-p HTTP_PORT>.
 If specified, this must be the last container action executed.
 
-=item exec CMD
+=head3 exec CMD
 
 Just executs C<CMD...> in the subordinate container.
 If specified, this must be the final container action executed.
 Use with B<extreme caution>.
-
-=back
 
 =cut
 
@@ -620,90 +618,147 @@ Use with B<extreme caution>.
 The following environment variables influence operations in the
 subordinate C<dstar-buildhost> container:
 
-B<CONTINUE HERE>
+=head3 SSH_AUTH_SOCK
 
-=over 4
+The communication socket for L<ssh-agent|/ssh-agent> on the docker host
+will be bind-mounted into the container as
+C</tmp/ssh-auth-gantry.sock>.
+The embedded C</dstar/docker/build> script will typically
+take care of wrapping that socket
+as C</tmp/ssh-agent-wrap.sock>, to ensure appropriate permissions
+for the build L<USER|/-u USER> and L<GROUP|/-g GROUP> within
+the container itself.
 
-=item SSH_AUTH_SOCK
+=head3 dstar_init_hooks
 
-ssh-agent socket (should probably be a bind-mount)
+Default initialization hook directory for the embedded C</dstar/docker/build>
+script; typically empty.  If you need to perform additional actions
+on the container startup, you can set this variable to the container path of
+a (mounted) directory containing hooks appropriate for the
+L<C<run-parts>|https://manpages.debian.org/buster/debianutils/run-parts.8.en.html>
+system utility.  If no C<INIT_HOOK_DIR(s)> are specified on the command-line or
+by this environment variable, hooks are run from any directory matching
 
-=item dstar_init_hooks
+ /home/ddc-dstar/dstar/docker/build.d/
+ /opt/dstar-build*/
 
-default INIT_HOOK_DIRS (=)
+=head3 dstar_build_uid
 
-=item dstar_build_uid
+Numeric UID of build user; should be automatically populated by gantry
+from the L</-u USER> option.
+If no user with this UID exists in the container (likely), a temporary
+user C<dstar-build> will be created during container startup.
 
-user-id in host system (=`id -u`)
+=head3 dstar_build_gid
 
-=item dstar_build_gid
+Numeric GID of build group; should be automatically populated by gantry
+from the L</-g GROUP> option.
+If no group with this GID exists in the container (likely), a temporary
+group C<dstar-build> will be created during container startup
+and the C<L<dstar_build_uid|/dstar_build_uid>> user approrpriately modified.
 
-group-id in host system (=`id -g`)
+=head3 dstar_build_umask
 
-=item dstar_build_umask
+Specifies the permissions umask for the build process.
+The default is typically specified in the C<dstar-buildhost> docker image
+itself as C<002>, which creates new files with the group-writable flag set.
+If you're feeling paranoid, you can set this to C<022> or even C<077>,
+but you may encounter problems down the line.
 
-umask for build process (=022)
+=head3 dstar_corpora
 
+Specifies the corpus or corpora to operate on
+as a whitespace-separated list.
+Typcically set by C<dstar-gantry.sh> itself
+to L<C<CORPUS>|/-c CORPUS>.
+You probably don't want to set this yourself.
 
-=item dstar_corpora
+=head3 dstar_corpus
 
-corpora to operate on (whitespace-separated list)
+Alias for L</dstar_corpora>.
 
-=item dstar_corpus
+=head3 dstar_archive_dir
 
-alias for dstar_corpora (=)
-
-=item dstar_archive_dir
-
-target directory for archive-* targets (=)
-
-
-=item dstar_sync_resources
-
-sync resources (auto|no|force; default=auto)
-
-=item dstar_sync_rcfiles
-
-resources to be synchronized (default:empty -> all)
-
-=item dstar_checkout_corpus_opts
-
-options for dstar-checkout-corpus.sh (=-force -local-config)
-
-=item dstar_build_sh_opts
-
-options for CORPUS/build/build.sh (=-echo-preset=make-info)
-
-=item dstar_cabx_run
-
-cabx expanders to run (=dstar-http-9096)
-
-=item dstar_relay_conf
-
-socat relay configuration (=/etc/default/dstar-relay)
-
-
-=item VAR
-
-all environment variables are passed down to child processes (e.g. make)
-
-=back
-
-=cut
+Target directory for
+L<|/archive-build> and L<|/archive-publish>
+actions.  Empty (unset) by default.
 
 
+=head3 dstar_sync_resources
 
-##======================================================================
-=pod
+Whether or not to synchronize CAB resources
+to L<C<RESOURCES_DIR>|/-R RESOURCES_DIR> on container startup.
+Accepts values C<auto> (default), C<no>, and C<force>.
+The default value (C<auto>) will only attempt to synchronize
+resources if L<C<RESOURCES_DIR>|/-R RESOURCES_DIR> is
+not mounted L<read-only|/-RO>.
 
-=head1 CONTINUE HERE
+=head3 dstar_sync_rcfiles
 
-=cut
-  
-##--------------------------------------------------------------
-=pod
+Specifies which CAB resources in
+L<C<RESOURCES_DIR>|/-R RESOURCES_DIR>
+are to by synchronized on container startup.
+If set and non-empty, overrides that value
+of the dstar make variable C<CABRC_FILES>
+for the implicit C<make -C /dstar/resources sync>
+syncronization call.  Empty by default, which
+uses the default value for C<CABRC_FILES>,
+and should cause all default CAB resources
+to be synchronized.
 
-=head2 continue here
+=head3 dstar_checkout_corpus_opts
+
+Specifies options for
+L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
+as implicitly called prior to any corpus operation.
+Default: C<-force -local-config>.
+
+=head3 dstar_build_sh_opts
+
+Specifies options for
+L<C<CORPUS_ROOT/build/build.sh -build>|$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>.
+Default: C<-echo-preset=make-info>.
+
+=head3 dstar_cabx_run
+
+Specifies which CAB server(s) to start in the container for the L<|/run> action
+as a whitespace-separated list.
+CAB server(s) are identified by the file basename up to the first dot (".")
+of the corresponding configuration file C</dstar/cabx/*.rc>.
+Default: C<dstar-http-9096>.
+Known values:
+
+ dstar-http-9096       - runtime expansion for synchronic German
+ dstar-http-dta-8088   - runtime expansion for historical German
+ dstar-http-dta-9099   - "public" web-service for historical German
+ dstar-http-en-9097    - runtime expansion for synchronic English
+ dstar-http-taghx-9098 - runtime lemma-equivalence using TAGH
+
+
+=head3 dstar_relay_conf
+
+Specifies container path containing L<C<socat>|https://linux.die.net/man/1/socat> relay
+configuration for C</dstar/init/dstar-relay.sh>.  Empty by default, which starts no relays.
+This option is useful for workstations with insufficient resources to run
+embedded L<CAB expansion servers|/dstar_cabx_run> locally, or in situations
+where L<C<RESOURCES_DIR>|/-R RESOURCES_DIR> is not fully populated in order
+to bind "virtual" local ports which forward all requests to a remote
+server daemon (e.g. C<data.dwds.de:9096> for the CAB expansion server
+C<dstar-http-9096>).  It can also be useful for testing "metacorpora"
+in a container without having to run all daughter corpora in the container as well;
+in this case, relays should be defined for each immediate daughter node
+of the metacorpus to be run.
+
+See
+L<C<dstar-buildhost:/dstar/init/etc_default_dstar_relay>|http://odo.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay> for syntax and more details.
+
+
+
+=head3 VAR
+
+All environment variables are passed down to child processes (e.g. L<C<dstar-nice.sh>|$doc/HOWTO.html#dstar-nice-sh>, C<make>);
+see L<"Customizable Variables" in C<README_build.txt>|$doc/README_build.html#Customizable-Variables>
+for more (non-exhaustive) details.
 
 =cut
 
@@ -711,6 +766,8 @@ all environment variables are passed down to child processes (e.g. make)
 =pod
 
 =head1 EXAMPLES
+
+=head2 TODO CONTINUE HERE
 
 =cut
 

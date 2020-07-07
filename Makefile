@@ -5,7 +5,9 @@ TARGETS = $(PODS:.pod=.txt) $(PODS:.pod=.html)
 
 DOCURL ?= https://kaskade.dwds.de/dstar/doc
 PODPP  ?= perl -pe 's{\$$doc}{$(DOCURL)}g;'
-POSTPP ?= perl -pe 's{\Qhref="$(DOCURL)\E}{href=".}g;'
+
+#POSTPP ?= perl -pe 's{\Qhref="$(DOCURL)\E}{href=".}g;'
+POSTPP ?= cat
 
 all: $(TARGETS)
 readme: $(TARGETS)
