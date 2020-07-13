@@ -12,6 +12,7 @@
 
 prog=$(basename "$0")
 dstar_root_default=~/dstar
+gantry_root=$(dirname "$0")/..
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
 gantry_version="0.0.1"
 gantry_svnid='
@@ -25,7 +26,7 @@ gantry_svnid='
 ##--------------------------------------------------------------
 show_version() {
     cat <<EOF
-$prog v$gantry_version
+$prog v$gantry_version by Bryan Jurish <jurish@bbaw.de>
 $gantry_svnid
 EOF
 }
@@ -58,7 +59,9 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
 
  $prog Actions (GANTRY_ACTION(s)):
    init                  # (re-)initialize persistent sparse local DSTAR_ROOT checkout
-   sync                  # syncronize local DSTAR_ROOT checkout via \`svn up\`
+   sync-host             # syncronize local DSTAR_ROOT checkout via \`svn update\`
+   sync-self             # syncronize local dstar-gantry checkout via \`svn update\`
+   sync                  # alise for 'sync-host' and 'sync-self'
    pull                  # retrieve selected IMAGE from docker registry (may require \`docker login\`)
    gc                    # clean up stale local dstar-buildhost docker images
    ...                   # other actions are passed to container docker/build script (see below)
@@ -208,15 +211,39 @@ act_gantry_init() {
 }
 
 ##--------------------------------------------------------------
+svn_wc_url() {
+    local wcpath="$1"
+    svn info "$wcpath" 2>/dev/null | grep '^URL:' | cut -d' ' -f2-
+}
+act_gantry_sync_self() {
+    ##-- sync: self
+    local uppath=$(readlink -f "$gantry_root")
+    local upurl=$(svn_wc_url "$uppath")
+    if [ -z "$upurl" ] ; then
+	warn "gantry path path '$uppath' does not appear to be a working copy - cannot self-synchronize"
+	return 1
+    fi
+
+    vinfo "updating gantry SVN checkout at \`$uppath' from \`$upurl'"
+    runcmd svn update "$uppath"
+}
+
+##--------------------------------------------------------------
 [ -z "$gantry_docker_registry_path" ] \
     && gantry_docker_registry_path=/dstar
-act_gantry_sync() {
+act_gantry_sync_host() {
     ##-- sync: DSTAR_ROOT
     set_dstar_root
     [ -d "$DSTAR_ROOT" ] \
 	|| die "sync: missing DSTAR_ROOT=$DSTAR_ROOT (did you forget to run \`$prog init\`?)"
     vinfo "synchronizing host DSTAR_ROOT=$DSTAR_ROOT"
     runordie svn up "$DSTAR_ROOT"
+}
+
+##--------------------------------------------------------------
+act_gantry_sync() {
+    act_gantry_sync_host
+    act_gantry_sync_self
 }
 
 ##--------------------------------------------------------------
@@ -319,7 +346,9 @@ while [ $# -gt 0 ] ; do
 	##
 	##-- gantry actions
 	gantry-init|host-init|init) gantry_actions[${#gantry_actions[@]}]=act_gantry_init;;
-	gantry-sync|host-sync|sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync;;
+	gantry-sync|sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync;;
+	gantry-sync-host|sync-host|host-sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync_host;;
+	gantry-sync-self|sync-self|self-sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync_self;;
 	gantry-pull|docker-pull|pull) gantry_actions[${#gantry_actions[@]}]=act_gantry_pull;;
 	gantry-gc|docker-gc|gc) gantry_actions[${#gantry_actions[@]}]=act_gantry_gc;;
 	##
