@@ -12,7 +12,7 @@
 
 prog=$(basename "$0")
 dstar_root_default=~/dstar
-gantry_root=$(dirname "$0")/..
+gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
 gantry_version="0.0.1"
 gantry_svnid='
