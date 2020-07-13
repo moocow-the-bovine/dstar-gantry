@@ -48,6 +48,8 @@
       <li><a href="#Gantry-Actions">Gantry Actions</a>
         <ul>
           <li><a href="#init">init</a></li>
+          <li><a href="#sync-host">sync-host</a></li>
+          <li><a href="#sync-self">sync-self</a></li>
           <li><a href="#sync">sync</a></li>
           <li><a href="#pull">pull</a></li>
           <li><a href="#gc">gc</a></li>
@@ -92,6 +94,11 @@
       </li>
     </ul>
   </li>
+  <li><a href="#"></a>
+    <ul>
+      <li><a href="#Gantry-Configuration-Variables">Gantry Configuration Variables</a></li>
+    </ul>
+  </li>
   <li><a href="#EXAMPLES">EXAMPLES</a>
     <ul>
       <li><a href="#TODO-CONTINUE-HERE">TODO CONTINUE HERE</a></li>
@@ -100,6 +107,8 @@
   <li><a href="#CAVEATS">CAVEATS</a>
     <ul>
       <li><a href="#docker-storage-drivers">docker storage drivers</a></li>
+      <li><a href="#build-responsibly">build responsibly</a></li>
+      <li><a href="#log-changes">log changes</a></li>
     </ul>
   </li>
   <li><a href="#SEE-ALSO">SEE ALSO</a></li>
@@ -135,7 +144,9 @@
 
  dstar-gantry.sh Actions (GANTRY_ACTION(s)):
    init                  # (re-)initialize persistent sparse local DSTAR_ROOT checkout
-   sync                  # syncronize local DSTAR_ROOT checkout via `svn update`
+   sync-host             # syncronize local DSTAR_ROOT checkout via `svn update`
+   sync-self             # syncronize local DSTAR_ROOT checkout via `svn update`
+   sync                  # alias for &#39;sync-host&#39; and &#39;sync-self&#39;
    pull                  # retrieve selected IMAGE from docker registry (may require `docker login`)
    gc                    # clean up stale local dstar-buildhost docker images
    ...                   # other actions are passed to container docker/build script (see below)
@@ -395,7 +406,7 @@
 
 <h3 id="C-CORPUS_ROOT">-C CORPUS_ROOT</h3>
 
-<p>Specifies the host path used for dstar corpus checkout (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/corpora/<a href="#c-CORPUS">CORPUS</a></code>). Implies <a href="#v-PATH:-MOUNT"><code>-v CORPUS_ROOT:/dstar/corpora/CORPUS</code></a>.</p>
+<p>Specifies the host path used for dstar corpus checkout (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/corpora/<a href="#c-CORPUS">CORPUS</a></code>). Implies <a href="#v-PATH:-MOUNT"><code>-v CORPUS_ROOT:/dstar/corpora/CORPUS</code></a>. If a subdirectory <code>CORPUS_ROOT/config.local/</code> exists, it will be treated as a (sparse) local set of dstar-configuration overrides for <a href="#c-CORPUS"><code>CORPUS</code></a> and merged into a pure-local configuration directorsy <code>CORPUS_ROOT/config/</code> by implicit calls to <code>dstar-checkout-corpus.sh</code>.</p>
 
 <h3 id="S-CORPUS_SRC">-S CORPUS_SRC</h3>
 
@@ -411,7 +422,12 @@
 
 <h3 id="f-RCFILE">-f RCFILE</h3>
 
-<p>Reads gantry configuration variables from <code>RCFILE</code> on the host machine. <code>RCFILE</code> is evaluated as bash source; default=<code>$HOME/.dstar-gantry.rc</code>.</p>
+<p>Reads gantry configuration variables from <code>RCFILE</code> on the host machine. <code>RCFILE</code> is evaluated as bash source. May be specified more than once, in which case files are read in the order specified and later declarations may clobber earlier ones. By default, <code>dstar-gantry.sh</code> reads the following global configuration files (if they exist) before evaluating any <code>RCFILE</code> specified on the command-line:</p>
+
+<pre><code> /etc/dstar-gantry.rc
+ $HOME/.dstar-gantry.rc</code></pre>
+
+<p>See <a href="#Gantry-Configuration-Variables">&quot;Gantry Configuration Variables&quot;</a> for a list of known gantry configuration variables you can set here.</p>
 
 <h3 id="i-IMAGE">-i IMAGE</h3>
 
@@ -456,13 +472,17 @@
 
 <p>(Re-)initializes persistent sparse local <a href="#d-DSTAR_ROOT"><code>DSTAR_ROOT</code></a> checkout on the local host (usually <code>$HOME/dstar</code>). You should only have to call this once per host, before performing any other <code>dstar-gantry.sh</code> actions.</p>
 
+<h3 id="sync-host">sync-host</h3>
+
+<p>Synchronizes the persistent sparse local <a href="#d-DSTAR_ROOT"><code>DSTAR_ROOT</code></a> checkout on the local host (usually <code>$HOME/dstar</code>) via <code>svn update</code>. You should typically call this before each <code>dstar-gantry.sh</code> session, in order to ensure that your <code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a></code> checkout is up-to-date.</p>
+
+<h3 id="sync-self">sync-self</h3>
+
+<p>Attempts to synchronize the local <code>dstar-gantry</code> checkout via <code>svn update</code>. If the <code>dstar-gantry.sh</code> script (or symlink) does not resolve to an SVN working copy on your system, this won&#39;t work, and you will need to perform any updates manually. You should typically call this before each <code>dstar-gantry.sh</code> operation, in order to ensure that your <code>dstar-gantry.sh</code> itself is up-to-date.</p>
+
 <h3 id="sync">sync</h3>
 
-<p>Synchronizes the persistent sparse local <a href="#d-DSTAR_ROOT"><code>DSTAR_ROOT</code></a> checkout on the local host (usually <code>$HOME/dstar</code>) via `svn update`. You should typically call this before each <code>dstar-gantry.sh</code> session, in order to ensure that your <code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a></code> checkout is up-to-date.</p>
-
-<p>Note that this action does <b>NOT</b> synchronize gantry itself (maybe it will someday), so to ensure that your <code>dstar-gantry.sh</code> project is up-to-date, you should update it manually:</p>
-
-<pre><code> $ svn update ~/dstar-gantry</code></pre>
+<p>Convenience alias for the <a href="#sync-host">&quot;sync-host&quot;</a> and <a href="#sync-self">&quot;sync-self&quot;</a> actions.</p>
 
 <h3 id="pull">pull</h3>
 
@@ -607,6 +627,41 @@
 
 <p>All environment variables are passed down to child processes (e.g. <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-nice-sh"><code>dstar-nice.sh</code></a>, <code>make</code>); see <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Customizable-Variables">&quot;Customizable Variables&quot; in <code>README_build.txt</code></a> for more (non-exhaustive) details.</p>
 
+<h1 id=""></h1>
+
+<h2 id="Gantry-Configuration-Variables">Gantry Configuration Variables</h2>
+
+<p>The following shell variables are used internally by the <code>dstar-gantry.sh</code> script, and may be set or modified by <a href="#f-RCFILE">configuration file(s)</a>. Default values are shown where appropriate, but may differ in some situations (e.g. running via sudo).</p>
+
+<pre><code> ##--------------------------------------------------------------
+ ## globals
+ DSTAR_ROOT=~/dstar
+ gantry_root=$(dirname &quot;$0&quot;)/..
+ gantry_docker_registry_path=/dstar
+ gantry_gc_filter=&quot;-f dangling=true -f label=de.dwds.project.name=dstar-buildhost&quot;
+ 
+ ##--------------------------------------------------------------
+ ## gantry options
+ gantry_dry_run=&quot;&quot;
+ gantry_docker_image=&quot;lex.dwds.de:443/dstar/dstar-buildhost:latest&quot;
+ gantry_corpus=&quot;&quot;
+ gantry_corpus_root=&quot;&quot; #$DSTAR_ROOT/corpora/$gantry_corpus
+ gantry_corpus_src=&quot;&quot;  #$DSTAR_ROOT/sources/$gantry_corpus/current
+ gantry_cabdir=&quot;&quot;      #$DSTAR_ROOT/resources
+ gantry_cabdir_ro=&quot;&quot;
+ gantry_cabrun=&quot;dstar-http-9096&quot;
+ gantry_http_port=&quot;&quot;
+ gantry_user=$(id -un ddc-admin)
+ gantry_group=$(id -gn ddc-admin)
+ 
+ ##--------------------------------------------------------------
+ ## docker options
+ extra_docker_opts=()
+ 
+ ##--------------------------------------------------------------
+ ## build args
+ extra_build_args=()</code></pre>
+
 <h1 id="EXAMPLES">EXAMPLES</h1>
 
 <h2 id="TODO-CONTINUE-HERE">TODO CONTINUE HERE</h2>
@@ -622,6 +677,14 @@
  }</code></pre>
 
 <p>... and re-starting any docker services on the host machine.</p>
+
+<h2 id="build-responsibly">build responsibly</h2>
+
+<p>If you build a corpus with <code>dstar-gantry</code> in a non-standard location and/or on a non-production host, you implicitly assume all resonsibility for keeping track of the intermediate build files in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code>. Deploying only a corpus runtime instance to &quot;production&quot; hosts by means of the <a href="#publish">&quot;publish&quot;</a> action is <b>not</b> sufficient to allow integration of new dstar functionality or to enable many bug-fixes. You are free to delete or archive corpus build directories once you&#39;re done with them, but this is likely to make more work for everyone (yourself included) down the road.</p>
+
+<h2 id="log-changes">log changes</h2>
+
+<p>When making changes to a corpus configuration in SVN, remember to log any changes to <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#doc%2FChanges.txt">DSTAR_ROOT/doc/Changes.txt</a>. If you are using a <code>CORPUS_ROOT/config.local/</code> directory for corpus configuration outside of version control, remember to <a href="#build-responsibly">&quot;build responsibly&quot;</a>, and seriously consider checking the final configuration into version control.</p>
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 

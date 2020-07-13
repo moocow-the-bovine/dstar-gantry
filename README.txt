@@ -26,7 +26,9 @@ SYNOPSIS
 
      dstar-gantry.sh Actions (GANTRY_ACTION(s)):
        init                  # (re-)initialize persistent sparse local DSTAR_ROOT checkout
-       sync                  # syncronize local DSTAR_ROOT checkout via `svn update`
+       sync-host             # syncronize local DSTAR_ROOT checkout via `svn update`
+       sync-self             # syncronize local DSTAR_ROOT checkout via `svn update`
+       sync                  # alias for 'sync-host' and 'sync-self'
        pull                  # retrieve selected IMAGE from docker registry (may require `docker login`)
        gc                    # clean up stale local dstar-buildhost docker images
        ...                   # other actions are passed to container docker/build script (see below)
@@ -290,7 +292,11 @@ USAGE
    -C CORPUS_ROOT
     Specifies the host path used for dstar corpus checkout
     (default="DSTAR_ROOT/corpora/CORPUS"). Implies "-v
-    CORPUS_ROOT:/dstar/corpora/CORPUS".
+    CORPUS_ROOT:/dstar/corpora/CORPUS". If a subdirectory
+    "CORPUS_ROOT/config.local/" exists, it will be treated as a (sparse)
+    local set of dstar-configuration overrides for "CORPUS" and merged into
+    a pure-local configuration directorsy "CORPUS_ROOT/config/" by implicit
+    calls to "dstar-checkout-corpus.sh".
 
    -S CORPUS_SRC
     Specifies the host path where dstar corpus sources reside
@@ -315,7 +321,17 @@ USAGE
 
    -f RCFILE
     Reads gantry configuration variables from "RCFILE" on the host machine.
-    "RCFILE" is evaluated as bash source; default="$HOME/.dstar-gantry.rc".
+    "RCFILE" is evaluated as bash source. May be specified more than once,
+    in which case files are read in the order specified and later
+    declarations may clobber earlier ones. By default, "dstar-gantry.sh"
+    reads the following global configuration files (if they exist) before
+    evaluating any "RCFILE" specified on the command-line:
+
+     /etc/dstar-gantry.rc
+     $HOME/.dstar-gantry.rc
+
+    See "Gantry Configuration Variables" for a list of known gantry
+    configuration variables you can set here.
 
    -i IMAGE
     Specifies the docker image to be pulled and/or invoked via "docker run"
@@ -370,17 +386,22 @@ USAGE
     local host (usually "$HOME/dstar"). You should only have to call this
     once per host, before performing any other "dstar-gantry.sh" actions.
 
-   sync
+   sync-host
     Synchronizes the persistent sparse local "DSTAR_ROOT" checkout on the
-    local host (usually "$HOME/dstar") via `svn update`. You should
+    local host (usually "$HOME/dstar") via "svn update". You should
     typically call this before each "dstar-gantry.sh" session, in order to
     ensure that your "DSTAR_ROOT" checkout is up-to-date.
 
-    Note that this action does NOT synchronize gantry itself (maybe it will
-    someday), so to ensure that your "dstar-gantry.sh" project is
-    up-to-date, you should update it manually:
+   sync-self
+    Attempts to synchronize the local "dstar-gantry" checkout via "svn
+    update". If the "dstar-gantry.sh" script (or symlink) does not resolve
+    to an SVN working copy on your system, this won't work, and you will
+    need to perform any updates manually. You should typically call this
+    before each "dstar-gantry.sh" operation, in order to ensure that your
+    "dstar-gantry.sh" itself is up-to-date.
 
-     $ svn update ~/dstar-gantry
+   sync
+    Convenience alias for the "sync-host" and "sync-self" actions.
 
    pull
     Retrieves the selected "dstar-buildhost" IMAGE from the ZDL docker
@@ -612,6 +633,42 @@ USAGE
     <https://kaskade.dwds.de/dstar/doc/README_build.html#Customizable-Variab
     les> for more (non-exhaustive) details.
 
+
+  Gantry Configuration Variables
+    The following shell variables are used internally by the
+    "dstar-gantry.sh" script, and may be set or modified by configuration
+    file(s). Default values are shown where appropriate, but may differ in
+    some situations (e.g. running via sudo).
+
+     ##--------------------------------------------------------------
+     ## globals
+     DSTAR_ROOT=~/dstar
+     gantry_root=$(dirname "$0")/..
+     gantry_docker_registry_path=/dstar
+     gantry_gc_filter="-f dangling=true -f label=de.dwds.project.name=dstar-buildhost"
+ 
+     ##--------------------------------------------------------------
+     ## gantry options
+     gantry_dry_run=""
+     gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
+     gantry_corpus=""
+     gantry_corpus_root="" #$DSTAR_ROOT/corpora/$gantry_corpus
+     gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus/current
+     gantry_cabdir=""      #$DSTAR_ROOT/resources
+     gantry_cabdir_ro=""
+     gantry_cabrun="dstar-http-9096"
+     gantry_http_port=""
+     gantry_user=$(id -un ddc-admin)
+     gantry_group=$(id -gn ddc-admin)
+ 
+     ##--------------------------------------------------------------
+     ## docker options
+     extra_docker_opts=()
+ 
+     ##--------------------------------------------------------------
+     ## build args
+     extra_build_args=()
+
 EXAMPLES
   TODO CONTINUE HERE
 CAVEATS
@@ -629,6 +686,26 @@ CAVEATS
      }
 
     ... and re-starting any docker services on the host machine.
+
+  build responsibly
+    If you build a corpus with "dstar-gantry" in a non-standard location
+    and/or on a non-production host, you implicitly assume all resonsibility
+    for keeping track of the intermediate build files in
+    "CORPUS_ROOT/build/". Deploying only a corpus runtime instance to
+    "production" hosts by means of the "publish" action is not sufficient to
+    allow integration of new dstar functionality or to enable many
+    bug-fixes. You are free to delete or archive corpus build directories
+    once you're done with them, but this is likely to make more work for
+    everyone (yourself included) down the road.
+
+  log changes
+    When making changes to a corpus configuration in SVN, remember to log
+    any changes to DSTAR_ROOT/doc/Changes.txt
+    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#doc%2FChanges.txt>. If you
+    are using a "CORPUS_ROOT/config.local/" directory for corpus
+    configuration outside of version control, remember to "build
+    responsibly", and seriously consider checking the final configuration
+    into version control.
 
 SEE ALSO
     *   The "dstar/doc/README.txt"
