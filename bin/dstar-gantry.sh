@@ -12,10 +12,23 @@
 
 prog=$(basename "$0")
 dstar_root_default=~/dstar
-gantry_rcfile_default=~/.dstar-gantry.rc
+gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
+gantry_version="0.0.1"
+gantry_svnid='
+  $HeadURL$
+  $Id$
+'
 
 ##======================================================================
 ## Utils
+
+##--------------------------------------------------------------
+show_version() {
+    cat <<EOF
+$prog v$gantry_version
+$gantry_svnid
+EOF
+}
 
 ##--------------------------------------------------------------
 show_usage() {
@@ -25,6 +38,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
 
  $prog Options (GANTRY_OPTS):
    -h, -help             # this help message
+   -V, -version          # show program version and exit
    -n, -dry-run          # just print what we would do
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$dstar_root_default)
@@ -32,7 +46,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/(current/) if present)
    -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
    -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
-   -f RCFILE             # read gantry variables from RCFILE (bash source; default=$gantry_rcfile_default)
+   -f RCFILE             # read gantry variables from RCFILE (bash source)
    -i IMAGE              # use docker image IMAGE (default=$gantry_docker_image)
    -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
    -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
@@ -259,9 +273,11 @@ if [ -z "$gantry_group" ] ; then
     gantry_group=${gantry_user:-${SUDO_GID:-$(id -gn)}}
 fi
 
-##-- default rcfile
-[ \! -e $gantry_rcfile_default ] \
-    || read_rcfile $gantry_rcfile_default
+##-- default rcfile(s)
+for rcfile in "${gantry_rcfiles[@]}"; do
+    [ \! -e "$rcfile" ] \
+	|| read_rcfile "$rcfile"
+done
 
 while [ $# -gt 0 ] ; do
     arg="$1"
@@ -269,6 +285,7 @@ while [ $# -gt 0 ] ; do
     case "$arg" in
 	##-- options
 	-h|-help|--help) show_usage; exit 1;;
+	-V|-version|--version) show_version; exit 0;;
 	-n|-no-act|--no-act|-dry-run|--dry-run) gantry_dry_run=y;;
 	-c) gantry_corpus="$1"; shift;;
 	-c*) gantry_corpus="${arg#-c}";;
