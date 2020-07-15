@@ -451,6 +451,14 @@ if [ \! -e "$gantry_corpus_root" ] ; then
 	warn "CORPUS_ROOT=$gantry_corpus_root does not exist (continuing anyway, YMMV)"
     fi
 fi
+if [ -e "$gantry_corpus_root" ] ; then
+    if [ $(runcmd stat -c'%u' "$gantry_corpus_root") != "$gantry_uid" ] ; then
+	warn "CORPUS_ROOT=$gantry_corpus_root is not owned by user gantry_uid=$gantry_uid"
+    fi
+    if [ $(runcmd stat -c'%g' "$gantry_corpus_root") != "$gantry_gid" ] ; then
+	warn "CORPUS_ROOT=$gantry_corpus_root is not owned by group gantry_gid=$gantry_gid"
+    fi
+fi
 [ -n "$SSH_AUTH_SOCK" ] \
     || die "SSH_AUTH_SOCK variable is unset (is your ssh-agent running?)"
 [ -e "$SSH_AUTH_SOCK" ] \

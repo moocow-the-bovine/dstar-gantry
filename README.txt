@@ -135,9 +135,13 @@ INSTALLATION
         <https://docs.docker.com/engine/reference/commandline/login/>:
 
          $ docker login https://lex.dwds.de:443
-         Username: zdl
-         Password: XXXXXXX
+         Username: ZDL_DOCKER_REGISTRY_USERNAME
+         Password: ZDL_DOCKER_REGISTRY_PASSWORD
          Login Succeeded
+
+        Contact the "dstar-gantry" maintainer or the ZDL docker registry
+        maintainer (currently Gregor Middell) if you do not have credentials
+        for the ZDL docker registry.
 
     ssh-agent
         You will need an accessible ssh-agent
@@ -319,15 +323,7 @@ USAGE
     -C CORPUS_ROOT
         Specifies the host path (or symlink) used for dstar corpus checkout
         (default="DSTAR_ROOT/corpora/CORPUS"). Implies "-v
-        CORPUS_ROOT:/dstar/corpora/CORPUS". If a subdirectory
-        "CORPUS_ROOT/config.local/"
-        <https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific
-        -customizations-with-config.local> exists, it will be treated as a
-        (sparse) local set of dstar-configuration overrides for "CORPUS" and
-        merged into a pure-local configuration directory
-        "CORPUS_ROOT/config/"
-        <https://kaskade.dwds.de/dstar/doc/README_build.html#DSTAR_CONFIG>
-        by implicit calls to "dstar-checkout-corpus.sh".
+        CORPUS_ROOT:/dstar/corpora/CORPUS".
 
     -S CORPUS_SRC
         Specifies the host path (or symlink) where dstar corpus sources
@@ -1102,6 +1098,46 @@ CAVEATS
     outside of version control, remember to "build responsibly", and
     seriously consider checking the final configuration into version
     control.
+
+KNOWN BUGS AND COMMON ERRORS
+    E000013 ... Permission denied
+         CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus pnn_test
+         svn: E000013: Can't create directory '/home/ddc-dstar/dstar/corpora/pnn_test/.svn': Permission denied
+
+        "Permission denied" errors from SVN during corpus checkout in the
+        embedded "dstar-buildhost" container can occur whenever you attempt
+        to operate on a "CORPUS_ROOT" working copy for which the gantry
+        build "USER" and/or "GROUP" does not have sufficient permissions.
+        Typically, this is because the "CORPUS_ROOT" checkout is owned by a
+        different user. If you consistently use the default "ddc-admin" user
+        for corpus operations as recommended in the dstar-HOWTO, you should
+        never encounter this error.
+
+        How you solve this problem is entirely up to you. Some possibilities
+        include:
+
+        *   Ask the current owner or an administrator ("root") to alter the
+            permissions recursively using standard UNIX tools ("chown -R",
+            "chmod -R"), or do so yourself with "sudo".
+
+        *   If you have read permission, you can copy the directory to a new
+            location with appropriate permissions and specify the path to
+            your new copy using the "-C CORPUS_ROOT" option. This may use a
+            lot of additional disk space, so it's best to avoid this if
+            possible.
+
+        *   You can create a new "CORPUS_ROOT" directory with appropriate
+            permissions and specify its location with the "-C CORPUS_ROOT"
+            option. This is even more wasteful than copying the original
+            directory.
+
+        ... see also "Ownership and Permissions" in the dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Ownership-and-Permissi
+        ons>.
+
+    other errors
+        See "COMMON ERRORS" in the dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#COMMON-ERRORS>.
 
 SEE ALSO
     *   The "dstar/doc/README.txt"

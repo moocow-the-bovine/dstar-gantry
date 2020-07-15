@@ -161,9 +161,13 @@ and will need to manually log into the registry
 using L<C<docker login>|https://docs.docker.com/engine/reference/commandline/login/>:
 
  $ docker login https://lex.dwds.de:443
- Username: zdl
- Password: XXXXXXX
+ Username: ZDL_DOCKER_REGISTRY_USERNAME
+ Password: ZDL_DOCKER_REGISTRY_PASSWORD
  Login Succeeded
+
+Contact the C<dstar-gantry> maintainer or the ZDL docker registry maintainer
+(currently Gregor Middell) if you do not have credentials for the
+ZDL docker registry.
 
 =item ssh-agent
 
@@ -377,10 +381,7 @@ global C<DSTAR_ROOT> checkout in C</home/ddc-dstar/dstar>.
 
 Specifies the host path (or symlink) used for dstar corpus checkout (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/corpora/L<CORPUS|/-c CORPUS>>).
 Implies L<C<-v CORPUS_ROOT:/dstar/corpora/CORPUS>|/-v /PATH:/MOUNT>.
-If a subdirectory L<C<CORPUS_ROOT/config.local/>|$doc/README_build.html#Corpus-specific-customizations-with-config.local> exists,
-it will be treated as a (sparse) local set 
-of dstar-configuration overrides for L<C<CORPUS>|/-c CORPUS> and merged into a pure-local
-configuration directory L<C<CORPUS_ROOT/config/>|$doc/README_build.html#DSTAR_CONFIG> by implicit calls to  C<dstar-checkout-corpus.sh>.
+
 
 =item -S CORPUS_SRC
 
@@ -1338,6 +1339,85 @@ directory for corpus configuration
 outside of version control, remember to L</build responsibly>, and seriously consider
 checking the final configuration into version control.
 
+
+=cut
+
+##======================================================================
+=pod
+
+=head1 KNOWN BUGS AND COMMON ERRORS
+
+=over 4
+
+=item E000013 ... Permission denied
+
+ CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus pnn_test
+ svn: E000013: Can't create directory '/home/ddc-dstar/dstar/corpora/pnn_test/.svn': Permission denied
+
+"Permission denied" errors from SVN during corpus checkout in the embedded
+C<dstar-buildhost> container
+can occur whenever you attempt to operate on a
+L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> working copy for which the
+gantry build L<C<USER>|/-u USER> and/or L<C<GROUP>|/-g GROUP> does not
+have sufficient permissions.  Typically, this is because the
+L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> checkout is owned by a different user.
+If you consistently use the default C<ddc-admin> user for corpus operations
+as L<recommended in the dstar-HOWTO|/$doc/HOWTO.html#Play-nicely>,
+you should never encounter this error.
+
+How you solve this problem is entirely up to you.
+Some possibilities include:
+
+=over 4
+
+=item *
+
+Ask the current owner or an administrator (C<root>) to alter the permissions
+recursively using standard UNIX tools (C<chown -R>, C<chmod -R>), or do so
+yourself with C<sudo>.
+
+=item *
+
+If you have read permission, you can copy the directory to a new location
+with appropriate permissions and specify the path to your new copy
+using the L</-C CORPUS_ROOT> option.  This may use a lot of additional
+disk space, so it's best to avoid this if possible.
+
+=item *
+
+You can create a new C<CORPUS_ROOT> directory with appropriate permissions
+and specify its location with the L</-C CORPUS_ROOT> option.  This is
+even more wasteful than copying the original directory.
+
+=begin comment
+
+=item *
+
+Alter the permissions recursively as C<root> in the embedded container
+using the L</exec> action.
+This can wreak all sorts of havoc if you're not careful,
+so B<PROCEED WITH UTMOST CAUTION>.
+
+
+=item *
+
+Specify the current owner and/or group of the L<C<CORPUS_ROOT>|/-C CORPUS_ROOT>
+directory using the L</-u USER> and/or L</-g GROUP> options, effectively
+spoofing a build by the current owner and/or group.
+This is essentially lying, so don't do it.
+
+=end comment
+
+=back
+
+... see also 
+L<"Ownership and Permissions" in the dstar-HOWTO|$doc/HOWTO.html#Ownership-and-Permissions>.
+
+=item other errors
+
+See L<"COMMON ERRORS" in the dstar-HOWTO|$doc/HOWTO.html#COMMON-ERRORS>.
+
+=back
 
 =cut
 

@@ -60,6 +60,7 @@
       <li><a href="#log-changes">log changes</a></li>
     </ul>
   </li>
+  <li><a href="#KNOWN-BUGS-AND-COMMON-ERRORS">KNOWN BUGS AND COMMON ERRORS</a></li>
   <li><a href="#SEE-ALSO">SEE ALSO</a></li>
   <li><a href="#AUTHOR">AUTHOR</a></li>
 </ul>
@@ -185,9 +186,11 @@
 <p>If you wish to make use of gantry&#39;s <code>pull</code> action to acquire the latest <code>dstar-buildhost</code> docker image (recommended), you will need credentials (username and password) for the ZDL docker registry, and will need to manually log into the registry using <a href="https://docs.docker.com/engine/reference/commandline/login/"><code>docker login</code></a>:</p>
 
 <pre><code> $ docker login https://lex.dwds.de:443
- Username: zdl
- Password: XXXXXXX
+ Username: ZDL_DOCKER_REGISTRY_USERNAME
+ Password: ZDL_DOCKER_REGISTRY_PASSWORD
  Login Succeeded</code></pre>
+
+<p>Contact the <code>dstar-gantry</code> maintainer or the ZDL docker registry maintainer (currently Gregor Middell) if you do not have credentials for the ZDL docker registry.</p>
 
 </dd>
 <dt id="ssh-agent">ssh-agent</dt>
@@ -375,7 +378,7 @@
 <dt id="C-CORPUS_ROOT">-C CORPUS_ROOT</dt>
 <dd>
 
-<p>Specifies the host path (or symlink) used for dstar corpus checkout (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/corpora/<a href="#c-CORPUS">CORPUS</a></code>). Implies <a href="#v-PATH:-MOUNT"><code>-v CORPUS_ROOT:/dstar/corpora/CORPUS</code></a>. If a subdirectory <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-customizations-with-config.local"><code>CORPUS_ROOT/config.local/</code></a> exists, it will be treated as a (sparse) local set of dstar-configuration overrides for <a href="#c-CORPUS"><code>CORPUS</code></a> and merged into a pure-local configuration directory <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#DSTAR_CONFIG"><code>CORPUS_ROOT/config/</code></a> by implicit calls to <code>dstar-checkout-corpus.sh</code>.</p>
+<p>Specifies the host path (or symlink) used for dstar corpus checkout (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/corpora/<a href="#c-CORPUS">CORPUS</a></code>). Implies <a href="#v-PATH:-MOUNT"><code>-v CORPUS_ROOT:/dstar/corpora/CORPUS</code></a>.</p>
 
 </dd>
 <dt id="S-CORPUS_SRC">-S CORPUS_SRC</dt>
@@ -943,6 +946,44 @@
 <h2 id="log-changes">log changes</h2>
 
 <p>When making changes to a corpus configuration in SVN, remember to log any changes to <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#doc%2FChanges.txt">DSTAR_ROOT/doc/Changes.txt</a>. If you are using a <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-customizations-with-config.local"><code>CORPUS_ROOT/config.local/</code></a> directory for corpus configuration outside of version control, remember to <a href="#build-responsibly">&quot;build responsibly&quot;</a>, and seriously consider checking the final configuration into version control.</p>
+
+<h1 id="KNOWN-BUGS-AND-COMMON-ERRORS">KNOWN BUGS AND COMMON ERRORS</h1>
+
+<dl>
+
+<dt id="E000013-...-Permission-denied">E000013 ... Permission denied</dt>
+<dd>
+
+<pre><code> CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus pnn_test
+ svn: E000013: Can&#39;t create directory &#39;/home/ddc-dstar/dstar/corpora/pnn_test/.svn&#39;: Permission denied</code></pre>
+
+<p>&quot;Permission denied&quot; errors from SVN during corpus checkout in the embedded <code>dstar-buildhost</code> container can occur whenever you attempt to operate on a <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> working copy for which the gantry build <a href="#u-USER"><code>USER</code></a> and/or <a href="#g-GROUP"><code>GROUP</code></a> does not have sufficient permissions. Typically, this is because the <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> checkout is owned by a different user. If you consistently use the default <code>ddc-admin</code> user for corpus operations as <a href="#https:-kaskade.dwds.de-dstar-doc-HOWTO.html-Play-nicely">recommended in the dstar-HOWTO</a>, you should never encounter this error.</p>
+
+<p>How you solve this problem is entirely up to you. Some possibilities include:</p>
+
+<ul>
+
+<li><p>Ask the current owner or an administrator (<code>root</code>) to alter the permissions recursively using standard UNIX tools (<code>chown -R</code>, <code>chmod -R</code>), or do so yourself with <code>sudo</code>.</p>
+
+</li>
+<li><p>If you have read permission, you can copy the directory to a new location with appropriate permissions and specify the path to your new copy using the <a href="#C-CORPUS_ROOT">&quot;-C CORPUS_ROOT&quot;</a> option. This may use a lot of additional disk space, so it&#39;s best to avoid this if possible.</p>
+
+</li>
+<li><p>You can create a new <code>CORPUS_ROOT</code> directory with appropriate permissions and specify its location with the <a href="#C-CORPUS_ROOT">&quot;-C CORPUS_ROOT&quot;</a> option. This is even more wasteful than copying the original directory.</p>
+
+</li>
+</ul>
+
+<p>... see also <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Ownership-and-Permissions">&quot;Ownership and Permissions&quot; in the dstar-HOWTO</a>.</p>
+
+</dd>
+<dt id="other-errors">other errors</dt>
+<dd>
+
+<p>See <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#COMMON-ERRORS">&quot;COMMON ERRORS&quot; in the dstar-HOWTO</a>.</p>
+
+</dd>
+</dl>
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
