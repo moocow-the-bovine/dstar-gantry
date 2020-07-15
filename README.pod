@@ -14,8 +14,11 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
  dstar-gantry.sh [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]]]
 
  dstar-gantry.sh Options (GANTRY_OPTS):
-   -h, -help             # this help message
-   -n, -dry-run          # just print what we would do
+   -h  , -help           # this help message
+   -V  , -version        # show program version and exit
+   -n  , -dry-run        # just print what we would do
+   -fg , -bg             # run container in foreground (default) or background
+   -rm , -persist        # remove container on termination (default) or don't
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
@@ -360,9 +363,44 @@ C</dstar/docker/build> script in the invoked C<dstar-buildhost> container.
 
 Display a brief help message.
 
+=item -V, -version
+
+Display the version information for C<dstar-gantry> itself.
+
 =item -n, -dry-run
 
 If specified, just prints what would have been done, but doesn't perform any destructive actions.
+
+=item -fg, -bg
+
+Specifies whether to run the embedded
+C<dstar-buildhost> container interactively in the foreground (C<-fg>, default)
+or detached in the background (C<-bg>).
+Foreground (C<-fg>) operation is equivalent to the
+C<docker-run> C<--tty=true> and  C<--interactive=true>
+options
+and background (C<-bg>) operation is equivalent to the
+C<docker-run> C<--detached=true> option.
+See L<docker-run(1)|https://docs.docker.com/engine/reference/run/#options> for details.
+
+If you choose to run the container
+in the background (e.g. for L</build> operations on large corpora), you
+can still view the default console ouptut with the
+L<C<docker logs>|/https://docs.docker.com/engine/reference/commandline/logs/> command,
+or inspect the build logs in
+C<L<CORPUS_ROOT>|/-C CORPUS_ROOT>/build/log/> directly.
+
+
+=item -rm, -persist
+
+Specifies whether (C<-rm>) or not (C<-persist>) to remove the embedded C<dstar-buildhost> container
+when the requested L<build operation(s)|/BUILD_ARGS> have completed.
+This behavior is implemented in terms of the
+C<docker-run> C<--rm> option;
+see L<docker-run(1)|https://docs.docker.com/engine/reference/run/#options> for details.
+If you request container persistence with the C<-persist> option
+(or the lower-level L<docker option|/DOCKER_OPTS> C<--rm=false>), you will have to remove
+it yourself with the L<C<docker rm>|https://docs.docker.com/engine/reference/commandline/rm/> command.
 
 =item -c CORPUS
 
@@ -982,7 +1020,7 @@ you have fulfilled all the L</Common Prerequisites>.
 
 =item MYCORPUS build
 
- $ dstar-gantry.sh -c MYCORPUS build
+ $ dstar-gantry.sh -bg -c MYCORPUS build
 
 Building a corpus index from TEI-XML sources or re-building an existing corpus
 index with the gantry L<C<build>|/build> action
@@ -1014,7 +1052,7 @@ will be printed to the console.
 
 =item MYCORPUS staging
 
- $ dstar-gantry.sh -p 8001 -c MYCORPUS install run -- -d
+ $ dstar-gantry.sh -bg -p 8001 -c MYCORPUS install run
  $ sensible-browser http://localhost:8001/dstar/MYCORPUS
  ... do some manual testing ...
  $ docker kill dstar-gantry-MYCORPUS
@@ -1028,7 +1066,7 @@ in the embedded C<dstar-buildhost> container, analogous to
 functionality for "bare-metal" dstar corpus builds.
 Use the gantry L<-p HTTP_PORT|/-p HTTP_PORT> option to specify a host
 port number to map to the embedded HTTP server, and use the
-L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
+gantry L<C<-bg>/-fg, -bg> or L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
 to run the embedded container in the background.  When you are done with manual
 testing, remember to terminate the running container with C<docker kill>.
 
@@ -1087,7 +1125,7 @@ typically under C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/corpora/MYCORPUS>.
 
 =item MYCORPUS update
 
- $ dstar-gantry.sh -c MYCORPUS update
+ $ dstar-gantry.sh -bg -c MYCORPUS update
 
 Updating an existing corpus index after some source file(s) have been changed, added,
 and/or deleted by means of the gantry L<update|/update> action follows the basic
@@ -1136,7 +1174,7 @@ typically under C<DSTAR_ROOT/corpora/MYCORPUS>.
 
 =item MYCORPUS metadata-update
 
- $ dstar-gantry.sh -c MYCORPUS update-meta
+ $ dstar-gantry.sh -bg -c MYCORPUS update-meta
 
 Updating metadata for an existing corpus index after some source file(s) have been changed, added,
 and/or deleted by means of the gantry L<update-meta|/update-meta> action follows the basic

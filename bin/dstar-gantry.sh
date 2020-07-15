@@ -38,9 +38,11 @@ show_usage() {
 Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]]]
 
  $prog Options (GANTRY_OPTS):
-   -h, -help             # this help message
-   -V, -version          # show program version and exit
-   -n, -dry-run          # just print what we would do
+   -h  , -help           # this help message
+   -V  , -version        # show program version and exit
+   -n  , -dry-run        # just print what we would do
+   -fg , -bg             # run container in foreground (default) or background
+   -rm , -persist        # remove container on termination (default) or don't
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$dstar_root_default)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
@@ -296,6 +298,8 @@ gantry_cabdir="" #$DSTAR_ROOT/resources
 gantry_cabdir_ro=""
 gantry_cabrun="dstar-http-9096"
 gantry_http_port=""
+gantry_rm=(--rm)
+gantry_fg=(-ti)
 
 if [ -z "$gantry_user" ] ; then
     gantry_user=$(id -un ddc-admin 2>/dev/null)
@@ -320,6 +324,10 @@ while [ $# -gt 0 ] ; do
 	-h|-help|--help) show_usage; exit 1;;
 	-V|-version|--version) show_version; exit 0;;
 	-n|-no-act|--no-act|-dry-run|--dry-run) gantry_dry_run=y;;
+	-fg|--fg|-foreground|--foreground) gantry_fg=(-ti);;
+	-bg|--bg|-background|--background) gantry_fg=(-d);;
+	-rm|--rm|-nopersist|--nopersist) gantry_rm=(--rm);;
+	-persist|--persist) gantry_rm=(--rm=false);;
 	-c) gantry_corpus="$1"; shift;;
 	-c*) gantry_corpus="${arg#-c}";;
 	-d) DSTAR_ROOT="$1"; shift;;
@@ -459,10 +467,10 @@ if [ \! -e "$gantry_corpus_root" ] ; then
     fi
 fi
 if [ -e "$gantry_corpus_root" ] ; then
-    if [ $(runcmd stat -c'%u' "$gantry_corpus_root") != "$gantry_uid" ] ; then
+    if [ "$(stat -c'%u' "$gantry_corpus_root")" != "$gantry_uid" ] ; then
 	warn "CORPUS_ROOT=$gantry_corpus_root is not owned by user gantry_uid=$gantry_uid"
     fi
-    if [ $(runcmd stat -c'%g' "$gantry_corpus_root") != "$gantry_gid" ] ; then
+    if [ "$(stat -c'%g' "$gantry_corpus_root")" != "$gantry_gid" ] ; then
 	warn "CORPUS_ROOT=$gantry_corpus_root is not owned by group gantry_gid=$gantry_gid"
     fi
 fi
@@ -509,7 +517,9 @@ gantry_docker_opts[${#gantry_docker_opts[@]}]="-eDSTAR_USER=${SUDO_USER:-$(id -u
 gantry_docker_opts[${#gantry_docker_opts[@]}]="-edstar_corpora=$gantry_corpus"
 
 ##-- guts
-cmd=(docker run --rm -ti
+cmd=(docker run
+     "${gantry_rm[@]}"
+     "${gantry_fg[@]}"
      "${gantry_docker_opts[@]}"
      "${gantry_extra_docker_opts[@]}"
      "${gantry_docker_image}"

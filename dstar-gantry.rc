@@ -44,6 +44,14 @@
 ##--------------------------------------------------------------
 ## gantry options
 
+## gantry_rm (-rm, -persist)
+##  + bash-array of docker options for auto-magic container removal
+#gantry_rm=(--rm)
+
+## gantry_fg (-fg, -bg)
+##  + bash-array of docker options for foreground/background operation
+#gantry_fg=(-ti)
+
 ## gantry_dry_run (-n, -dry-run)
 ##  + setting to anything other than the empty string forces dry-run mode
 #gantry_dry_run=""
