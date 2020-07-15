@@ -127,7 +127,7 @@ C<dstar-gantry> was developed and tested on an x86_64 machine running Debian GNU
 You can probably run gantry on other architectures, but I can't tell you how to do that.
 
 If you are running C<dstar-gantry.sh> on a "semi-production" host
-(e.g. lal.dwds.de), you can skip to L<|/initialize persistent data>.
+(e.g. lal.dwds.de), you can skip to L</initialize persistent data>.
 
 =cut
 
@@ -149,13 +149,13 @@ If you are running C<dstar-gantry.sh> on a "semi-production" host
 You will need L<docker|https://docs.docker.com/get-docker/> installed on your local machine
 with an appropriate L<docker storage driver|/docker storage drivers>,
 and the requisite L<permissions|https://docs.docker.com/engine/install/linux-postinstall/>
-for your local user account.  C<dstar-gantry> was developed and tested using
+for your local user account (e.g. membership in the C<docker> group).  C<dstar-gantry> was developed and tested using
 the C<docker-ce> and C<docker-ce-client> packages version 19.03.8.
 
 =item registry credentials
 
 If you wish to make use of gantry's C<pull> action to acquire the
-lastest C<dstar-buildhost> docker image (recommended), you will
+latest C<dstar-buildhost> docker image (recommended), you will
 need credentials (username and password) for the ZDL docker registry,
 and will need to manually log into the registry
 using L<C<docker login>|https://docs.docker.com/engine/reference/commandline/login/>:
@@ -1291,9 +1291,22 @@ step in the general HOWTO.
 
 =head2 docker storage drivers
 
-Problems with runtime cross-layer copy operations have been observed using the C<overlay2> docker storage driver,
-which is the default in recent version of the C<docker-ce> package.  The C<aufs> docker storage driver does not exhibit
-these problemes; see L<https://docs.docker.com/storage/storagedriver/aufs-driver/> for details.
+Problems with runtime cross-layer copy operations have been observed in the past
+when using the C<overlay2> docker storage driver,
+which is the default in recent version of the C<docker-ce> package.
+On systems where these problems occurred, the C<aufs> docker storage driver 
+did not exhibit these issues; see L<https://docs.docker.com/storage/storagedriver/aufs-driver/> for details.
+
+Even more recent debian releases no longer contain the C<aufs> storage driver.
+The C<overlay2> storage driver appears to work correctly under
+Debian 10 ("buster") using C<docker-ce-5:19.03.12~3-0~debian-buster>
+("Docker Community Edition", version 19.03.12) and linux kernel version
+4.19.0-6-amd64.
+
+It is currently recommended to try the default storage driver for your docker installation
+(probably C<overlay2>), and only switch to C<aufs> if you experience issues with cross-layer
+copy operations.
+
 Typically, the C<aufs> driver can be enabled by editing the file F</etc/docker/daemon.json> to contain:
 
 

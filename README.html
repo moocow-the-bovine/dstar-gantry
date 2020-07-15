@@ -159,6 +159,8 @@
 
 <p>This section describes the installation procedure for debian-based linux machines. <code>dstar-gantry</code> was developed and tested on an x86_64 machine running Debian GNU/Linux 10 (buster). You can probably run gantry on other architectures, but I can&#39;t tell you how to do that.</p>
 
+<p>If you are running <code>dstar-gantry.sh</code> on a &quot;semi-production&quot; host (e.g. lal.dwds.de), you can skip to <a href="#initialize-persistent-data">&quot;initialize persistent data&quot;</a>.</p>
+
 <h2 id="Requirements">Requirements</h2>
 
 <dl>
@@ -174,13 +176,13 @@
 <dt id="docker">docker</dt>
 <dd>
 
-<p>You will need <a href="https://docs.docker.com/get-docker/">docker</a> installed on your local machine with an appropriate <a href="#docker-storage-drivers">docker storage driver</a>, and the requisite <a href="https://docs.docker.com/engine/install/linux-postinstall/">permissions</a> for your local user account. <code>dstar-gantry</code> was developed and tested using the <code>docker-ce</code> and <code>docker-ce-client</code> packages version 19.03.8.</p>
+<p>You will need <a href="https://docs.docker.com/get-docker/">docker</a> installed on your local machine with an appropriate <a href="#docker-storage-drivers">docker storage driver</a>, and the requisite <a href="https://docs.docker.com/engine/install/linux-postinstall/">permissions</a> for your local user account (e.g. membership in the <code>docker</code> group). <code>dstar-gantry</code> was developed and tested using the <code>docker-ce</code> and <code>docker-ce-client</code> packages version 19.03.8.</p>
 
 </dd>
 <dt id="registry-credentials">registry credentials</dt>
 <dd>
 
-<p>If you wish to make use of gantry&#39;s <code>pull</code> action to acquire the lastest <code>dstar-buildhost</code> docker image (recommended), you will need credentials (username and password) for the ZDL docker registry, and will need to manually log into the registry using <a href="https://docs.docker.com/engine/reference/commandline/login/"><code>docker login</code></a>:</p>
+<p>If you wish to make use of gantry&#39;s <code>pull</code> action to acquire the latest <code>dstar-buildhost</code> docker image (recommended), you will need credentials (username and password) for the ZDL docker registry, and will need to manually log into the registry using <a href="https://docs.docker.com/engine/reference/commandline/login/"><code>docker login</code></a>:</p>
 
 <pre><code> $ docker login https://lex.dwds.de:443
  Username: zdl
@@ -920,7 +922,13 @@
 
 <h2 id="docker-storage-drivers">docker storage drivers</h2>
 
-<p>Problems with runtime cross-layer copy operations have been observed using the <code>overlay2</code> docker storage driver, which is the default in recent version of the <code>docker-ce</code> package. The <code>aufs</code> docker storage driver does not exhibit these problemes; see <a href="https://docs.docker.com/storage/storagedriver/aufs-driver/">https://docs.docker.com/storage/storagedriver/aufs-driver/</a> for details. Typically, the <code>aufs</code> driver can be enabled by editing the file <i>/etc/docker/daemon.json</i> to contain:</p>
+<p>Problems with runtime cross-layer copy operations have been observed in the past when using the <code>overlay2</code> docker storage driver, which is the default in recent version of the <code>docker-ce</code> package. On systems where these problems occurred, the <code>aufs</code> docker storage driver did not exhibit these issues; see <a href="https://docs.docker.com/storage/storagedriver/aufs-driver/">https://docs.docker.com/storage/storagedriver/aufs-driver/</a> for details.</p>
+
+<p>Even more recent debian releases no longer contain the <code>aufs</code> storage driver. The <code>overlay2</code> storage driver appears to work correctly under Debian 10 (&quot;buster&quot;) using <code>docker-ce-5:19.03.12~3-0~debian-buster</code> (&quot;Docker Community Edition&quot;, version 19.03.12) and linux kernel version 4.19.0-6-amd64.</p>
+
+<p>It is currently recommended to try the default storage driver for your docker installation (probably <code>overlay2</code>), and only switch to <code>aufs</code> if you experience issues with cross-layer copy operations.</p>
+
+<p>Typically, the <code>aufs</code> driver can be enabled by editing the file <i>/etc/docker/daemon.json</i> to contain:</p>
 
 <pre><code> {
   &quot;storage-driver&quot;:&quot;aufs&quot;

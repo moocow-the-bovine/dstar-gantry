@@ -109,6 +109,9 @@ INSTALLATION
     running Debian GNU/Linux 10 (buster). You can probably run gantry on
     other architectures, but I can't tell you how to do that.
 
+    If you are running "dstar-gantry.sh" on a "semi-production" host (e.g.
+    lal.dwds.de), you can skip to "initialize persistent data".
+
   Requirements
     debian packages
          bash
@@ -120,12 +123,13 @@ INSTALLATION
         on your local machine with an appropriate docker storage driver, and
         the requisite permissions
         <https://docs.docker.com/engine/install/linux-postinstall/> for your
-        local user account. "dstar-gantry" was developed and tested using
-        the "docker-ce" and "docker-ce-client" packages version 19.03.8.
+        local user account (e.g. membership in the "docker" group).
+        "dstar-gantry" was developed and tested using the "docker-ce" and
+        "docker-ce-client" packages version 19.03.8.
 
     registry credentials
         If you wish to make use of gantry's "pull" action to acquire the
-        lastest "dstar-buildhost" docker image (recommended), you will need
+        latest "dstar-buildhost" docker image (recommended), you will need
         credentials (username and password) for the ZDL docker registry, and
         will need to manually log into the registry using "docker login"
         <https://docs.docker.com/engine/reference/commandline/login/>:
@@ -1047,12 +1051,25 @@ EXAMPLES
 
 CAVEATS
   docker storage drivers
-    Problems with runtime cross-layer copy operations have been observed
-    using the "overlay2" docker storage driver, which is the default in
-    recent version of the "docker-ce" package. The "aufs" docker storage
-    driver does not exhibit these problemes; see
+    Problems with runtime cross-layer copy operations have been observed in
+    the past when using the "overlay2" docker storage driver, which is the
+    default in recent version of the "docker-ce" package. On systems where
+    these problems occurred, the "aufs" docker storage driver did not
+    exhibit these issues; see
     <https://docs.docker.com/storage/storagedriver/aufs-driver/> for
-    details. Typically, the "aufs" driver can be enabled by editing the file
+    details.
+
+    Even more recent debian releases no longer contain the "aufs" storage
+    driver. The "overlay2" storage driver appears to work correctly under
+    Debian 10 ("buster") using "docker-ce-5:19.03.12~3-0~debian-buster"
+    ("Docker Community Edition", version 19.03.12) and linux kernel version
+    4.19.0-6-amd64.
+
+    It is currently recommended to try the default storage driver for your
+    docker installation (probably "overlay2"), and only switch to "aufs" if
+    you experience issues with cross-layer copy operations.
+
+    Typically, the "aufs" driver can be enabled by editing the file
     /etc/docker/daemon.json to contain:
 
      {
