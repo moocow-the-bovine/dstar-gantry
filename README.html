@@ -155,11 +155,13 @@
 
 <p>The <code>dstar-gantry</code> project provides a thin top-level wrapper script (<code>dstar-gantry.sh</code>) for D* corpus operations using the latest <code>dstar-buildhost</code> docker image pulled from the ZDL docker registry at <code>https://lex.dwds.de:443</code>. The <code>dstar-buildhost</code> docker container invoked by <code>dstar-gantry.sh</code> can simulate any of the <a href="https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST"><code>BUILDHOST</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README.html#RUNHOST"><code>RUNHOST</code></a>, and/or <a href="https://kaskade.dwds.de/dstar/doc/README.html#WEBHOST"><code>WEBHOST</code></a> D* <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles">host roles</a>, but is mostly intended to act as a (virtual) <a href="https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST"><code>BUILDHOST</code></a>.</p>
 
-<p>See <a href="#INSTALLATION">&quot;INSTALLATION&quot;</a> for instructions on installing <code>dstar-gantry</code> on your local machine, see <a href="#USAGE">&quot;USAGE&quot;</a> for details on the various options and arguments, and see <a href="#EXAMPLES">&quot;EXAMPLES&quot;</a> for some example <code>dstar-gantry.sh</code> calls. Please consult the relevant <a href="https://kaskade.dwds.de/dstar/doc/">dstar documentation</a> if you have questions which aren&#39;t addressed by this document.</p>
+<p>The remainder of this document describes the <code>dstar-gantry.sh</code> wrapper script in more detail; it does <b>not</b> constitute exhaustive documentation for the dstar corpus management framework or its features and functionality, not even of that subset of the dstar functionality which can be invoked through <code>dstar-gantry.sh</code>. Please consult the relevant <a href="https://kaskade.dwds.de/dstar/doc/">dstar documentation</a> if you have questions which aren&#39;t addressed by this document.</p>
+
+<p>See <a href="#INSTALLATION">&quot;INSTALLATION&quot;</a> for instructions on installing <code>dstar-gantry</code> on your local machine, see <a href="#USAGE">&quot;USAGE&quot;</a> for details on the various options and arguments, and see <a href="#EXAMPLES">&quot;EXAMPLES&quot;</a> for some example <code>dstar-gantry.sh</code> invocations.</p>
 
 <h1 id="INSTALLATION">INSTALLATION</h1>
 
-<p>This section describes the installation procedure for debian-based linux machines. <code>dstar-gantry</code> was developed and tested on an x86_64 machine running Debian GNU/Linux 10 (buster). You can probably run gantry on other architectures, but I can&#39;t tell you how to do that.</p>
+<p>This section describes the installation procedure for debian-based linux machines. <code>dstar-gantry</code> was developed and tested on an x86_64 machine running Debian GNU/Linux 10 (&quot;buster&quot;). Other systems and architectures may work too, but are not explicitly supported.</p>
 
 <p>If you are running <code>dstar-gantry.sh</code> on a &quot;semi-production&quot; host (e.g. lal.dwds.de), you can skip to <a href="#initialize-persistent-data">&quot;initialize persistent data&quot;</a>.</p>
 
@@ -335,7 +337,7 @@
 <dt id="DOCKER_OPTS"><a href="#Docker-Options">DOCKER_OPTS</a></dt>
 <dd>
 
-<p><code>DOCKER_OPTS</code> are passed to the <a href="https://docs.docker.com/engine/reference/run/"><code>docker-run</code></a> subprocess.</p>
+<p><code>DOCKER_OPTS</code> are passed to the <a href="https://docs.docker.com/engine/reference/run/"><code>docker-run</code></a> subprocess for the embedded <code>dstar-buildhost</code> container.</p>
 
 </dd>
 <dt id="BUILD_ARGS"><a href="#Container-Arguments">BUILD_ARGS</a></dt>
@@ -371,7 +373,7 @@
 <dt id="d-DSTAR_ROOT">-d DSTAR_ROOT</dt>
 <dd>
 
-<p>Specifies the host path (or symlink) used for (sparse) persistent dstar superstructure (default=<code>$HOME/dstar</code>). By default, persistent CAB resources and index data will be created here. The directory will be a sparse checkout of the <code>dstar project|https://kaskade.dwds.de/dstar/doc/README.html#Project-Directory-Structure</code> containing only partial checkouts of the <a href="https://kaskade.dwds.de/dstar/doc/README.html#doc"><code>doc/</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README.html#corpora"><code>corpora/</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README.html#sources"><code>sources/</code></a>, and <a href="https://kaskade.dwds.de/dstar/doc/README.html#resources"><code>resources/</code></a> subdirectories.</p>
+<p>Specifies the host path (or symlink) used for (sparse) persistent dstar superstructure (default=<code>$HOME/dstar</code>). By default, persistent CAB resources and index data will be created here. This directory should be a sparse checkout of the <a href="https://kaskade.dwds.de/dstar/doc/README.html#Project-Directory-Structure">dstar project</a> containing at least partial checkouts of the <a href="https://kaskade.dwds.de/dstar/doc/README.html#doc"><code>doc/</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README.html#corpora"><code>corpora/</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README.html#sources"><code>sources/</code></a>, and <a href="https://kaskade.dwds.de/dstar/doc/README.html#resources"><code>resources/</code></a> subdirectories.</p>
 
 <p>On &quot;semi-production&quot; dstar hosts (e.g. <code>lal.dwds.de</code>), you should typically use a global <code>DSTAR_ROOT</code> checkout in <code>/home/ddc-dstar/dstar</code>.</p>
 
@@ -379,19 +381,19 @@
 <dt id="C-CORPUS_ROOT">-C CORPUS_ROOT</dt>
 <dd>
 
-<p>Specifies the host path (or symlink) used for dstar corpus checkout (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/corpora/<a href="#c-CORPUS">CORPUS</a></code>). Implies <a href="#v-PATH:-MOUNT"><code>-v CORPUS_ROOT:/dstar/corpora/CORPUS</code></a>.</p>
+<p>Specifies the host path (or symlink) used for dstar corpus checkout (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/corpora/<a href="#c-CORPUS">CORPUS</a></code>). Implies volume mount <a href="#v-PATH:-MOUNT"><code>-v CORPUS_ROOT:/dstar/corpora/CORPUS</code></a>.</p>
 
 </dd>
 <dt id="S-CORPUS_SRC">-S CORPUS_SRC</dt>
 <dd>
 
-<p>Specifies the host path (or symlink) where dstar corpus sources reside (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/sources/<a href="#c-CORPUS">CORPUS</a>/</code> if present, otherwise required). Implies <a href="#v-PATH:-MOUNT"><code>-v CORPUS_SRC:/dstar/sources/CORPUS:ro</code></a>.</p>
+<p>Specifies the host path (or symlink) where dstar corpus sources reside (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/sources/<a href="#c-CORPUS">CORPUS</a>/</code> if present, otherwise required). Implies volume mount <a href="#v-PATH:-MOUNT"><code>-v CORPUS_SRC:/dstar/sources/CORPUS:ro</code></a>.</p>
 
 </dd>
 <dt id="R-RESOURCES_DIR">-R RESOURCES_DIR</dt>
 <dd>
 
-<p>Specifies the host path (or symlink) for persistent CAB resources (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/resources/</code> if present). Implies <a href="#v-PATH:-MOUNT"><code>-v RESOURCES_DIR:/dstar/resources</code></a>.</p>
+<p>Specifies the host path (or symlink) for persistent CAB resources (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/resources/</code> if present). Implies volume mount <a href="#v-PATH:-MOUNT"><code>-v RESOURCES_DIR:/dstar/resources</code></a>.</p>
 
 </dd>
 <dt id="RO">-RO</dt>
@@ -494,7 +496,7 @@
 
 <h3 id="BUILD_ACTION"><a href="#Container-Actions">BUILD_ACTION...</a></h3>
 
-<p>Other non-option arguments (not beginning with a dash &quot;-&quot;) are passed verbatim as <a href="#Container-Actions">&quot;Container Actions&quot;</a> to the <code>/dstar/docker/build</code> script in the suborinate container.</p>
+<p>Other non-option arguments (not beginning with a dash &quot;-&quot;) are passed verbatim as <a href="#Container-Actions">&quot;Container Actions&quot;</a> to the <code>/dstar/docker/build</code> script in the embedded <code>dstar-buildhost</code> container.</p>
 
 <h2 id="Docker-Options">Docker Options</h2>
 
@@ -502,7 +504,7 @@
 
 <h2 id="Container-Actions">Container Actions</h2>
 
-<p>All arguments following the second <code>--</code> on the <code>dstar-gantry.sh</code> command-line are passed verbatim to the <code>/dstar/docker/build</code> script call in the subordinate <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container. See the output of <code>dstar-gantry.sh help</code> for a synopsis of the <code>/dstar/docker/build</code> calling conventions.</p>
+<p>All arguments following the second <code>--</code> on the <code>dstar-gantry.sh</code> command-line are passed verbatim to the <code>/dstar/docker/build</code> script call in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container. See the output of <code>dstar-gantry.sh help</code> for a synopsis of the <code>/dstar/docker/build</code> calling conventions.</p>
 
 <dl>
 
@@ -521,7 +523,7 @@
 <dt id="checkout">checkout</dt>
 <dd>
 
-<p>Creates or updates corpus build superstructure in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> from SVN. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a>, i.e. a <a href="#https:-kaskade.dwds.de-dstar-doc-HOWTO.html-Corpus-Checkout">corpus checkout</a>.</p>
+<p>Creates or updates corpus build superstructure in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> from SVN. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a>, i.e. a <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout">corpus checkout</a>. You should probably never have to invoke this action manually, since it is implicitly called by the higher-level corpus operations such as <a href="#build">&quot;build&quot;</a>, <a href="#update">&quot;update&quot;</a>, <a href="#publish">&quot;publish&quot;</a>, etc.</p>
 
 </dd>
 <dt id="build">build</dt>
@@ -533,19 +535,19 @@
 <dt id="update">update</dt>
 <dd>
 
-<p>Updates an existing corpus index in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> from TEI-XML sources in <a href="#S-CORPUS_SRC"><code>CORPUS_SRC/</code></a>. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a> and <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -update</code></a>, i.e. <a href="https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-update">incremental corpus update</a></p>
+<p>Updates an existing corpus index in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> from TEI-XML sources in <a href="#S-CORPUS_SRC"><code>CORPUS_SRC/</code></a>. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a> and <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -update</code></a>, i.e. an <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">incremental corpus update</a> as described <a href="https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-update">here</a>.</p>
 
 </dd>
 <dt id="update-meta">update-meta</dt>
 <dd>
 
-<p>Updates metadata for an existing corpus index in <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/build</code></a> from TEI-XML sources in <a href="#S-CORPUS_SRC"><code>CORPUS_SRC/</code></a>. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a> and <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -update-meta</code></a>, i.e. <a href="https://kaskade.dwds.de/dstar/doc/HOWTO_build.html#Consistency-Testing">corpus metadata update</a>.</p>
+<p>Updates metadata for an existing corpus index in <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/build</code></a> from TEI-XML sources in <a href="#S-CORPUS_SRC"><code>CORPUS_SRC/</code></a>. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a> and <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -update-meta</code></a>, i.e. a <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Metadata-Update">corpus metadata update</a>.</p>
 
 </dd>
 <dt id="test">test</dt>
 <dd>
 
-<p>Runs automated consistency tests for an existing corpus build in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/test/</code>. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a> and <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -test</code></a>, i.e. <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Consistency-Tests">corpus consistency tests</a>.</p>
+<p>Runs automated consistency tests for an existing corpus build in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/test/</code>. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a> and <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -test</code></a>, i.e. <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Consistency-Testing">corpus consistency tests</a>.</p>
 
 </dd>
 <dt id="archive-build">archive-build</dt>
@@ -583,7 +585,7 @@
 <dt id="shell">shell</dt>
 <dd>
 
-<p>Runs a <code>bash</code> shell as the <code>build user|/-u USER</code> in the embedded container; useful for inspection and debugging.</p>
+<p>Runs a <code>bash</code> shell as the <a href="#u-USER">build user</a> in the embedded container; useful for inspection and debugging.</p>
 
 </dd>
 <dt id="exec-CMD">exec CMD</dt>
@@ -596,7 +598,7 @@
 
 <h2 id="Container-Environment-Variables">Container Environment Variables</h2>
 
-<p>The following environment variables influence operations in the subordinate <code>dstar-buildhost</code> container:</p>
+<p>The following environment variables influence operations in the embedded <code>dstar-buildhost</code> container, and can be customized by means of the gantry <a href="#e-VAR-VALUE">&quot;-e VAR=VALUE&quot;</a> and/or <a href="#E-ENV_FILE">&quot;-E ENV_FILE&quot;</a> options.</p>
 
 <dl>
 
@@ -630,7 +632,7 @@
 <dt id="dstar_build_umask">dstar_build_umask</dt>
 <dd>
 
-<p>Specifies the permissions umask for the build process. The default is typically specified in the <code>dstar-buildhost</code> docker image itself as <code>002</code>, which creates new files with the group-writable flag set. If you&#39;re feeling paranoid, you can set this to <code>022</code> or even <code>077</code>, but you may encounter problems down the line.</p>
+<p>Specifies the permissions umask for the build process. The default is typically specified in the <code>dstar-buildhost</code> docker image itself as <code>002</code>, which creates new files with the group-writable flag set. If you&#39;re feeling paranoid, you can set this to <code>022</code> or even <code>077</code>, but that may cause <a href="#E000013-...-Permission-denied">problems down the line</a>.</p>
 
 </dd>
 <dt id="dstar_corpora">dstar_corpora</dt>
@@ -709,7 +711,7 @@
 
 <h1 id="EXAMPLES">EXAMPLES</h1>
 
-<p>This section provides rudimentary sketches of some typical dstar corpus operations using <code>dstar-gantry.sh</code>. Since &lt;dstar-gantry&gt; is basically just a convenience wrapper around the <code>ddc-dstar</code> corpus infrastructure, most of the existing <a href="https://kaskade.dwds.de/dstar/doc/">dstar documentation</a> applies to <code>dstar-gantry</code> as well, where the <code>DSTAR_BUILDHOST</code> role is fulfilled by the embedded embedded <a href="#i-IMAGE"><code>dstar-buildhost</code> IMAGE</a> container, and the corpus directories <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> and <a href="#S-CORPUS_SRC"><code>CORPUS_SRC</code></a> are bind-mounted into the container from the gantry host itself.</p>
+<p>This section provides rudimentary sketches of some typical dstar corpus operations using <code>dstar-gantry.sh</code>. Since <code>dstar-gantry</code> is basically just a convenience wrapper around the <code>ddc-dstar</code> corpus infrastructure, most of the existing <a href="https://kaskade.dwds.de/dstar/doc/">dstar documentation</a> applies to <code>dstar-gantry</code> as well, where the <a href="https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST"><code>DSTAR_BUILDHOST</code></a> role is fulfilled by the embedded embedded <a href="#i-IMAGE"><code>dstar-buildhost</code> IMAGE</a> container, and the corpus directories <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> and <a href="#S-CORPUS_SRC"><code>CORPUS_SRC</code></a> are bind-mounted into the container from the gantry host itself.</p>
 
 <p>The examples in this section assume you have a working <code>dstar-gantry</code> installation in your <code>$PATH</code> and a sparse local <a href="#d-DSTAR_ROOT"><code>DSTAR_ROOT</code></a> directory or symlink at <code>$HOME/dstar</code>. See <a href="#INSTALLATION">&quot;INSTALLATION&quot;</a> if that is not the case.</p>
 
@@ -734,15 +736,13 @@
 
 <pre><code> $ ln -s /path/to/real/MYCORPUS/tei-xml/sources ~/dstar/sources/MYCORPUS</code></pre>
 
-<p>You presumably have some TEI-XML corpus sources on which you wish to operate; these should follow the guidelines in <a href="https://kaskade.dwds.de/dstar/doc/README_sources.html"><code>dstar/doc/README_sources</code></a>. If you want to avoid having to specify the gantry <a href="#S-CORPUS_SRC"><code>-S</code></a> for every <code>dstar-gantry.sh</code> call, you should symlink the location of the &quot;real&quot; sources into your <a href="#d-DSTAR_ROOT"><code>DSTAR_ROOT</code></a> checkout at <a href="#d-DSTAR_ROOT"><code>DSTAR_ROOT/sources/MYCORPUS</code></a>.</p>
-
-<p>See also <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Sources">&quot;Corpus Sources&quot; in the dstar-HOWTO</a>.</p>
+<p>You presumably have some TEI-XML corpus sources on which you wish to operate; these should follow the guidelines in <a href="https://kaskade.dwds.de/dstar/doc/README_sources.html"><code>dstar/doc/README_sources</code></a>. If you want to avoid having to specify the gantry <a href="#S-CORPUS_SRC">&quot;-S CORPUS_SRC&quot;</a> option for every <code>dstar-gantry.sh</code> call, you should symlink the location of the &quot;real&quot; sources into your <a href="#d-DSTAR_ROOT"><code>DSTAR_ROOT</code></a> checkout at <code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/sources/MYCORPUS</code>. See also <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Sources">&quot;Corpus Sources&quot; in the dstar-HOWTO</a> and <a href="https://kaskade.dwds.de/dstar/doc/README_sources.html">README_sources.txt</a>.</p>
 
 </dd>
 <dt id="Setup-Corpus-Configuration">Setup Corpus Configuration</dt>
 <dd>
 
-<p>You will need provide a configuration (<code>MYCORPUS.mak</code> and <code>MYCORPUS.opt</code>) for your corpus as described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Configuration">&quot;Corpus Configuration&quot; in the dstar-HOWTO</a> and under <a href="https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-config">&quot;HOWTO: Corpus Configuration&quot; in the dstar corpus operations slides</a>. Since the default <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#DSTAR_CONFIG"><code>DSTAR_CONFIG</code></a> for dstar-gantry builds resides by default in the embedded <code>dstar-buildhost</code> container, you may want to provide the corpus configuration by creating a <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-customizations-with-config.local"><code>CORPUS_ROOT/config.local/</code></a> directory; otherwise you will have to commit the corpus configuration files to SVN under <a href="https://kaskade.dwds.de/dstar/doc/README.html#config"><code>DSTAR_ROOT/config/</code></a> before proceeding. It should be safe to use <a href="#d-DSTAR_ROOT">gantry&#39;s sparse DSTAR_ROOT</a> for this purpose, but note that you will first have to check it out (gantry doesn&#39;t require or checkout <code>DSTAR_ROOT/config/</code> by default):</p>
+<p>You will need provide a configuration (<code>MYCORPUS.mak</code> and <code>MYCORPUS.opt</code>) for your corpus as described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Configuration">&quot;Corpus Configuration&quot; in the dstar-HOWTO</a> and under <a href="https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-config">&quot;HOWTO: Corpus Configuration&quot; in the dstar corpus operations slides</a>. Since the default <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#DSTAR_CONFIG"><code>DSTAR_CONFIG</code></a> for dstar-gantry builds resides by default in the embedded <code>dstar-buildhost</code> container, you may want to provide the corpus configuration by creating a <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-customizations-with-config.local"><code>CORPUS_ROOT/config.local/</code></a> directory; otherwise you will have to commit the corpus configuration files to SVN under <a href="https://kaskade.dwds.de/dstar/doc/README.html#config"><code>DSTAR_ROOT/config/</code></a> before proceeding. It should be safe to use <a href="#d-DSTAR_ROOT">gantry&#39;s sparse DSTAR_ROOT</a> for this purpose, but note that you will first have to check it out (gantry doesn&#39;t require or checkout <code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/config/</code> by default):</p>
 
 <pre><code> $ svn update --set-depth=infinity ~/dstar/config
  $ emacs \
@@ -753,6 +753,8 @@
  $ svn commit -m &quot;+ added and/or updated corpus configuration for MYCORPUS&quot; \
     ~/dstar/config/*/MYCORPUS.* \
     ~/dstar/doc/Changes.txt</code></pre>
+
+<p>If you choose to use a global configuration in your sparse <code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/config/</code>, you will probably want to <a href="#v-PATH:-MOUNT">mount it as a volume</a> in the embedded container by specifying &quot;<code>-v $DSTAR_ROOT/config:/dstar/config:ro</code>&quot; on the gantry command-line.</p>
 
 </dd>
 </dl>
@@ -768,7 +770,7 @@
 
 <pre><code> $ dstar-gantry.sh -c MYCORPUS build</code></pre>
 
-<p>Building a corpus index from TEI-XML sources or re-building an existing corpus index with the gantry <a href="#build"><code>build</code></a> action follows the basic pattern described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Annotate-and-Build">&quot;Annotate and Build&quot; in the dstar-HOWTO</a> using <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to populate or update the <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> checkout and calling <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh"><code>/dstar/corpora/MYCORPUS/build.sh -build</code></a> in the in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">build-logs</a> will be written to <code>CORPUS_ROOT/log/build.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console via <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl"><code>cronit.perl -echo-preset=make-info</code></a>. See <a href="https://kaskade.dwds.de/dstar/doc/README_build.html">README_build</a> for more details on the build process.</p>
+<p>Building a corpus index from TEI-XML sources or re-building an existing corpus index with the gantry <a href="#build"><code>build</code></a> action follows the basic pattern described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Annotate-and-Build">&quot;Annotate and Build&quot; in the dstar-HOWTO</a> using <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to populate or update the <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> checkout and calling <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh"><code>/dstar/corpora/MYCORPUS/build.sh -build</code></a> in the in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">build-logs</a> will be written to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/log/build.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console via <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl"><code>cronit.perl -echo-preset=make-info</code></a>. See <a href="https://kaskade.dwds.de/dstar/doc/README_build.html">README_build</a> for more details on the build process.</p>
 
 </dd>
 <dt id="MYCORPUS-consistency-testing">MYCORPUS consistency testing</dt>
@@ -776,7 +778,7 @@
 
 <pre><code> $ dstar-gantry.sh -c MYCORPUS test</code></pre>
 
-<p>Once a corpus index has been succesfully <a href="#build">built</a>, you can run some basic consistency checks with the gantry <a href="#test">test</a> action; see <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Consistency-Tests">&quot;Consistency Testing&quot; in the dstar-HOWTO</a> for more information. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">test-logs</a> will be written to <code>CORPUS_ROOT/log/test.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console.</p>
+<p>Once a corpus index has been succesfully <a href="#build">built</a>, you can run some basic consistency checks with the gantry <a href="#test">test</a> action; see <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Consistency-Tests">&quot;Consistency Testing&quot; in the dstar-HOWTO</a> for more information. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">test-logs</a> will be written to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/log/test.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console.</p>
 
 </dd>
 <dt id="MYCORPUS-staging">MYCORPUS staging</dt>
@@ -787,7 +789,7 @@
  ... do some manual testing ...
  $ docker kill dstar-gantry-MYCORPUS</code></pre>
 
-<p>Once a corpus index has been succesfully <a href="#build">built</a>, you can use &lt;dstar-gantry.sh&gt; to <a href="#install">install</a> and <a href="#run">run</a> a staging&quot; instance of the dstar <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code> roles</a> for that corpus in the embedded <code>dstar-buildhost</code> container, analogous to (but independent of) the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing">&quot;Sandbox Testing&quot;</a> functionality for &quot;bare-metal&quot; dstar corpus builds. Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <code>docker kill</code>.</p>
+<p>Once a corpus index has been succesfully <a href="#build">built</a>, you can use <code>dstar-gantry.sh</code> to <a href="#install">install</a> and <a href="#run">run</a> a staging&quot; instance of the dstar <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code> roles</a> for that corpus in the embedded <code>dstar-buildhost</code> container, analogous to (but independent of) the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing">&quot;Sandbox Testing&quot;</a> functionality for &quot;bare-metal&quot; dstar corpus builds. Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <code>docker kill</code>.</p>
 
 </dd>
 <dt id="MYCORPUS-deployment">MYCORPUS deployment</dt>
@@ -795,20 +797,20 @@
 
 <pre><code> $ dstar-gantry.sh -c MYCORPUS publish</code></pre>
 
-<p>If the corpus build is satisfactory, the next step is usually to install the newly indexed corpus onto the production <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code></a>. The <code>dstar-gantry</code> &quot;<a href="#publish">&quot;publish&quot;</a>&quot; action follows the pattern described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Install-or-Publish">&quot;Install or Publish&quot; in the dstar-HOWTO</a>, using <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to populate and/or update the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Runtime-Checkouts">runtime checkous</a> by calling <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -publish</code></a> in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">publish-logs</a> will be written to <code>CORPUS_ROOT/log/publish.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console.</p>
+<p>If the corpus build is satisfactory, the next step is usually to install the newly indexed corpus onto the production <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code></a>. The <code>dstar-gantry</code> &quot;<a href="#publish">&quot;publish&quot;</a>&quot; action follows the pattern described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Install-or-Publish">&quot;Install or Publish&quot; in the dstar-HOWTO</a>, using <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to populate and/or update the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Runtime-Checkouts">runtime checkous</a> by calling <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuild.sh"><code>CORPUS_ROOT/build/build.sh -publish</code></a> in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">publish-logs</a> will be written to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/log/publish.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console.</p>
 
 </dd>
 <dt id="MYCORPUS-post-deployment">MYCORPUS post-deployment</dt>
 <dd>
 
-<p>If the deployment is successful, continue with the procedures described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Its-Alive">&quot;It&#39;s Alive&quot;</a>, <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Nail-it-Down">&quot;Nail it Down&quot;</a>, and (optionally) <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Housekeeping">&quot;Housekeeping&quot;</a> in the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html">dstar-HOWTO</a>. In particular, if you have deployed a &quot;production&quot; corpus which was configured by means of a <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-customizations-with-config.local"><code>CORPUS_ROOT/config.local/</code></a> directory, you should ensure that the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Configuration">Corpus configuration file(s)</a> from <code>config.local/</code> are checked into the central <a href="https://kaskade.dwds.de/dstar/doc/README.html#config"><code>ddc-dstar/trunk/config</code></a> repository, and document your changes in <a href="https://kaskade.dwds.de/dstar/doc/Changes.html"><code>DSTAR_ROOT/doc/Changes.txt</code></a>.</p>
+<p>If the deployment is successful, continue with the procedures described under <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Its-Alive">&quot;It&#39;s Alive&quot;</a>, <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Nail-it-Down">&quot;Nail it Down&quot;</a>, and (optionally) <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Housekeeping">&quot;Housekeeping&quot;</a> in the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html">dstar-HOWTO</a>. In particular, if you have deployed a &quot;production&quot; corpus which was configured by means of a <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-customizations-with-config.local"><code>CORPUS_ROOT/config.local/</code></a> directory, you should ensure that the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Configuration">Corpus configuration file(s)</a> from <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/config.local/</code> are checked into the central <a href="https://kaskade.dwds.de/dstar/doc/README.html#config"><code>ddc-dstar/trunk/config</code></a> repository, and document your changes in <a href="https://kaskade.dwds.de/dstar/doc/Changes.html"><code>DSTAR_ROOT/doc/Changes.txt</code></a>.</p>
 
 </dd>
 </dl>
 
 <h2 id="Example:-Corpus-Update">Example: Corpus Update</h2>
 
-<p>Before attempting to update a corpus, you should ensure that you have fulfilled all the <a href="#Common-Prerequisites">&quot;Common Prerequisites&quot;</a>, and that you have an up-to-date instance of the <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> checkout -- including any intermediate build data -- on the gantry host, typically under <code>DSTAR_ROOT/corpora/MYCORPUS</code>.</p>
+<p>Before attempting to update a corpus, you should ensure that you have fulfilled all the <a href="#Common-Prerequisites">&quot;Common Prerequisites&quot;</a>, and that you have an up-to-date instance of the <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> checkout -- including any intermediate build data -- on the gantry host, typically under <code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/corpora/MYCORPUS</code>.</p>
 
 <dl>
 
@@ -817,7 +819,7 @@
 
 <pre><code> $ dstar-gantry.sh -c MYCORPUS update</code></pre>
 
-<p>Updating an existing corpus index after some source file(s) have been changed, added, and/or deleted by means of the gantry <a href="#update">update</a> action follows the basic pattern described under <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">&quot;Incremental Update&quot; in <code>README_build.txt</code></a>. The gantry <a href="#update">update</a> action uses uses <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to update the existing <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> superstructure, and calls <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh"><code>/dstar/corpora/MYCORPUS/build.sh -update</code></a> in the in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container to perform the index update. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">build-logs</a> will be written to <code>CORPUS_ROOT/log/update.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console via <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl"><code>cronit.perl -echo-preset=make-info</code></a>. See <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">&quot;Incremental Update&quot; in <code>README_build.txt</code></a> for more details.</p>
+<p>Updating an existing corpus index after some source file(s) have been changed, added, and/or deleted by means of the gantry <a href="#update">update</a> action follows the basic pattern described under <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">&quot;Incremental Update&quot; in <code>README_build.txt</code></a>. The gantry <a href="#update">update</a> action uses uses <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to update the existing <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> superstructure, and calls <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh"><code>CORPUS_ROOT/build/build.sh -update</code></a> in the in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container to perform the index update. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">build-logs</a> will be written to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/log/update.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console via <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl"><code>cronit.perl -echo-preset=make-info</code></a>. See <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">&quot;Incremental Update&quot; in <code>README_build.txt</code></a> for more details.</p>
 
 </dd>
 <dt id="MYCORPUS-post-update">MYCORPUS post-update</dt>
@@ -839,7 +841,7 @@
 
 <pre><code> $ dstar-gantry.sh -c MYCORPUS update-meta</code></pre>
 
-<p>Updating metadata for an existing corpus index after some source file(s) have been changed, added, and/or deleted by means of the gantry <a href="#update-meta">update-meta</a> action follows the basic pattern described under <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Metadata-Update">&quot;Metadata Update&quot; in <code>README_build.txt</code></a>. The gantry <a href="#update-meta">update-update</a> action uses uses <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to update the existing <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> superstructure, and calls <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh"><code>/dstar/corpora/MYCORPUS/build.sh -update-meta</code></a> in the in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container to perform the index metadata update. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">build-logs</a> will be written to <code>CORPUS_ROOT/log/update-meta.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console via <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl"><code>cronit.perl -echo-preset=make-info</code></a>. See <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Metadata-Update">&quot;Metadata Update&quot; in <code>README_build.txt</code></a> for more details.</p>
+<p>Updating metadata for an existing corpus index after some source file(s) have been changed, added, and/or deleted by means of the gantry <a href="#update-meta">update-meta</a> action follows the basic pattern described under <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Metadata-Update">&quot;Metadata Update&quot; in <code>README_build.txt</code></a>. The gantry <a href="#update-meta">update-update</a> action uses uses <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.sh"><code>dstar-checkout-corpus.sh</code></a> to update the existing <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> superstructure, and calls <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh"><code>/dstar/corpora/MYCORPUS/build.sh -update-meta</code></a> in the in the embedded <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container to perform the index metadata update. By default, full <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging">build-logs</a> will be written to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/log/update-meta.<i>DATETIME</i>.log</code>, and some progress information will be printed to the console via <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl"><code>cronit.perl -echo-preset=make-info</code></a>. See <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Metadata-Update">&quot;Metadata Update&quot; in <code>README_build.txt</code></a> for more details.</p>
 
 </dd>
 <dt id="MYCORPUS-post-metadata-update">MYCORPUS post-metadata-update</dt>
@@ -996,7 +998,7 @@
 
 <ul>
 
-<li><p>The <a href="https://kaskade.dwds.de/dstar/doc/README.html"><code>dstar/doc/README.txt</code></a> and the references mentioned therein describe the D* framework in more detail. Most of the D* documentation available under <a href="https://kaskade.dwds.de/dstar/doc/">D* README</a> predates the existence of <code>dstar-gantry</code> and of the <code>dstar-buildhost</code> image itself, and in the context of <code>dstar-gantry</code> should be interpreted relative to the running <code>dstar-buildhost</code> container.</p>
+<li><p>The <a href="https://kaskade.dwds.de/dstar/doc/README.html">dstar README</a> and the references mentioned therein describe the D* framework in more detail. Most of the D* documentation available under <a href="https://kaskade.dwds.de/dstar/doc/"><code>https://kaskade.dwds.de/dstar/doc</code></a> predates the existence of <code>dstar-gantry</code> and of the <code>dstar-buildhost</code> image itself, and in the context of <code>dstar-gantry</code> should be interpreted relative to the running <code>dstar-buildhost</code> container.</p>
 
 </li>
 <li><p><a href="https://kaskade.dwds.de/dstar/doc/README_sources.html"><code>dstar/doc/README_sources.txt</code></a> contains details on corpus source TEI-XML conventions.</p>
