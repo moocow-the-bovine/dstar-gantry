@@ -143,6 +143,7 @@ read_rcfile() {
     . "$rcfile"
 }
 
+
 ##======================================================================
 ## Gantry Actions
 
@@ -442,8 +443,14 @@ if [ -z "$gantry_cabdir" -a "${DSTAR_ROOT:-no}" != "no" -a -e "$DSTAR_ROOT/resou
 fi
 
 ##-- sanity check(s)
-[ -e "$gantry_corpus_root" ] \
-    || warn "CORPUS_ROOT=$gantry_corpus_root does not exist (continuing anyway, YMMV)"
+if [ \! -e "$gantry_corpus_root" ] ; then
+    if [[ " ${gantry_build_args[*]} ${gantry_extra_build_args[*]} " == *" "@(build|"test"|update*|install|publish|archive*|run)" "* ]] ; then
+	warn "CORPUS_ROOT=$gantry_corpus_root does not exist; creating"
+	runordie mkdir -p "$gantry_corpus_root"
+    else
+	warn "CORPUS_ROOT=$gantry_corpus_root does not exist (continuing anyway, YMMV)"
+    fi
+fi
 [ -n "$SSH_AUTH_SOCK" ] \
     || die "SSH_AUTH_SOCK variable is unset (is your ssh-agent running?)"
 [ -e "$SSH_AUTH_SOCK" ] \
