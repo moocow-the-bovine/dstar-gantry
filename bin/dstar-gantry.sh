@@ -44,7 +44,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$dstar_root_default)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
-   -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/(current/) if present)
+   -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS if present)
    -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
    -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
    -f RCFILE             # read gantry variables from RCFILE (bash source)
@@ -269,6 +269,10 @@ act_gantry_gc() {
     ##-- gc: docker
     vinfo "gc: pruning stale docker images ($gantry_gc_filter)"
     local iids=($(runordie_ro docker images -qa $gantry_gc_filter))
+    if [ ${#iids[@]} -eq 0 ] ; then
+	vinfo "gc: no stale docker images found: nothing to remove"
+	return 0
+    fi
     runordie docker rmi "${iids[@]}"
 }
 
@@ -369,24 +373,24 @@ done
 
 ##--------------------------------------------------------------
 ## docker options
-extra_docker_opts=()
+gantry_extra_docker_opts=()
 while [ $# -gt 0 ] ; do
     arg="$1"
     shift
     case "$arg" in
 	--) break ;;
-	*) extra_docker_opts[${#extra_docker_opts[@]}]="$arg" ;;
+	*) gantry_extra_docker_opts[${#gantry_extra_docker_opts[@]}]="$arg" ;;
     esac
 done
 
 ##--------------------------------------------------------------
 ## build args
-extra_build_args=("$@")
+gantry_extra_build_args=("$@")
 
 ##======================================================================
 ## MAIN
 
-if [ ${#gantry_build_args[@]} -eq 0 -a ${#extra_build_args[@]} -eq 0 ] ; then
+if [ ${#gantry_build_args[@]} -eq 0 -a ${#gantry_extra_build_args[@]} -eq 0 ] ; then
     vinfo "no container actions BUILD_ARG(s) specified: nothing to do."
     exit 0
 fi
@@ -419,8 +423,10 @@ if [ -z "$gantry_corpus_src" ] ; then
     elif [ "${DSTAR_ROOT:-no}" != "no" -a -n "$gantry_corpus" -a -e "$DSTAR_ROOT/sources/$gantry_corpus" ] ; then
 	##-- gantry_corpus_src: use persistent DSTAR_ROOT/sources/CORPUS
 	gantry_corpus_src="$DSTAR_ROOT/sources/$gantry_corpus"
-	[ \! -e "$gantry_corpus_src/curent" ] \
-	    || gantry_corpus_src="$gantry_corpus_src/current"  ##-- ... and honor sources/CORPUS/current/ convention
+	## ... and honor sources/CORPUS/current/ convention
+	## NO: this breaks relative src/ symlinks
+	#[ \! -e "$gantry_corpus_src/curent" ] \
+	#    || gantry_corpus_src="$gantry_corpus_src/current"
     fi
     if [ -n "$gantry_corpus_src" ] ; then
 	vinfo "setting CORPUS_SRC=$gantry_corpus_src"
@@ -487,10 +493,10 @@ gantry_docker_opts[${#gantry_docker_opts[@]}]="-edstar_corpora=$gantry_corpus"
 ##-- guts
 cmd=(docker run --rm -ti
      "${gantry_docker_opts[@]}"
-     "${extra_docker_opts[@]}"
+     "${gantry_extra_docker_opts[@]}"
      "${gantry_docker_image}"
      "/dstar/docker/build"
      "${gantry_build_args[@]}"
-     "${extra_build_args[@]}")
+     "${gantry_extra_build_args[@]}")
 
 runcmd "${cmd[@]}"

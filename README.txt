@@ -11,7 +11,7 @@ SYNOPSIS
        -c CORPUS             # dstar corpus label (required for most operations)
        -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
        -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
-       -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/(current/) if present)
+       -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/ if present)
        -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
        -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
        -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
@@ -47,7 +47,8 @@ SYNOPSIS
        install               # install CORPUS_ROOT/build/ to CORPUS_ROOT/{server,web}/
        publish               # deploy CORPUS_ROOT/build/ to production host(s)
        run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
-       exec CMD...           # just execute CMD... in container
+       shell                 # run a bash shell in the container
+       exec CMD...           # execute an arbitrary CMD... in container
 
      Useful container mounts under /dstar:
       config/                # global dstar configuration (read-only)
@@ -90,11 +91,17 @@ DESCRIPTION
     <https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST>, "RUNHOST"
     <https://kaskade.dwds.de/dstar/doc/README.html#RUNHOST>, and/or
     "WEBHOST" <https://kaskade.dwds.de/dstar/doc/README.html#WEBHOST> D*
-    host roles, but is mostly intended to act as a (virtual) "BUILDHOST".
+    host roles
+    <https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles>, but is
+    mostly intended to act as a (virtual) "BUILDHOST"
+    <https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST>.
 
     See "INSTALLATION" for instructions on installing "dstar-gantry" on your
     local machine, see "USAGE" for details on the various options and
     arguments, and see "EXAMPLES" for some example "dstar-gantry.sh" calls.
+    Please consult the relevant dstar documentation
+    <https://kaskade.dwds.de/dstar/doc/> if you have questions which aren't
+    addressed by this document.
 
 INSTALLATION
     This section describes the installation procedure for debian-based linux
@@ -186,7 +193,8 @@ INSTALLATION
          $ sudo ln -s $HOME/dstar-gantry/bin/*.sh /usr/local/bin
 
     initialize persistent data
-        Initialize persistent sparse local dstar checkout in $HOME/dstar:
+        Initialize persistent sparse local dstar checkout (usually in
+        "$HOME/dstar") with the "init" action:
 
          $ dstar-gantry.sh init
 
@@ -198,9 +206,19 @@ INSTALLATION
          ...
          dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
 
+        NOTE: if you are running "dstar-gantry.sh" on a "semi-production"
+        host (e.g. lal.dwds.de), you should probably be using the central
+        dstar checkout in "/home/ddc-dstar/dstar/" rather than a "private"
+        gantry checkout in "$HOME/dstar/" ... in this case, the gantry
+        maintainer has probably already installed an appropriate
+        machine-wide "/etc/dstar-gantry.rc", and you may want to create a
+        convenience symlink in you home directory to remind you:
+
+         $ ln -sfT /home/ddc-dstar/dstar ~/dstar
+
     retrieve docker image
         Download the latest "dstar-buildhost" image from the ZDL docker
-        registry:
+        registry with the "pull" action:
 
          $ dstar-gantry.sh pull
 
@@ -215,7 +233,7 @@ INSTALLATION
          dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
 
     run self-test
-        Run rudimentary self-tests:
+        Run rudimentary self-tests with the gantry "self-test" action:
 
          $ dstar-gantry.sh self-test
 
@@ -226,7 +244,7 @@ INSTALLATION
          dstar-gantry.sh: WARNING: no CORPUS_SRC directory specified (expect trouble if you're trying to (re-)index a corpus)
          dstar-gantry.sh: INFO: setting RESOURCE_DIR=/local/home/ddc-dstar/dstar/resources
          dstar-gantry.sh: WARNING: CORPUS_ROOT= does not exist (continuing anyway, YMMV)
-         dstar-gantry.sh: CMD: docker run --rm -ti --name=dstar-gantry- -v/run/user/1000/ssh-agent.sock:/tmp/ssh-auth-gantry.sock -eSSH_AUTH_SOCK=/tmp/ssh-auth-gantry.sock -v/local/home/ddc-dstar/dstar/resources:/dstar/resources -edstar_build_uid=1008 -edstar_build_gid=1008 -eDSTAR_USER=moocow -edstar_cabx_run=dstar-http-9096 -edstar_corpora= lex.dwds.de:443/dstar/dstar-buildhost:latest /dstar/docker/build self-test
+         dstar-gantry.sh: CMD: docker run --rm -ti --name=dstar-gantry- ... self-test
          ...
          build INFO: running self-test(s)
          build INFO: TEST: checking for ssh-agent socket (dstar-nice.sh test -w '/tmp/ssh-agent-wrap.sock')
@@ -265,120 +283,129 @@ USAGE
         invoked "dstar-buildhost" container.
 
   Gantry Options
-   -h, -help
-    Display a brief help message.
+    -h, -help
+        Display a brief help message.
 
-   -n, -dry-run
-    If specified, just prints what would have been done, but doesn't perform
-    any destructive actions.
+    -n, -dry-run
+        If specified, just prints what would have been done, but doesn't
+        perform any destructive actions.
 
-   -c CORPUS
-    Specifies the dstar corpus label ("collection label") for the operand
-    corpus. Required for most operations.
+    -c CORPUS
+        Specifies the dstar corpus label ("collection label") for the
+        operand corpus. Required for most operations.
 
-   -d DSTAR_ROOT
-    Specifies the host path used for (sparse) persistent dstar
-    superstructure (default="$HOME/dstar"). By default, persistent CAB
-    resources and index data will be created here. The directory will be a
-    sparse checkout of the "dstar
-    project|https://kaskade.dwds.de/dstar/doc/README.html#Project-Directory-
-    Structure" containing only partial checkouts of the "doc/"
-    <https://kaskade.dwds.de/dstar/doc/README.html#doc>, "corpora/"
-    <https://kaskade.dwds.de/dstar/doc/README.html#corpora>, "sources/"
-    <https://kaskade.dwds.de/dstar/doc/README.html#sources>, and
-    "resources/" <https://kaskade.dwds.de/dstar/doc/README.html#resources>
-    subdirectories.
+    -d DSTAR_ROOT
+        Specifies the host path (or symlink) used for (sparse) persistent
+        dstar superstructure (default="$HOME/dstar"). By default, persistent
+        CAB resources and index data will be created here. The directory
+        will be a sparse checkout of the "dstar
+        project|https://kaskade.dwds.de/dstar/doc/README.html#Project-Direct
+        ory-Structure" containing only partial checkouts of the "doc/"
+        <https://kaskade.dwds.de/dstar/doc/README.html#doc>, "corpora/"
+        <https://kaskade.dwds.de/dstar/doc/README.html#corpora>, "sources/"
+        <https://kaskade.dwds.de/dstar/doc/README.html#sources>, and
+        "resources/"
+        <https://kaskade.dwds.de/dstar/doc/README.html#resources>
+        subdirectories.
 
-   -C CORPUS_ROOT
-    Specifies the host path used for dstar corpus checkout
-    (default="DSTAR_ROOT/corpora/CORPUS"). Implies "-v
-    CORPUS_ROOT:/dstar/corpora/CORPUS". If a subdirectory
-    "CORPUS_ROOT/config.local/" exists, it will be treated as a (sparse)
-    local set of dstar-configuration overrides for "CORPUS" and merged into
-    a pure-local configuration directorsy "CORPUS_ROOT/config/" by implicit
-    calls to "dstar-checkout-corpus.sh".
+        On "semi-production" dstar hosts (e.g. "lal.dwds.de"), you should
+        typically use a global "DSTAR_ROOT" checkout in
+        "/home/ddc-dstar/dstar".
 
-   -S CORPUS_SRC
-    Specifies the host path where dstar corpus sources reside
-    (default="DSTAR_ROOT/sources/CORPUS/current/" if present, otherwise
-    "DSTAR_ROOT/sources/CORPUS/" if present, otherwise required). Implies
-    "-v CORPUS_SRC:/dstar/sources/CORPUS:ro".
+    -C CORPUS_ROOT
+        Specifies the host path (or symlink) used for dstar corpus checkout
+        (default="DSTAR_ROOT/corpora/CORPUS"). Implies "-v
+        CORPUS_ROOT:/dstar/corpora/CORPUS". If a subdirectory
+        "CORPUS_ROOT/config.local/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific
+        -customizations-with-config.local> exists, it will be treated as a
+        (sparse) local set of dstar-configuration overrides for "CORPUS" and
+        merged into a pure-local configuration directory
+        "CORPUS_ROOT/config/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#DSTAR_CONFIG>
+        by implicit calls to "dstar-checkout-corpus.sh".
 
-   -R RESOURCES_DIR
-    Specifies the host path for persistent CAB resources
-    (default="DSTAR_ROOT/resources/" if present). Implies "-v
-    RESOURCES_DIR:/dstar/resources".
+    -S CORPUS_SRC
+        Specifies the host path (or symlink) where dstar corpus sources
+        reside (default="DSTAR_ROOT/sources/CORPUS/" if present, otherwise
+        required). Implies "-v CORPUS_SRC:/dstar/sources/CORPUS:ro".
 
-   -RO
-    If the "-RO" option is specified and "RESOURCES_DIR" is present on the
-    local machine, then "RESOURCES_DIR" will be mounted read-only in the
-    container, which suppresses resource synchronization in the running
-    container. If you want each container invocation to ensure that its CAB
-    resources are fully up-to-date, you should NOT use this option. It can
-    be useful to bypass synchronization overhead, minimize network
-    bandwidth, and ensure resource consistency for post-hoc updates of
-    existing corpora though. Use with consideration.
+    -R RESOURCES_DIR
+        Specifies the host path (or symlink) for persistent CAB resources
+        (default="DSTAR_ROOT/resources/" if present). Implies "-v
+        RESOURCES_DIR:/dstar/resources".
 
-   -f RCFILE
-    Reads gantry configuration variables from "RCFILE" on the host machine.
-    "RCFILE" is evaluated as bash source. May be specified more than once,
-    in which case files are read in the order specified and later
-    declarations may clobber earlier ones. By default, "dstar-gantry.sh"
-    reads the following global configuration files (if they exist) before
-    evaluating any "RCFILE" specified on the command-line:
+    -RO If the "-RO" option is specified and "RESOURCES_DIR" is present on
+        the local machine, then "RESOURCES_DIR" will be mounted read-only in
+        the container, which suppresses resource synchronization in the
+        running container. If you want each container invocation to ensure
+        that its CAB resources are fully up-to-date, you should NOT use this
+        option. It can be useful to bypass synchronization overhead,
+        minimize network bandwidth, and ensure resource consistency for
+        post-hoc updates of existing corpora though. Use with consideration.
 
-     /etc/dstar-gantry.rc
-     $HOME/.dstar-gantry.rc
+    -f RCFILE
+        Reads gantry configuration variables from "RCFILE" on the host
+        machine. "RCFILE" is evaluated as bash source. May be specified more
+        than once, in which case files are read in the order specified and
+        later declarations may clobber earlier ones. By default,
+        "dstar-gantry.sh" reads the following global configuration files (if
+        they exist) before evaluating any "RCFILE" specified on the
+        command-line:
 
-    See "Gantry Configuration Variables" for a list of known gantry
-    configuration variables you can set here.
+         /etc/dstar-gantry.rc
+         $HOME/.dstar-gantry.rc
 
-   -i IMAGE
-    Specifies the docker image to be pulled and/or invoked via "docker run"
-    <https://docs.docker.com/engine/reference/run/>. Default is
-    "lex.dwds.de:443/dstar/dstar-buildhost:latest".
+        See "Gantry Configuration Variables" for a list of known gantry
+        configuration variables you can set here.
 
-   -e VAR=VALUE
-    Specify an environment variable override for the container via "docker
-    run -e VAR=VALUE"
-    <https://docs.docker.com/engine/reference/run/#env-environment-variables
-    >.
+    -i IMAGE
+        Specifies the docker image to be pulled and/or invoked via "docker
+        run" <https://docs.docker.com/engine/reference/run/>. Default is
+        "lex.dwds.de:443/dstar/dstar-buildhost:latest".
 
-   -E ENV_FILE
-    Specify a file containing environment variable overrides for the
-    container, via "docker run --env-file ENV_FILE"
-    <https://docs.docker.com/engine/reference/run/#env-environment-variables
-    >.
+    -e VAR=VALUE
+        Specify an environment variable override for the container via
+        "docker run -e VAR=VALUE"
+        <https://docs.docker.com/engine/reference/run/#env-environment-varia
+        bles>.
 
-   -v /PATH:/MOUNT
-    Mounts the host directory "/PATH" as a volume into the container at
-    "/MOUNT", passed to "docker_run -v"
-    <https://docs.docker.com/engine/reference/run/#volume-shared-filesystems
-    >.
+    -E ENV_FILE
+        Specify a file containing environment variable overrides for the
+        container, via "docker run --env-file ENV_FILE"
+        <https://docs.docker.com/engine/reference/run/#env-environment-varia
+        bles>.
 
-    Potentially useful volume mounts "/MOUNT" include:
+    -v /PATH:/MOUNT
+        Mounts the host directory "/PATH" as a volume into the container at
+        "/MOUNT", passed to "docker_run -v"
+        <https://docs.docker.com/engine/reference/run/#volume-shared-filesys
+        tems>.
 
-      /dstar/config/            # global dstar configuration (read-only)
-      /dstar/resources/         # CAB analysis resources (read-only)
+        Potentially useful volume mounts "/MOUNT" include:
 
-   -x CABX_RUN
-    Select container-internal CAB server(s) to start for container run
-    action; default="dstar-http-9096".
+          /dstar/config/            # global dstar configuration (read-only)
+          /dstar/resources/         # CAB analysis resources (read-only)
 
-   -p HTTP_PORT
-    Map containers port 80 to host port "HTTP_PORT" for "run" action via
-    "docker run -p HTTP_PORT:80"
-    <https://docs.docker.com/engine/reference/run/#expose-incoming-ports>.
+    -x CABX_RUN
+        Select container-internal CAB server(s) to start for container run
+        action; default="dstar-http-9096".
 
-   -u USER
-    Specifies username or UID of host build user (default="ddc-admin" if
-    present, otherwise current user). If the UID does not exist in the
-    container (it probably doesn't), it will be created.
+    -p HTTP_PORT
+        Map containers port 80 to host port "HTTP_PORT" for "run" action via
+        "docker run -p HTTP_PORT:80"
+        <https://docs.docker.com/engine/reference/run/#expose-incoming-ports
+        >.
 
-   -g GROUP
-    Specifies group name or GID of host build user (default="ddc-admin" if
-    present, otherwise current group). If the GID does not exist in the
-    container (it probably doesn't), it will be created.
+    -u USER
+        Specifies username or UID of host build user (default="ddc-admin" if
+        present, otherwise current user). If the UID does not exist in the
+        container (it probably doesn't), it will be created.
+
+    -g GROUP
+        Specifies group name or GID of host build user (default="ddc-admin"
+        if present, otherwise current group). If the GID does not exist in
+        the container (it probably doesn't), it will be created.
 
   Gantry Actions
    init
@@ -430,247 +457,594 @@ USAGE
     "dstar-gantry.sh help" for a synopsis of the "/dstar/docker/build"
     calling conventions.
 
-   help
-    Shows a brief help message from the container "/dstar/docker/build"
-    script.
+    help
+        Shows a brief help message from the container "/dstar/docker/build"
+        script.
 
-   self-test
-    Runs some rudimentary self-test(s) and reports results. Not all
-    self-tests need to pass in order for "dstar-gantry.sh" to be useful; the
-    functionality you need depends on what you're trying to do and your
-    personal preferences.
+    self-test
+        Runs some rudimentary self-test(s) and reports results. Not all
+        self-tests need to pass in order for "dstar-gantry.sh" to be useful;
+        the functionality you need depends on what you're trying to do and
+        your personal preferences.
 
-   build
-    (Re-)indexes a corpus in "CORPUS_ROOT/build/" from TEI-XML sources in
-    "CORPUS_SRC/". This is basically a wrapper for
-    "dstar-checkout-corpus.sh"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
-    "CORPUS_ROOT/build/build.sh -build"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuil
-    d.sh>, i.e. a full corpus re-build
-    <https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-build>.
+    build
+        (Re-)indexes a corpus in "CORPUS_ROOT/build/" from TEI-XML sources
+        in "CORPUS_SRC/". This is basically a wrapper for
+        "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
+        "CORPUS_ROOT/build/build.sh -build"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-auto
+        build.sh>, i.e. a full corpus re-build
+        <https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-buil
+        d>.
 
-   update
-    Updates an existing corpus index in "CORPUS_ROOT/build/" from TEI-XML
-    sources in "CORPUS_SRC/". This is basically a wrapper for
-    "dstar-checkout-corpus.sh"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
-    "CORPUS_ROOT/build/build.sh -update"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuil
-    d.sh>, i.e. incremental corpus update
-    <https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-update>
+    update
+        Updates an existing corpus index in "CORPUS_ROOT/build/" from
+        TEI-XML sources in "CORPUS_SRC/". This is basically a wrapper for
+        "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
+        "CORPUS_ROOT/build/build.sh -update"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-auto
+        build.sh>, i.e. incremental corpus update
+        <https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-upda
+        te>
 
-   update-meta
-    Updates metadata for an existing corpus index in "CORPUS_ROOT/build"
-    from TEI-XML sources in "CORPUS_SRC/". This is basically a wrapper for
-    "dstar-checkout-corpus.sh"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
-    "CORPUS_ROOT/build/build.sh -update-meta"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuil
-    d.sh>, i.e. corpus metadata update
-    <https://kaskade.dwds.de/dstar/doc/HOWTO_build.html#Consistency-Testing>
-    .
+    update-meta
+        Updates metadata for an existing corpus index in "CORPUS_ROOT/build"
+        from TEI-XML sources in "CORPUS_SRC/". This is basically a wrapper
+        for "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
+        "CORPUS_ROOT/build/build.sh -update-meta"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-auto
+        build.sh>, i.e. corpus metadata update
+        <https://kaskade.dwds.de/dstar/doc/HOWTO_build.html#Consistency-Test
+        ing>.
 
-   test
-    Runs automated consistency tests for an existing corpus build in
-    "CORPUS_ROOT/build/test/". This is basically a wrapper for
-    "dstar-checkout-corpus.sh"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
-    "CORPUS_ROOT/build/build.sh -test"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuil
-    d.sh>, i.e. corpus consistency tests
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Consistency-Tests>.
+    test
+        Runs automated consistency tests for an existing corpus build in
+        "CORPUS_ROOT/build/test/". This is basically a wrapper for
+        "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> and
+        "CORPUS_ROOT/build/build.sh -test"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-auto
+        build.sh>, i.e. corpus consistency tests
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Consistency-Tests>.
 
-   archive-build
-    Archives an existing "CORPUS_ROOT/build/" to "${dstar_archive_dir}" if
-    set, otherwise to the (corpus-specific) directory specified by the
-    "ARC_BUILD_DIR" dstar make variable; usually "CORPUS_ROOT/archive/".
+    archive-build
+        Archives an existing corpus build-directory "CORPUS_ROOT/build/" to
+        the directory "${dstar_archive_dir}" if set, otherwise to the
+        (corpus-specific) directory specified by the "ARC_BUILD_DIR" dstar
+        make variable; usually "CORPUS_ROOT/archive/". The build-archive
+        will be created as a gzipped tar archive
+        "CORPUS.build-*DATETIME*.tar.gz" where *DATETIME* is a timestamp in
+        *YYYY-MM-DD.HHMMSS* format, and will include all intermediate build
+        files in "CORPUS_ROOT/build/".
 
-   archive-publish
-    Archives publishable corpus data from "CORPUS_ROOT/build/" to
-    "${dstar_archive_dir}" if set, otherwise to the (corpus-specific)
-    directory specified by the "ARC_PUBLISH_DIR" dstar make variable;
-    usually "CORPUS_ROOT/archive/".
+    archive-publish
+        Archives publishable corpus data from the corpus build directory
+        "CORPUS_ROOT/build/" to the directory "${dstar_archive_dir}" if set,
+        otherwise to the (corpus-specific) directory specified by the
+        "ARC_PUBLISH_DIR" dstar make variable; usually
+        "CORPUS_ROOT/archive/". The publish-archive will be created as a
+        gzipped tar archive "CORPUS.publish-*DATETIME*.tar.gz" where
+        *DATETIME* is a timestamp in *YYYY-MM-DD.HHMMSS* format, and should
+        contain all the index data required for a production runtime corpus
+        instance on "RUNHOST" and/or "WEBHOST"
+        <https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles>).
+        Future versions of this software may support additional operations
+        on such archives.
 
-   install
-    Installs an existing corpus index from "CORPUS_ROOT/build/" to
-    "CORPUS_ROOT/{server,web}/" within the running "dstar-buildhost"
-    container.
+        Note that archives created with the "archive-publish" action only
+        include that subset of the data from local corpus build directory
+        "CORPUS_ROOT/build/" which would be deployed by a operation, and not
+        the actual published index data from remote runtime "production"
+        host(s) as specified by the "PUBLISH_DEST" and/or "WEB_PUBLISH_DEST"
+        dstar make variables. Archives created with the "archive-publish"
+        action will also not include any intermediate build files, so it
+        should be much smaller in size than those created by the action.
+        Unlike an archive however, an "archive-publish" archive cannot be
+        used as the basis for subsequent subsequent incremental corpus
+        updates
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Upd
+        ate> or infrastructure maintainence; please act responsibly.
 
-   publish
-    Deploy an existing corpus index from "CORPUS_ROOT/build/" to production
-    host(s) as selected by the dstar make variables "PUBLISH_DEST" and/or
-    "WEB_PUBLISH_DEST".
+    install
+        Installs an existing corpus index from "CORPUS_ROOT/build/" to
+        "CORPUS_ROOT/{server,web}/" within the running "dstar-buildhost"
+        container.
 
-   run
-    Runs a "CORPUS" instance from "CORPUS_ROOT/{server,web}/" in the
-    temporary container. For this action, you will probably also want to
-    specify "-p HTTP_PORT". If specified, this must be the last container
-    action executed.
+    publish
+        Deploy an existing corpus index from "CORPUS_ROOT/build/" to
+        production host(s) as selected by the dstar make variables
+        "PUBLISH_DEST" and/or "WEB_PUBLISH_DEST".
 
-   exec CMD
-    Just executs "CMD..." in the subordinate container. If specified, this
-    must be the final container action executed. Use with extreme caution.
+    run Runs a "CORPUS" instance from "CORPUS_ROOT/{server,web}/" in the
+        temporary container. For this action, you will probably also want to
+        specify "-p HTTP_PORT". If specified, this must be the last
+        container action executed.
+
+    shell
+        Runs a "bash" shell as the "build user|/-u USER" in the embedded
+        container; useful for inspection and debugging.
+
+    exec CMD
+        Just executs "CMD..." in the embedded container. If specified, this
+        must be the final container action executed. Use with extreme
+        caution.
 
   Container Environment Variables
     The following environment variables influence operations in the
     subordinate "dstar-buildhost" container:
 
-   SSH_AUTH_SOCK
-    The communication socket for ssh-agent on the docker host will be
-    bind-mounted into the container as "/tmp/ssh-auth-gantry.sock". The
-    embedded "/dstar/docker/build" script will typically take care of
-    wrapping that socket as "/tmp/ssh-agent-wrap.sock", to ensure
-    appropriate permissions for the build USER and GROUP within the
-    container itself.
+    SSH_AUTH_SOCK
+        The communication socket for ssh-agent on the docker host will be
+        bind-mounted into the container as "/tmp/ssh-auth-gantry.sock". The
+        embedded "/dstar/docker/build" script will typically take care of
+        wrapping that socket as "/tmp/ssh-agent-wrap.sock", to ensure
+        appropriate permissions for the build USER and GROUP within the
+        container itself.
 
-   dstar_init_hooks
-    Default initialization hook directory for the embedded
-    "/dstar/docker/build" script; typically empty. If you need to perform
-    additional actions on the container startup, you can set this variable
-    to the container path of a (mounted) directory containing hooks
-    appropriate for the "run-parts"
-    <https://manpages.debian.org/buster/debianutils/run-parts.8.en.html>
-    system utility. If no INIT_HOOK_DIR(s) are specified on the command-line
-    or by this environment variable, hooks are run from any directory
-    matching
+    dstar_init_hooks
+        Default initialization hook directory for the embedded
+        "/dstar/docker/build" script; typically empty. If you need to
+        perform additional actions on the container startup, you can set
+        this variable to the container path of a (mounted) directory
+        containing hooks appropriate for the "run-parts"
+        <https://manpages.debian.org/buster/debianutils/run-parts.8.en.html>
+        system utility. If no INIT_HOOK_DIR(s) are specified on the
+        command-line or by this environment variable, hooks are run from any
+        directory matching
 
-     /home/ddc-dstar/dstar/docker/build.d/
-     /opt/dstar-build*/
+         /home/ddc-dstar/dstar/docker/build.d/
+         /opt/dstar-build*/
 
-   dstar_build_uid
-    Numeric UID of build user; should be automatically populated by gantry
-    from the "-u USER" option. If no user with this UID exists in the
-    container (likely), a temporary user "dstar-build" will be created
-    during container startup.
+    dstar_build_uid
+        Numeric UID of build user; should be automatically populated by
+        gantry from the "-u USER" option. If no user with this UID exists in
+        the container (likely), a temporary user "dstar-build" will be
+        created during container startup.
 
-   dstar_build_gid
-    Numeric GID of build group; should be automatically populated by gantry
-    from the "-g GROUP" option. If no group with this GID exists in the
-    container (likely), a temporary group "dstar-build" will be created
-    during container startup and the "dstar_build_uid" user approrpriately
-    modified.
+    dstar_build_gid
+        Numeric GID of build group; should be automatically populated by
+        gantry from the "-g GROUP" option. If no group with this GID exists
+        in the container (likely), a temporary group "dstar-build" will be
+        created during container startup and the "dstar_build_uid" user
+        approrpriately modified.
 
-   dstar_build_umask
-    Specifies the permissions umask for the build process. The default is
-    typically specified in the "dstar-buildhost" docker image itself as 002,
-    which creates new files with the group-writable flag set. If you're
-    feeling paranoid, you can set this to 022 or even 077, but you may
-    encounter problems down the line.
+    dstar_build_umask
+        Specifies the permissions umask for the build process. The default
+        is typically specified in the "dstar-buildhost" docker image itself
+        as 002, which creates new files with the group-writable flag set. If
+        you're feeling paranoid, you can set this to 022 or even 077, but
+        you may encounter problems down the line.
 
-   dstar_corpora
-    Specifies the corpus or corpora to operate on as a whitespace-separated
-    list. Typcically set by "dstar-gantry.sh" itself to "CORPUS". You
-    probably don't want to set this yourself.
+    dstar_corpora
+        Specifies the corpus or corpora to operate on as a
+        whitespace-separated list. Typcically set by "dstar-gantry.sh"
+        itself to "CORPUS". You probably don't want to set this yourself.
 
-   dstar_corpus
-    Alias for "dstar_corpora".
+    dstar_corpus
+        Alias for "dstar_corpora".
 
-   dstar_archive_dir
-    Target directory for and actions. Empty (unset) by default.
+    dstar_archive_dir
+        Target directory for and actions. Empty (unset) by default.
 
-   dstar_sync_resources
-    Whether or not to synchronize CAB resources to "RESOURCES_DIR" on
-    container startup. Accepts values "auto" (default), "no", and "force".
-    The default value ("auto") will only attempt to synchronize resources if
-    "RESOURCES_DIR" is not mounted read-only.
+    dstar_sync_resources
+        Whether or not to synchronize CAB resources to "RESOURCES_DIR" on
+        container startup. Accepts values "auto" (default), "no", and
+        "force". The default value ("auto") will only attempt to synchronize
+        resources if "RESOURCES_DIR" is not mounted read-only.
 
-   dstar_sync_rcfiles
-    Specifies which CAB resources in "RESOURCES_DIR" are to by synchronized
-    on container startup. If set and non-empty, overrides that value of the
-    dstar make variable "CABRC_FILES" for the implicit "make -C
-    /dstar/resources sync" syncronization call. Empty by default, which uses
-    the default value for "CABRC_FILES", and should cause all default CAB
-    resources to be synchronized.
+    dstar_sync_rcfiles
+        Specifies which CAB resources in "RESOURCES_DIR" are to by
+        synchronized on container startup. If set and non-empty, overrides
+        that value of the dstar make variable "CABRC_FILES" for the implicit
+        "make -C /dstar/resources sync" syncronization call. Empty by
+        default, which uses the default value for "CABRC_FILES", and should
+        cause all default CAB resources to be synchronized.
 
-   dstar_checkout_corpus_opts
-    Specifies options for "dstar-checkout-corpus.sh"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> as
-    implicitly called prior to any corpus operation. Default: "-force
-    -local-config".
+    dstar_checkout_corpus_opts
+        Specifies options for "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout> as
+        implicitly called prior to any corpus operation. Default: "-force
+        -local-config".
 
-   dstar_build_sh_opts
-    Specifies options for "CORPUS_ROOT/build/build.sh -build"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-autobuil
-    d.sh>. Default: "-echo-preset=make-info".
+    dstar_build_sh_opts
+        Specifies options for "CORPUS_ROOT/build/build.sh -build"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-auto
+        build.sh>. Default: "-echo-preset=make-info".
 
-   dstar_cabx_run
-    Specifies which CAB server(s) to start in the container for the action
-    as a whitespace-separated list. CAB server(s) are identified by the file
-    basename up to the first dot (".") of the corresponding configuration
-    file "/dstar/cabx/*.rc". Default: "dstar-http-9096". Known values:
+    dstar_cabx_run
+        Specifies which CAB server(s) to start in the container for the
+        action as a whitespace-separated list. CAB server(s) are identified
+        by the file basename up to the first dot (".") of the corresponding
+        configuration file "/dstar/cabx/*.rc". Default: "dstar-http-9096".
+        Known values:
 
-     dstar-http-9096       - runtime expansion for synchronic German
-     dstar-http-dta-8088   - runtime expansion for historical German
-     dstar-http-dta-9099   - "public" web-service for historical German
-     dstar-http-en-9097    - runtime expansion for synchronic English
-     dstar-http-taghx-9098 - runtime lemma-equivalence using TAGH
+         dstar-http-9096       - runtime expansion for synchronic German
+         dstar-http-dta-8088   - runtime expansion for historical German
+         dstar-http-dta-9099   - "public" web-service for historical German
+         dstar-http-en-9097    - runtime expansion for synchronic English
+         dstar-http-taghx-9098 - runtime lemma-equivalence using TAGH
 
-   dstar_relay_conf
-    Specifies container path containing "socat"
-    <https://linux.die.net/man/1/socat> relay configuration for
-    "/dstar/init/dstar-relay.sh". Empty by default, which starts no relays.
-    This option is useful for workstations with insufficient resources to
-    run embedded CAB expansion servers locally, or in situations where
-    "RESOURCES_DIR" is not fully populated in order to bind "virtual" local
-    ports which forward all requests to a remote server daemon (e.g.
-    "data.dwds.de:9096" for the CAB expansion server "dstar-http-9096"). It
-    can also be useful for testing "metacorpora" in a container without
-    having to run all daughter corpora in the container as well; in this
-    case, relays should be defined for each immediate daughter node of the
-    metacorpus to be run.
+    dstar_relay_conf
+        Specifies container path containing "socat"
+        <https://linux.die.net/man/1/socat> relay configuration for
+        "/dstar/init/dstar-relay.sh". Empty by default, which starts no
+        relays. This option is useful for workstations with insufficient
+        resources to run embedded CAB expansion servers locally, or in
+        situations where "RESOURCES_DIR" is not fully populated in order to
+        bind "virtual" local ports which forward all requests to a remote
+        server daemon (e.g. "data.dwds.de:9096" for the CAB expansion server
+        "dstar-http-9096"). It can also be useful for testing "metacorpora"
+        in a container without having to run all daughter corpora in the
+        container as well; in this case, relays should be defined for each
+        immediate daughter node of the metacorpus to be run.
 
-    See "dstar-buildhost:/dstar/init/etc_default_dstar_relay"
-    <http://odo.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repositor
-    y&path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay> for syntax
-    and more details.
+        See "dstar-buildhost:/dstar/init/etc_default_dstar_relay"
+        <http://odo.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repos
+        itory&path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay>
+        for syntax and more details.
 
-   VAR
-    All environment variables are passed down to child processes (e.g.
-    "dstar-nice.sh"
-    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-nice-sh>, "make");
-    see "Customizable Variables" in "README_build.txt"
-    <https://kaskade.dwds.de/dstar/doc/README_build.html#Customizable-Variab
-    les> for more (non-exhaustive) details.
-
+    VAR All environment variables are passed down to child processes (e.g.
+        "dstar-nice.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-nice-sh>,
+        "make"); see "Customizable Variables" in "README_build.txt"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Customizable-Va
+        riables> for more (non-exhaustive) details.
 
   Gantry Configuration Variables
     The following shell variables are used internally by the
     "dstar-gantry.sh" script, and may be set or modified by configuration
     file(s). Default values are shown where appropriate, but may differ in
-    some situations (e.g. running via sudo).
-
-     ##--------------------------------------------------------------
-     ## globals
-     DSTAR_ROOT=~/dstar
-     gantry_root=$(dirname "$0")/..
-     gantry_docker_registry_path=/dstar
-     gantry_gc_filter="-f dangling=true -f label=de.dwds.project.name=dstar-buildhost"
- 
-     ##--------------------------------------------------------------
-     ## gantry options
-     gantry_dry_run=""
-     gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
-     gantry_corpus=""
-     gantry_corpus_root="" #$DSTAR_ROOT/corpora/$gantry_corpus
-     gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus/current
-     gantry_cabdir=""      #$DSTAR_ROOT/resources
-     gantry_cabdir_ro=""
-     gantry_cabrun="dstar-http-9096"
-     gantry_http_port=""
-     gantry_user=$(id -un ddc-admin)
-     gantry_group=$(id -gn ddc-admin)
- 
-     ##--------------------------------------------------------------
-     ## docker options
-     extra_docker_opts=()
- 
-     ##--------------------------------------------------------------
-     ## build args
-     extra_build_args=()
+    some situations (e.g. running via sudo). See the example
+    "dstar-gantry.rc" file in the gantry distribution for details.
 
 EXAMPLES
-  TODO CONTINUE HERE
+    This section provides rudimentary sketches of some typical dstar corpus
+    operations using "dstar-gantry.sh". Since <dstar-gantry> is basically
+    just a convenience wrapper around the "ddc-dstar" corpus infrastructure,
+    most of the existing dstar documentation
+    <https://kaskade.dwds.de/dstar/doc/> applies to "dstar-gantry" as well,
+    where the "DSTAR_BUILDHOST" role is fulfilled by the embedded embedded
+    "dstar-buildhost" IMAGE container, and the corpus directories
+    "CORPUS_ROOT" and "CORPUS_SRC" are bind-mounted into the container from
+    the gantry host itself.
+
+    The examples in this section assume you have a working "dstar-gantry"
+    installation in your $PATH and a sparse local "DSTAR_ROOT" directory or
+    symlink at "$HOME/dstar". See "INSTALLATION" if that is not the case.
+
+    Corpus-specific examples assume you are working on a corpus called
+    ""MYCORPUS""; replace ""MYCORPUS"" with the name of your real corpus
+    where appropriate.
+
+  Common Prerequisites
+    In addition to a working gantry installation, you should typically do
+    the following performing any corpus operation:
+
+    Pull and Synchronize
+         $ dstar-gantry.sh pull sync
+
+        Ensure your host's "DSTAR_ROOT", gantry installation, and
+        "dstar-buildhost" image are up-to-date with the "sync" and "pull"
+        actions.
+
+    Setup Corpus Sources
+         $ ln -s /path/to/real/MYCORPUS/tei-xml/sources ~/dstar/sources/MYCORPUS
+
+        You presumably have some TEI-XML corpus sources on which you wish to
+        operate; these should follow the guidelines in
+        "dstar/doc/README_sources"
+        <https://kaskade.dwds.de/dstar/doc/README_sources.html>. If you want
+        to avoid having to specify the gantry "-S" for every
+        "dstar-gantry.sh" call, you should symlink the location of the
+        "real" sources into your "DSTAR_ROOT" checkout at
+        "DSTAR_ROOT/sources/MYCORPUS".
+
+        See also "Corpus Sources" in the dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Sources>.
+
+    Setup Corpus Configuration
+        You will need provide a configuration ("MYCORPUS.mak" and
+        "MYCORPUS.opt") for your corpus as described under "Corpus
+        Configuration" in the dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Configuration>
+        and under "HOWTO: Corpus Configuration" in the dstar corpus
+        operations slides
+        <https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-conf
+        ig>. Since the default "DSTAR_CONFIG"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#DSTAR_CONFIG>
+        for dstar-gantry builds resides by default in the embedded
+        "dstar-buildhost" container, you may want to provide the corpus
+        configuration by creating a "CORPUS_ROOT/config.local/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific
+        -customizations-with-config.local> directory; otherwise you will
+        have to commit the corpus configuration files to SVN under
+        "DSTAR_ROOT/config/"
+        <https://kaskade.dwds.de/dstar/doc/README.html#config> before
+        proceeding. It should be safe to use gantry's sparse DSTAR_ROOT for
+        this purpose, but note that you will first have to check it out
+        (gantry doesn't require or checkout "DSTAR_ROOT/config/" by
+        default):
+
+         $ svn update --set-depth=infinity ~/dstar/config
+         $ emacs \
+            ~/dstar/config/corpus/MYCORPUS.mak \
+            ~/dstar/config/opt/MYCORPUS.opt \
+            ~/dstar/doc/Changes.txt
+         $ svn add ~/dstar/config/*/MYCORPUS.*
+         $ svn commit -m "+ added and/or updated corpus configuration for MYCORPUS" \
+            ~/dstar/config/*/MYCORPUS.* \
+            ~/dstar/doc/Changes.txt
+
+  Example: Corpus Build
+    Before attempting to (re-)build a corpus, you should ensure that you
+    have fulfilled all the "Common Prerequisites".
+
+    MYCORPUS build
+         $ dstar-gantry.sh -c MYCORPUS build
+
+        Building a corpus index from TEI-XML sources or re-building an
+        existing corpus index with the gantry "build" action follows the
+        basic pattern described under "Annotate and Build" in the
+        dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Annotate-and-Build>
+        using "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.
+        sh> to populate or update the "CORPUS_ROOT" checkout and calling
+        "/dstar/corpora/MYCORPUS/build.sh -build"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh> in the in
+        the embedded "dstar-buildhost" container. By default, full
+        build-logs
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging> will be
+        written to "CORPUS_ROOT/log/build.*DATETIME*.log", and some progress
+        information will be printed to the console via "cronit.perl
+        -echo-preset=make-info"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl>. See
+        README_build <https://kaskade.dwds.de/dstar/doc/README_build.html>
+        for more details on the build process.
+
+    MYCORPUS consistency testing
+         $ dstar-gantry.sh -c MYCORPUS test
+
+        Once a corpus index has been succesfully built, you can run some
+        basic consistency checks with the gantry test action; see
+        "Consistency Testing" in the dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Consistency-Tests> for
+        more information. By default, full test-logs
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging> will be
+        written to "CORPUS_ROOT/log/test.*DATETIME*.log", and some progress
+        information will be printed to the console.
+
+    MYCORPUS staging
+         $ dstar-gantry.sh -p 8001 -c MYCORPUS install run -- -d
+         $ sensible-browser http://localhost:8001/dstar/MYCORPUS
+         ... do some manual testing ...
+         $ docker kill dstar-gantry-MYCORPUS
+
+        Once a corpus index has been succesfully built, you can use
+        <dstar-gantry.sh> to install and run a staging" instance of the
+        dstar "RUNHOST" and "WEBHOST" roles
+        <https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles> for
+        that corpus in the embedded "dstar-buildhost" container, analogous
+        to (but independent of) the "Sandbox Testing"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing>
+        functionality for "bare-metal" dstar corpus builds. Use the gantry
+        -p HTTP_PORT option to specify a host port number to map to the
+        embedded HTTP server, and use the "docker run -d"
+        <https://docs.docker.com/engine/reference/run/#detached--d> option
+        to run the embedded container in the background. When you are done
+        with manual testing, remember to terminate the running container
+        with "docker kill".
+
+    MYCORPUS deployment
+         $ dstar-gantry.sh -c MYCORPUS publish
+
+        If the corpus build is satisfactory, the next step is usually to
+        install the newly indexed corpus onto the production "RUNHOST" and
+        "WEBHOST"
+        <https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles>. The
+        "dstar-gantry" ""publish"" action follows the pattern described
+        under "Install or Publish" in the dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Install-or-Publish>,
+        using "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.
+        sh> to populate and/or update the runtime checkous
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Runtime-Checkouts> by
+        calling "CORPUS_ROOT/build/build.sh -publish"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh-and-cron-auto
+        build.sh> in the embedded "dstar-buildhost" container. By default,
+        full publish-logs
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging> will be
+        written to "CORPUS_ROOT/log/publish.*DATETIME*.log", and some
+        progress information will be printed to the console.
+
+    MYCORPUS post-deployment
+        If the deployment is successful, continue with the procedures
+        described under "It's Alive"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Its-Alive>, "Nail it
+        Down" <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Nail-it-Down>,
+        and (optionally) "Housekeeping"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Housekeeping> in the
+        dstar-HOWTO <https://kaskade.dwds.de/dstar/doc/HOWTO.html>. In
+        particular, if you have deployed a "production" corpus which was
+        configured by means of a "CORPUS_ROOT/config.local/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific
+        -customizations-with-config.local> directory, you should ensure that
+        the Corpus configuration file(s)
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Configuration>
+        from "config.local/" are checked into the central
+        "ddc-dstar/trunk/config"
+        <https://kaskade.dwds.de/dstar/doc/README.html#config> repository,
+        and document your changes in "DSTAR_ROOT/doc/Changes.txt"
+        <https://kaskade.dwds.de/dstar/doc/Changes.html>.
+
+  Example: Corpus Update
+    Before attempting to update a corpus, you should ensure that you have
+    fulfilled all the "Common Prerequisites", and that you have an
+    up-to-date instance of the "CORPUS_ROOT" checkout -- including any
+    intermediate build data -- on the gantry host, typically under
+    "DSTAR_ROOT/corpora/MYCORPUS".
+
+    MYCORPUS update
+         $ dstar-gantry.sh -c MYCORPUS update
+
+        Updating an existing corpus index after some source file(s) have
+        been changed, added, and/or deleted by means of the gantry update
+        action follows the basic pattern described under "Incremental
+        Update" in "README_build.txt"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Upd
+        ate>. The gantry update action uses uses "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.
+        sh> to update the existing "CORPUS_ROOT" superstructure, and calls
+        "/dstar/corpora/MYCORPUS/build.sh -update"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh> in the in
+        the embedded "dstar-buildhost" container to perform the index
+        update. By default, full build-logs
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging> will be
+        written to "CORPUS_ROOT/log/update.*DATETIME*.log", and some
+        progress information will be printed to the console via "cronit.perl
+        -echo-preset=make-info"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl>. See
+        "Incremental Update" in "README_build.txt"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Upd
+        ate> for more details.
+
+    MYCORPUS post-update
+        After updating a corpus with the update action, proceed as you would
+        after a build action, i.e. with consistency testing, staging,
+        deployment, and post-deployment.
+
+  Example: Corpus Metadata Update
+    Before attempting to update corpus metadata, you should ensure that you
+    have fulfilled all the "Common Prerequisites", and that you have an
+    up-to-date instance of the "CORPUS_ROOT" checkout -- including any
+    intermediate build data -- on the gantry host, typically under
+    "DSTAR_ROOT/corpora/MYCORPUS".
+
+    MYCORPUS metadata-update
+         $ dstar-gantry.sh -c MYCORPUS update-meta
+
+        Updating metadata for an existing corpus index after some source
+        file(s) have been changed, added, and/or deleted by means of the
+        gantry update-meta action follows the basic pattern described under
+        "Metadata Update" in "README_build.txt"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Metadata-Update
+        >. The gantry update-update action uses uses
+        "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#dstar-checkout-corpus.
+        sh> to update the existing "CORPUS_ROOT" superstructure, and calls
+        "/dstar/corpora/MYCORPUS/build.sh -update-meta"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#build.sh> in the in
+        the embedded "dstar-buildhost" container to perform the index
+        metadata update. By default, full build-logs
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Build-Logging> will be
+        written to "CORPUS_ROOT/log/update-meta.*DATETIME*.log", and some
+        progress information will be printed to the console via "cronit.perl
+        -echo-preset=make-info"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl>. See
+        "Metadata Update" in "README_build.txt"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Metadata-Update
+        > for more details.
+
+    MYCORPUS post-metadata-update
+        After updating a corpus with the update-meta action, proceed as you
+        would after a build action, i.e. with consistency testing, staging,
+        deployment, and post-deployment.
+
+  Example: Corpus Build Archive
+    MYCORPUS build archive
+         $ dstar-gantry.sh -c pnn_test archive-build
+         $ rm -rf ~/dstar/corpora/pnn_test/{build,server,web}
+
+        If your "CORPUS_ROOT/build/" directory is taking up too much space
+        after deployment and doesn't participate in any superordinate
+        metacorpora
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Superordinate-Metacorp
+        ora>, incremental updates
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Upd
+        ate>, or other operations requiring access to intermediate build
+        files, then you may want to archive it and remove the original
+        "CORPUS_ROOT" on the gantry host to save disk space (... but take
+        care not to remove the archive while doing so). You can use the
+        gantry "arhive-build" action for this purpose, which creates a
+        gzipped tar archive
+        "${dstar_archive_dir}/MYCORPUS.build-*DATETIME*.tar.gz", where
+        *DATETIME* is a timestamp in *YYYY-MM-DD.HHMMSS* format and
+        "${dstar_archive_dir}" is a container environment variable, by
+        default "CORPUS_ROOT/archive/".
+
+    MYCORPUS build archive restoration
+        If you want to restore an archived corpus build directory, just
+        unpack the archive file back into the "CORPUS_ROOT" directory:
+
+         $ cd ~/dstar/corpora/MYCORPUS/archive
+         $ tar xzf MYCORPUS.build-DATETIME.tar.gz -C ..
+
+  Example: Corpus Deployment Archive
+    MYCORPUS deployment archive
+         $ dstar-gantry.sh -c pnn_test archive-publish
+         $ rm -rf ~/dstar/corpora/pnn_test/{server,web}
+
+        You can create a "snapshot" of publishable corpus data from a
+        "CORPUS_ROOT/build/" directory by means of the gantry action. The
+        resulting archive will be created as
+        "${dstar_archive_dir}/MYCORPUS.publish-*DATETIME*.tar.gz", where
+        *DATETIME* is a timestamp in *YYYY-MM-DD.HHMMSS* format and
+        "${dstar_archive_dir}" is a container environment variable, by
+        default "CORPUS_ROOT/archive/", and should contain all the index
+        data required for a production runtime corpus instance on "RUNHOST"
+        and/or "WEBHOST"
+        <https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles>).
+
+    MYCORPUS deployment archive restoration
+        If you want to restore an archived corpus build directory, just
+        unpack the archive file back into the "CORPUS_ROOT/build/"
+        directory:
+
+         $ cd ~/dstar/corpora/MYCORPUS/archive
+         $ tar xzf MYCORPUS.publish-DATETIME.tar.gz -C ../build
+
+        To re-deploy the restored archive data to runtime "production"
+        hosts, you should follow this up with a operation.
+
+  Example: Corpus Removal
+    "dstar-gantry" does not currently provide any shortcuts for removing an
+    existing corpus, but it is straightforward to do by hand.
+
+    MYCORPUS gantry host removal
+         $ rm -rf ~/dstar/corpora/MYCORPUS/{build,server,web}
+
+        To remove all corpus build and staging data, simply delete the
+        relevant subdirectories from the gantry host. This will remove all
+        dstar data created by the gantry actions , , , etc., including
+        intermediate build files. If you have created any build- and/or
+        publish-archives under "CORPUS_ROOT/archive/" which you want to
+        save, you may want to move them to a different location (e.g.
+        "$HOME/attic/"):
+
+         $ mv ~/dstar/corpora/MYCORPUS/archive/*.tar.gz ~/attic/
+
+        Otherwise, or if you wish to delete any old archives under under
+        "CORPUS_ROOT/archive/", you can delete the entire "CORPUS_ROOT"
+        directory:
+
+         $ rm -rf ~/dstar/corpora/MYCORPUS/
+
+    MYCORPUS decommissioning
+        To decommission ("un-deploy") a corpus instance which has already
+        been deployed to a runtime "production" "RUNHOST"
+        <https://kaskade.dwds.de/dstar/doc/README.html#RUNHOST> and/or
+        "WEBHOST" <https://kaskade.dwds.de/dstar/doc/README.html#WEBHOST>,
+        follow the general procedure described under "Corpus Removal" in the
+        dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Removal>, where
+        the gantry host acts as the "BUILDHOST", so gantry host removal
+        replaces the "Freeze or remove build data"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Freeze-or-remove-build
+        -data-optional> step in the general HOWTO.
+
 CAVEATS
   docker storage drivers
     Problems with runtime cross-layer copy operations have been observed
@@ -693,19 +1067,24 @@ CAVEATS
     for keeping track of the intermediate build files in
     "CORPUS_ROOT/build/". Deploying only a corpus runtime instance to
     "production" hosts by means of the "publish" action is not sufficient to
-    allow integration of new dstar functionality or to enable many
-    bug-fixes. You are free to delete or archive corpus build directories
-    once you're done with them, but this is likely to make more work for
-    everyone (yourself included) down the road.
+    enable subsequent incremental corpus updates
+    <https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update>
+    , integration of new dstar functionality, or to enable many bug-fixes.
+    You are free to delete or archive corpus build directories once you're
+    done with them, but this is likely to make more work for everyone
+    (yourself included) down the road. Consider archiving the corpus build
+    directory if you need to save disk space.
 
   log changes
     When making changes to a corpus configuration in SVN, remember to log
     any changes to DSTAR_ROOT/doc/Changes.txt
     <https://kaskade.dwds.de/dstar/doc/HOWTO.html#doc%2FChanges.txt>. If you
-    are using a "CORPUS_ROOT/config.local/" directory for corpus
-    configuration outside of version control, remember to "build
-    responsibly", and seriously consider checking the final configuration
-    into version control.
+    are using a "CORPUS_ROOT/config.local/"
+    <https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-cus
+    tomizations-with-config.local> directory for corpus configuration
+    outside of version control, remember to "build responsibly", and
+    seriously consider checking the final configuration into version
+    control.
 
 SEE ALSO
     *   The "dstar/doc/README.txt"

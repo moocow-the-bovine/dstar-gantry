@@ -19,7 +19,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
-   -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/(current/) if present)
+   -S CORPUS_SRC         # host path of dstar corpus sources (default=DSTAR_ROOT/sources/CORPUS/ if present)
    -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
    -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
    -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
@@ -55,7 +55,8 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
    install               # install CORPUS_ROOT/build/ to CORPUS_ROOT/{server,web}/
    publish               # deploy CORPUS_ROOT/build/ to production host(s)
    run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
-   exec CMD...           # just execute CMD... in container
+   shell                 # run a bash shell in the container
+   exec CMD...           # execute an arbitrary CMD... in container
 
  Useful container mounts under /dstar:
   config/                # global dstar configuration (read-only)
@@ -104,13 +105,15 @@ The C<dstar-buildhost> docker container invoked
 by C<dstar-gantry.sh> can simulate any of the
 L<C<BUILDHOST>|$doc/README.html#BUILDHOST>,
 L<C<RUNHOST>|$doc/README.html#RUNHOST>,
-and/or L<C<WEBHOST>|$doc/README.html#WEBHOST> D* host roles,
-but is mostly intended to act as a (virtual) C<BUILDHOST>.
+and/or L<C<WEBHOST>|$doc/README.html#WEBHOST> D* L<host roles|$doc/README.html#Hosts-and-Roles>,
+but is mostly intended to act as a (virtual) L<C<BUILDHOST>|$doc/README.html#BUILDHOST>.
 
 See L</INSTALLATION> for instructions on installing C<dstar-gantry> on
 your local machine, see L</USAGE> for details on the various options
 and arguments, and see L</EXAMPLES> for some example C<dstar-gantry.sh>
-calls.
+calls.  Please consult the relevant
+L<dstar documentation|$doc/> if you have questions which aren't
+addressed by this document.
 
 =cut
 
@@ -122,6 +125,9 @@ calls.
 This section describes the installation procedure for debian-based linux machines.
 C<dstar-gantry> was developed and tested on an x86_64 machine running Debian GNU/Linux 10 (buster).
 You can probably run gantry on other architectures, but I can't tell you how to do that.
+
+If you are running C<dstar-gantry.sh> on a "semi-production" host
+(e.g. lal.dwds.de), you can skip to L<|/initialize persistent data>.
 
 =cut
 
@@ -222,7 +228,8 @@ Put the C<dstar-gantry.sh> script in your C<PATH> (optional, recommended):
 
 =item initialize persistent data
 
-Initialize persistent sparse local dstar checkout in $HOME/dstar:
+Initialize persistent sparse local dstar checkout (usually in C<$HOME/dstar>)
+with the L<C<init>|/init> action:
 
  $ dstar-gantry.sh init
 
@@ -234,9 +241,20 @@ Example output (trimmed):
  ...
  dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
 
+B<NOTE>: if you are running C<dstar-gantry.sh> on a "semi-production" host
+(e.g. lal.dwds.de), you should probably be using the central
+dstar checkout in C</home/ddc-dstar/dstar/> rather than
+a "private" gantry checkout in C<$HOME/dstar/> ... in this case, the gantry maintainer
+has probably already installed an appropriate machine-wide L<C</etc/dstar-gantry.rc>|/-f RCFILE>,
+and you may want to create a convenience symlink in you home directory to remind you:
+
+ $ ln -sfT /home/ddc-dstar/dstar ~/dstar
+
+
 =item retrieve docker image
 
-Download the latest C<dstar-buildhost> image from the ZDL docker registry:
+Download the latest C<dstar-buildhost> image from the ZDL docker registry
+with the L<C<pull>|/pull> action:
 
  $ dstar-gantry.sh pull
 
@@ -252,7 +270,7 @@ Example output (trimmed):
 
 =item run self-test
 
-Run rudimentary self-tests:
+Run rudimentary self-tests with the gantry L<C<self-test>|/self-test> action:
 
  $ dstar-gantry.sh self-test
 
@@ -263,7 +281,7 @@ Example output (trimmed):
  dstar-gantry.sh: WARNING: no CORPUS_SRC directory specified (expect trouble if you're trying to (re-)index a corpus)
  dstar-gantry.sh: INFO: setting RESOURCE_DIR=/local/home/ddc-dstar/dstar/resources
  dstar-gantry.sh: WARNING: CORPUS_ROOT= does not exist (continuing anyway, YMMV)
- dstar-gantry.sh: CMD: docker run --rm -ti --name=dstar-gantry- -v/run/user/1000/ssh-agent.sock:/tmp/ssh-auth-gantry.sock -eSSH_AUTH_SOCK=/tmp/ssh-auth-gantry.sock -v/local/home/ddc-dstar/dstar/resources:/dstar/resources -edstar_build_uid=1008 -edstar_build_gid=1008 -eDSTAR_USER=moocow -edstar_cabx_run=dstar-http-9096 -edstar_corpora= lex.dwds.de:443/dstar/dstar-buildhost:latest /dstar/docker/build self-test
+ dstar-gantry.sh: CMD: docker run --rm -ti --name=dstar-gantry- ... self-test
  ...
  build INFO: running self-test(s)
  build INFO: TEST: checking for ssh-agent socket (dstar-nice.sh test -w '/tmp/ssh-agent-wrap.sock')
@@ -324,22 +342,24 @@ C</dstar/docker/build> script in the invoked C<dstar-buildhost> container.
 
 =head2 Gantry Options
 
-=head3 -h, -help
+=over 4
+
+=item -h, -help
 
 Display a brief help message.
 
-=head3 -n, -dry-run
+=item -n, -dry-run
 
 If specified, just prints what would have been done, but doesn't perform any destructive actions.
 
-=head3 -c CORPUS
+=item -c CORPUS
 
 Specifies the dstar corpus label ("collection label") for the operand corpus.
 Required for most operations.
 
-=head3 -d DSTAR_ROOT
+=item -d DSTAR_ROOT
 
-Specifies the host path used for (sparse) persistent dstar superstructure (default=C<$HOME/dstar>).
+Specifies the host path (or symlink) used for (sparse) persistent dstar superstructure (default=C<$HOME/dstar>).
 By default, persistent CAB resources and index data will be created here.  The directory
 will be a sparse checkout of the C<dstar project|https://kaskade.dwds.de/dstar/doc/README.html#Project-Directory-Structure>
 containing only partial checkouts of the
@@ -349,27 +369,31 @@ L<C<sources/>|https://kaskade.dwds.de/dstar/doc/README.html#sources>,
 and L<C<resources/>|https://kaskade.dwds.de/dstar/doc/README.html#resources>
 subdirectories.
 
+On "semi-production" dstar hosts (e.g. C<lal.dwds.de>), you should typically use a
+global C<DSTAR_ROOT> checkout in C</home/ddc-dstar/dstar>.
 
-=head3 -C CORPUS_ROOT
 
-Specifies the host path used for dstar corpus checkout (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/corpora/L<CORPUS|/-c CORPUS>>).
+=item -C CORPUS_ROOT
+
+Specifies the host path (or symlink) used for dstar corpus checkout (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/corpora/L<CORPUS|/-c CORPUS>>).
 Implies L<C<-v CORPUS_ROOT:/dstar/corpora/CORPUS>|/-v /PATH:/MOUNT>.
-If a subdirectory C<CORPUS_ROOT/config.local/> exists, it will be treated as a (sparse) local set 
+If a subdirectory L<C<CORPUS_ROOT/config.local/>|$doc/README_build.html#Corpus-specific-customizations-with-config.local> exists,
+it will be treated as a (sparse) local set 
 of dstar-configuration overrides for L<C<CORPUS>|/-c CORPUS> and merged into a pure-local
-configuration directorsy C<CORPUS_ROOT/config/> by implicit calls to  C<dstar-checkout-corpus.sh>.
+configuration directory L<C<CORPUS_ROOT/config/>|$doc/README_build.html#DSTAR_CONFIG> by implicit calls to  C<dstar-checkout-corpus.sh>.
 
-=head3 -S CORPUS_SRC
+=item -S CORPUS_SRC
 
-Specifies the host path where dstar corpus sources reside (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/sources/L<CORPUS|/-c CORPUS>/current/>
-if present, otherwise C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/sources/L<CORPUS|/-c CORPUS>/> if present, otherwise required).
+Specifies the host path (or symlink) where dstar corpus sources reside (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/sources/L<CORPUS|/-c CORPUS>/>
+if present, otherwise required).
 Implies L<C<-v CORPUS_SRC:/dstar/sources/CORPUS:ro>|/-v /PATH:/MOUNT>.
 
-=head3 -R RESOURCES_DIR
+=item -R RESOURCES_DIR
 
-Specifies the host path for persistent CAB resources (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/resources/> if present).
+Specifies the host path (or symlink) for persistent CAB resources (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/resources/> if present).
 Implies L<C<-v RESOURCES_DIR:/dstar/resources>|/-v /PATH:/MOUNT>.
 
-=head3 -RO
+=item -RO
 
 If the C<-RO> option is specified and C<L<RESOURCES_DIR|/-R RESOURCES_DIR>> is present on the local machine,
 then C<L<RESOURCES_DIR|/-R RESOURCES_DIR>> will be mounted read-only in the container, which suppresses resource
@@ -378,7 +402,7 @@ CAB resources are fully up-to-date, you should B<NOT> use this option.
 It can be useful to bypass synchronization overhead, minimize network bandwidth, and ensure resource consistency
 for post-hoc updates of existing corpora though.  Use with consideration.
 
-=head3 -f RCFILE
+=item -f RCFILE
 
 Reads gantry configuration variables from C<RCFILE> on the host machine.
 C<RCFILE> is evaluated as bash source.  May be specified more than once,
@@ -393,23 +417,23 @@ the command-line:
 See L</Gantry Configuration Variables> for a list of known gantry
 configuration variables you can set here.
 
-=head3 -i IMAGE
+=item -i IMAGE
 
 Specifies the docker image to be L<pulled|/pull> and/or invoked via
 L<C<docker run>|https://docs.docker.com/engine/reference/run/>.
 Default is C<lex.dwds.de:443/dstar/dstar-buildhost:latest>.
 
-=head3 -e VAR=VALUE
+=item -e VAR=VALUE
 
 Specify an environment variable override for the container
 via L<C<docker run -e VAR=VALUE>|https://docs.docker.com/engine/reference/run/#env-environment-variables>.
 
-=head3 -E ENV_FILE
+=item -E ENV_FILE
 
 Specify a file containing environment variable overrides for the container,
 via L<C<docker run --env-file ENV_FILE>|https://docs.docker.com/engine/reference/run/#env-environment-variables>.
 
-=head3 -v /PATH:/MOUNT
+=item -v /PATH:/MOUNT
 
 Mounts the host directory C</PATH> as a volume into the container at C</MOUNT>,
 passed to L<C<docker_run -v>|https://docs.docker.com/engine/reference/run/#volume-shared-filesystems>.
@@ -419,27 +443,29 @@ Potentially useful volume mounts C</MOUNT> include:
   /dstar/config/            # global dstar configuration (read-only)
   /dstar/resources/         # CAB analysis resources (read-only)
 
-=head3 -x CABX_RUN
+=item -x CABX_RUN
 
 Select container-internal CAB server(s) to start for container L<run|/run> action;
 default=C<dstar-http-9096>.
 
-=head3 -p HTTP_PORT
+=item -p HTTP_PORT
 
 Map containers port 80 to host port C<HTTP_PORT> for L<C<run>|/run> action
 via L<C<docker run -p HTTP_PORT:80>|https://docs.docker.com/engine/reference/run/#expose-incoming-ports>.
 
-=head3 -u USER
+=item -u USER
 
 Specifies username or UID of host build user (default=C<ddc-admin> if present,
 otherwise current user).
 If the UID does not exist in the container (it probably doesn't), it will be created.
 
-=head3 -g GROUP
+=item -g GROUP
 
 Specifies group name or GID of host build user (default=C<ddc-admin> if present,
 otherwise current group).
 If the GID does not exist in the container (it probably doesn't), it will be created.
+
+=back
 
 =cut
 
@@ -519,18 +545,20 @@ L<C<dstar-buildhost>|/-i IMAGE> container.  See the output of
 C<dstar-gantry.sh help> for a synopsis of the C</dstar/docker/build> calling
 conventions.
 
-=head3 help
+=over 4
+
+=item help
 
 Shows a brief help message from the container C</dstar/docker/build> script.
 
-=head3 self-test
+=item self-test
 
 Runs some rudimentary self-test(s) and reports results.
 Not all self-tests need to pass in order for C<dstar-gantry.sh> to be useful;
 the functionality you need depends on what you're trying to do
 and your personal preferences.
 
-=head3 build
+=item build
 
 (Re-)indexes a corpus in
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
@@ -543,7 +571,7 @@ L<C<CORPUS_ROOT/build/build.sh -build>|$doc/HOWTO.html#build.sh-and-cron-autobui
 i.e.
 a L<full corpus re-build|$doc/talks/corpus-ops-2019/#howto-build>.
 
-=head3 update
+=item update
 
 Updates an existing corpus index in
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
@@ -556,7 +584,7 @@ L<C<CORPUS_ROOT/build/build.sh -update>|$doc/HOWTO.html#build.sh-and-cron-autobu
 i.e.
 L<incremental corpus update|https://kaskade.dwds.de/dstar/doc/talks/corpus-ops-2019/#howto-update>
 
-=head3 update-meta
+=item update-meta
 
 Updates metadata for an existing corpus index in
 L<C<CORPUS_ROOT/build>|/-C CORPUS_ROOT>
@@ -569,7 +597,7 @@ L<C<CORPUS_ROOT/build/build.sh -update-meta>|$doc/HOWTO.html#build.sh-and-cron-a
 i.e.
 L<corpus metadata update|$doc/HOWTO_build.html#Consistency-Testing>.
 
-=head3 test
+=item test
 
 Runs automated consistency tests for an existing corpus build in
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/test/>.
@@ -580,25 +608,52 @@ L<C<CORPUS_ROOT/build/build.sh -test>|$doc/HOWTO.html#build.sh-and-cron-autobuil
 i.e.
 L<corpus consistency tests|$doc/HOWTO.html#Consistency-Tests>.
 
-=head3 archive-build
+=item archive-build
 
-Archives an existing
+Archives an existing corpus build-directory
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
-to L<C<${dstar_archive_dir}>|/dstar_archive_dir> if set,
+to the directory L<C<${dstar_archive_dir}>|/dstar_archive_dir> if set,
 otherwise to the (corpus-specific) directory specified by the 
 C<ARC_BUILD_DIR> dstar make variable; 
 usually C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>.
+The build-archive will be created as a gzipped tar archive
+C<L<CORPUS|/-c CORPUS>.build-I<DATETIME>.tar.gz>
+where I<DATETIME> is a timestamp in I<YYYY-MM-DD.HHMMSS> format,
+and will include all intermediate build files in C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>.
 
-=head3 archive-publish
+=item archive-publish
 
 Archives publishable corpus data 
-from C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
-to L<C<${dstar_archive_dir}>|/dstar_archive_dir> if set,
+from the corpus build directory C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
+to the directory L<C<${dstar_archive_dir}>|/dstar_archive_dir> if set,
 otherwise to the (corpus-specific) directory specified by the 
 C<ARC_PUBLISH_DIR> dstar make variable; 
 usually C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>.
+The publish-archive will be created as a gzipped tar archive
+C<L<CORPUS|/-c CORPUS>.publish-I<DATETIME>.tar.gz>
+where I<DATETIME> is a timestamp in I<YYYY-MM-DD.HHMMSS> format,
+and should contain all the index data required
+for a production runtime corpus instance on L<C<RUNHOST> and/or C<WEBHOST>|$doc/README.html#Hosts-and-Roles>).
+Future versions of this software may support additional operations on such archives.
 
-=head3 install
+Note that archives created with the C<archive-publish> action only
+include that subset of the data from local corpus build directory C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
+which would be deployed by a L<|/publish> operation,
+and B<not>
+the actual published index data from remote runtime "production"
+host(s) as specified by the C<PUBLISH_DEST> and/or C<WEB_PUBLISH_DEST>
+dstar make variables.
+Archives created with the C<archive-publish> action will also
+B<not> include any intermediate build files,
+so it should be much smaller
+in size than those created by the L<|/archive-build> action.
+Unlike an L<|/archive-build> archive however, an
+C<archive-publish> archive cannot be used as the basis for subsequent
+subsequent L<incremental corpus updates|$doc/README_build.html#Incremental-Update>
+or infrastructure maintainence; please L<act responsibly|/build responsibly>.
+
+
+=item install
 
 Installs an existing corpus index from
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
@@ -606,7 +661,7 @@ to
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/{server,web}/>
 within the running C<dstar-buildhost> container.
 
-=head3 publish
+=item publish
 
 Deploy an existing corpus index from
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
@@ -614,7 +669,7 @@ to production host(s) as selected by the
 dstar make variables
 C<PUBLISH_DEST> and/or C<WEB_PUBLISH_DEST>.
 
-=head3 run
+=item run
 
 Runs a L<C<CORPUS>|/-c CORPUS> instance
 from
@@ -624,11 +679,20 @@ For this action, you will probably also want to specify
 L<C<-p HTTP_PORT>|/-p HTTP_PORT>.
 If specified, this must be the last container action executed.
 
-=head3 exec CMD
+=item shell
 
-Just executs C<CMD...> in the subordinate container.
+Runs a C<bash> shell as the
+C<build user|/-u USER>
+in the embedded container; useful
+for inspection and debugging.
+
+=item exec CMD
+
+Just executs C<CMD...> in the embedded container.
 If specified, this must be the final container action executed.
 Use with B<extreme caution>.
+
+=back
 
 =cut
 
@@ -640,7 +704,9 @@ Use with B<extreme caution>.
 The following environment variables influence operations in the
 subordinate C<dstar-buildhost> container:
 
-=head3 SSH_AUTH_SOCK
+=over 4
+
+=item SSH_AUTH_SOCK
 
 The communication socket for L<ssh-agent|/ssh-agent> on the docker host
 will be bind-mounted into the container as
@@ -651,7 +717,7 @@ as C</tmp/ssh-agent-wrap.sock>, to ensure appropriate permissions
 for the build L<USER|/-u USER> and L<GROUP|/-g GROUP> within
 the container itself.
 
-=head3 dstar_init_hooks
+=item dstar_init_hooks
 
 Default initialization hook directory for the embedded C</dstar/docker/build>
 script; typically empty.  If you need to perform additional actions
@@ -664,14 +730,14 @@ by this environment variable, hooks are run from any directory matching
  /home/ddc-dstar/dstar/docker/build.d/
  /opt/dstar-build*/
 
-=head3 dstar_build_uid
+=item dstar_build_uid
 
 Numeric UID of build user; should be automatically populated by gantry
 from the L</-u USER> option.
 If no user with this UID exists in the container (likely), a temporary
 user C<dstar-build> will be created during container startup.
 
-=head3 dstar_build_gid
+=item dstar_build_gid
 
 Numeric GID of build group; should be automatically populated by gantry
 from the L</-g GROUP> option.
@@ -679,7 +745,7 @@ If no group with this GID exists in the container (likely), a temporary
 group C<dstar-build> will be created during container startup
 and the C<L<dstar_build_uid|/dstar_build_uid>> user approrpriately modified.
 
-=head3 dstar_build_umask
+=item dstar_build_umask
 
 Specifies the permissions umask for the build process.
 The default is typically specified in the C<dstar-buildhost> docker image
@@ -687,7 +753,7 @@ itself as C<002>, which creates new files with the group-writable flag set.
 If you're feeling paranoid, you can set this to C<022> or even C<077>,
 but you may encounter problems down the line.
 
-=head3 dstar_corpora
+=item dstar_corpora
 
 Specifies the corpus or corpora to operate on
 as a whitespace-separated list.
@@ -695,18 +761,18 @@ Typcically set by C<dstar-gantry.sh> itself
 to L<C<CORPUS>|/-c CORPUS>.
 You probably don't want to set this yourself.
 
-=head3 dstar_corpus
+=item dstar_corpus
 
 Alias for L</dstar_corpora>.
 
-=head3 dstar_archive_dir
+=item dstar_archive_dir
 
 Target directory for
 L<|/archive-build> and L<|/archive-publish>
 actions.  Empty (unset) by default.
 
 
-=head3 dstar_sync_resources
+=item dstar_sync_resources
 
 Whether or not to synchronize CAB resources
 to L<C<RESOURCES_DIR>|/-R RESOURCES_DIR> on container startup.
@@ -715,7 +781,7 @@ The default value (C<auto>) will only attempt to synchronize
 resources if L<C<RESOURCES_DIR>|/-R RESOURCES_DIR> is
 not mounted L<read-only|/-RO>.
 
-=head3 dstar_sync_rcfiles
+=item dstar_sync_rcfiles
 
 Specifies which CAB resources in
 L<C<RESOURCES_DIR>|/-R RESOURCES_DIR>
@@ -728,20 +794,20 @@ uses the default value for C<CABRC_FILES>,
 and should cause all default CAB resources
 to be synchronized.
 
-=head3 dstar_checkout_corpus_opts
+=item dstar_checkout_corpus_opts
 
 Specifies options for
 L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>
 as implicitly called prior to any corpus operation.
 Default: C<-force -local-config>.
 
-=head3 dstar_build_sh_opts
+=item dstar_build_sh_opts
 
 Specifies options for
 L<C<CORPUS_ROOT/build/build.sh -build>|$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>.
 Default: C<-echo-preset=make-info>.
 
-=head3 dstar_cabx_run
+=item dstar_cabx_run
 
 Specifies which CAB server(s) to start in the container for the L<|/run> action
 as a whitespace-separated list.
@@ -757,7 +823,7 @@ Known values:
  dstar-http-taghx-9098 - runtime lemma-equivalence using TAGH
 
 
-=head3 dstar_relay_conf
+=item dstar_relay_conf
 
 Specifies container path containing L<C<socat>|https://linux.die.net/man/1/socat> relay
 configuration for C</dstar/init/dstar-relay.sh>.  Empty by default, which starts no relays.
@@ -776,55 +842,26 @@ L<C<dstar-buildhost:/dstar/init/etc_default_dstar_relay>|http://odo.dwds.de/webs
 
 
 
-=head3 VAR
+=item VAR
 
 All environment variables are passed down to child processes (e.g. L<C<dstar-nice.sh>|$doc/HOWTO.html#dstar-nice-sh>, C<make>);
 see L<"Customizable Variables" in C<README_build.txt>|$doc/README_build.html#Customizable-Variables>
 for more (non-exhaustive) details.
+
+=back
 
 =cut
 
 ##======================================================================
 =pod
 
-=head1 
-
 =head2 Gantry Configuration Variables
 
 The following shell variables are used internally by the C<dstar-gantry.sh> script,
 and may be set or modified by L<configuration file(s)|/-f RCFILE>.  Default
 values are shown where appropriate, but may differ in some situations
-(e.g. running via sudo).
-
- ##--------------------------------------------------------------
- ## globals
- DSTAR_ROOT=~/dstar
- gantry_root=$(dirname "$0")/..
- gantry_docker_registry_path=/dstar
- gantry_gc_filter="-f dangling=true -f label=de.dwds.project.name=dstar-buildhost"
- 
- ##--------------------------------------------------------------
- ## gantry options
- gantry_dry_run=""
- gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
- gantry_corpus=""
- gantry_corpus_root="" #$DSTAR_ROOT/corpora/$gantry_corpus
- gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus/current
- gantry_cabdir=""      #$DSTAR_ROOT/resources
- gantry_cabdir_ro=""
- gantry_cabrun="dstar-http-9096"
- gantry_http_port=""
- gantry_user=$(id -un ddc-admin)
- gantry_group=$(id -gn ddc-admin)
- 
- ##--------------------------------------------------------------
- ## docker options
- extra_docker_opts=()
- 
- ##--------------------------------------------------------------
- ## build args
- extra_build_args=()
-
+(e.g. running via sudo).  See the example C<dstar-gantry.rc> file in the
+gantry distribution for details.
 
 =cut
 
@@ -833,7 +870,416 @@ values are shown where appropriate, but may differ in some situations
 
 =head1 EXAMPLES
 
-=head2 TODO CONTINUE HERE
+This section provides rudimentary sketches of some typical dstar corpus
+operations using C<dstar-gantry.sh>.  Since <dstar-gantry> is basically
+just a convenience wrapper around the C<ddc-dstar> corpus infrastructure,
+most of the existing L<dstar documentation|$doc/> applies to C<dstar-gantry>
+as well, where the C<DSTAR_BUILDHOST> role is fulfilled by the embedded
+embedded L<C<dstar-buildhost> IMAGE|/-i IMAGE> container, and the
+corpus directories
+L<C<CORPUS_ROOT>|/-C CORPUS_ROOT>
+and
+L<C<CORPUS_SRC>|/-S CORPUS_SRC> are bind-mounted into the container
+from the gantry host itself.
+
+
+The examples in this section assume you have a working
+C<dstar-gantry> installation in your C<$PATH> and a
+sparse local L<C<DSTAR_ROOT>|/-d DSTAR_ROOT> directory
+or symlink at C<$HOME/dstar>.
+See L</INSTALLATION> if that is not the case.
+
+Corpus-specific examples assume
+you are working on a corpus called "C<MYCORPUS>"; replace
+"C<MYCORPUS>" with the name of your real corpus where appropriate.
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Common Prerequisites
+
+In addition to a working L<gantry installation|/INSTALLATION>,
+you should typically do the following
+performing any corpus operation:
+
+=over 4
+
+=item Pull and Synchronize
+
+ $ dstar-gantry.sh pull sync
+
+Ensure your host's L<C<DSTAR_ROOT>|/-d DSTAR_ROOT>, gantry installation,
+and L<C<dstar-buildhost> image|/-i IMAGE>
+are up-to-date with the L<C<sync>|/sync> and L<C<pull>|/pull> actions.
+
+=item Setup Corpus Sources
+
+ $ ln -s /path/to/real/MYCORPUS/tei-xml/sources ~/dstar/sources/MYCORPUS
+
+You presumably have some TEI-XML corpus sources on which you wish to operate;
+these should follow the guidelines in L<C<dstarE<sol>docE<sol>README_sources>|$doc/README_sources.html>.
+If you want to avoid having to specify the gantry L<C<-S>|/-S CORPUS_SRC> for every C<dstar-gantry.sh>
+call, you should symlink the location of the "real" sources into your
+L<C<DSTAR_ROOT>|/-d DSTAR_ROOT> checkout at
+L<C<DSTAR_ROOT/sources/MYCORPUS>|/-d DSTAR_ROOT>.
+
+See also L<"Corpus Sources" in the dstar-HOWTO|$doc/HOWTO.html#Corpus-Sources>.
+
+=item Setup Corpus Configuration
+
+You will need provide a configuration (C<MYCORPUS.mak> and C<MYCORPUS.opt>) for your corpus as described
+under L<"Corpus Configuration" in the dstar-HOWTO|$doc/HOWTO.html#Corpus-Configuration>
+and under L<"HOWTO: Corpus Configuration" in the dstar corpus operations slides|$doc/talks/corpus-ops-2019/#howto-config>.
+Since the default L<C<DSTAR_CONFIG>|$doc/README_build.html#DSTAR_CONFIG> for dstar-gantry
+builds resides by default in the embedded C<dstar-buildhost> container, you
+may want to provide the corpus configuration by creating a
+L<C<CORPUS_ROOT/config.local/>|$doc/README_build.html#Corpus-specific-customizations-with-config.local>
+directory; otherwise you will have to commit the corpus configuration files to SVN
+under L<C<DSTAR_ROOT/config/>|$doc/README.html#config> before proceeding.  It should be safe
+to use L<gantry's sparse DSTAR_ROOT|/-d DSTAR_ROOT> for this purpose, but note that you will
+first have to check it out (gantry doesn't require or checkout C<DSTAR_ROOT/config/> by default):
+
+ $ svn update --set-depth=infinity ~/dstar/config
+ $ emacs \
+    ~/dstar/config/corpus/MYCORPUS.mak \
+    ~/dstar/config/opt/MYCORPUS.opt \
+    ~/dstar/doc/Changes.txt
+ $ svn add ~/dstar/config/*/MYCORPUS.*
+ $ svn commit -m "+ added and/or updated corpus configuration for MYCORPUS" \
+    ~/dstar/config/*/MYCORPUS.* \
+    ~/dstar/doc/Changes.txt
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Example: Corpus Build
+
+Before attempting to (re-)build a corpus, you should ensure that
+you have fulfilled all the L</Common Prerequisites>.
+
+=over 4
+
+=item MYCORPUS build
+
+ $ dstar-gantry.sh -c MYCORPUS build
+
+Building a corpus index from TEI-XML sources or re-building an existing corpus
+index with the gantry L<C<build>|/build> action
+follows the basic pattern described
+under L<"Annotate and Build" in the dstar-HOWTO|$doc/HOWTO.html#Annotate-and-Build>
+using L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#dstar-checkout-corpus.sh>
+to populate or update the L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> checkout
+and calling L<C</dstar/corpora/MYCORPUS/build.sh -build>|$doc/HOWTO.html#build.sh> in the
+in the embedded L<C<dstar-buildhost>|/-i IMAGE> container.
+By default, full L<build-logs|$doc/HOWTO.html#Build-Logging> will be written to
+C<CORPUS_ROOT/log/build.I<DATETIME>.log>, and some progress information
+will be printed to the console via 
+L<C<cronit.perl -echo-preset=make-info>|$doc/HOWTO.html#cronit.perl>.
+See L<README_build|$doc/README_build.html> for more details on the build process.
+
+=item MYCORPUS consistency testing
+
+ $ dstar-gantry.sh -c MYCORPUS test
+
+Once a corpus index has been succesfully L<built|/build>, you can run
+some basic consistency checks with the gantry L<test|/test> action;
+see 
+L<"Consistency Testing" in the dstar-HOWTO|$doc/HOWTO.html#Consistency-Tests>
+for more information.
+By default, full L<test-logs|$doc/HOWTO.html#Build-Logging> will be written to
+C<CORPUS_ROOT/log/test.I<DATETIME>.log>, and some progress information
+will be printed to the console.
+
+
+=item MYCORPUS staging
+
+ $ dstar-gantry.sh -p 8001 -c MYCORPUS install run -- -d
+ $ sensible-browser http://localhost:8001/dstar/MYCORPUS
+ ... do some manual testing ...
+ $ docker kill dstar-gantry-MYCORPUS
+
+Once a corpus index has been succesfully L<built|/build>, you can use
+<dstar-gantry.sh> to L<install|/install> and L<run|/run>
+a  staging" instance of the dstar
+L<C<RUNHOST> and C<WEBHOST> roles|$doc/README.html#Hosts-and-Roles> for that corpus
+in the embedded C<dstar-buildhost> container, analogous to
+(but independent of) the L<"Sandbox Testing"|$doc/HOWTO.html#Sandbox-Testing>
+functionality for "bare-metal" dstar corpus builds.
+Use the gantry L<-p HTTP_PORT|/-p HTTP_PORT> option to specify a host
+port number to map to the embedded HTTP server, and use the
+L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
+to run the embedded container in the background.  When you are done with manual
+testing, remember to terminate the running container with C<docker kill>.
+
+=item MYCORPUS deployment
+
+ $ dstar-gantry.sh -c MYCORPUS publish
+
+If the corpus build is satisfactory, the next step is usually to install the newly indexed corpus
+onto the production L<C<RUNHOST> and C<WEBHOST>|$doc/README.html#Hosts-and-Roles>.
+The C<dstar-gantry> "L</publish>" action follows the pattern described under
+L<"Install or Publish" in the dstar-HOWTO|$doc/HOWTO.html#Install-or-Publish>,
+using
+L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#dstar-checkout-corpus.sh>
+to populate and/or update the
+L<runtime checkous|$doc/HOWTO.html#Runtime-Checkouts>
+by calling
+L<C<CORPUS_ROOT/build/build.sh -publish>|$doc/HOWTO.html#build.sh-and-cron-autobuild.sh>
+in the embedded L<C<dstar-buildhost>|/-i IMAGE> container.
+By default, full L<publish-logs|$doc/HOWTO.html#Build-Logging> will be written to
+C<CORPUS_ROOT/log/publish.I<DATETIME>.log>, and some progress information
+will be printed to the console.
+
+=item MYCORPUS post-deployment
+
+If the deployment is successful, continue with the procedures described under
+L<"It's Alive"|$doc/HOWTO.html#Its-Alive>,
+L<"Nail it Down"|$doc/HOWTO.html#Nail-it-Down>,
+and (optionally)
+L<"Housekeeping"|$doc/HOWTO.html#Housekeeping>
+in the L<dstar-HOWTO|$doc/HOWTO.html>.  In particular, if you have deployed a "production"
+corpus which was configured by means of a
+L<C<CORPUS_ROOT/config.local/>|$doc/README_build.html#Corpus-specific-customizations-with-config.local>
+directory, you should ensure that the
+L<Corpus configuration file(s)|$doc/HOWTO.html#Corpus-Configuration> from
+C<config.local/> are checked into
+the central L<C<ddc-dstar/trunk/config>|$doc/README.html#config> repository,
+and document your changes in
+L<C<DSTAR_ROOT/doc/Changes.txt>|$doc/Changes.html>.
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Example: Corpus Update
+
+Before attempting to update a corpus, you should ensure that
+you have fulfilled all the L</Common Prerequisites>, and that you
+have an up-to-date instance of the L<C<CORPUS_ROOT>|/-C CORPUS_ROOT>
+checkout -- including any intermediate build data -- on the gantry host,
+typically under C<DSTAR_ROOT/corpora/MYCORPUS>.
+
+=over 4
+
+=item MYCORPUS update
+
+ $ dstar-gantry.sh -c MYCORPUS update
+
+Updating an existing corpus index after some source file(s) have been changed, added,
+and/or deleted by means of the gantry L<update|/update> action follows the basic
+pattern described under
+L<"Incremental Update" in C<README_build.txt>|$doc/README_build.html#Incremental-Update>.
+The gantry L<update|/update> action uses
+uses L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#dstar-checkout-corpus.sh>
+to update the existing L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> superstructure,
+and calls L<C</dstar/corpora/MYCORPUS/build.sh -update>|$doc/HOWTO.html#build.sh> in the
+in the embedded L<C<dstar-buildhost>|/-i IMAGE> container to perform the
+index update.
+By default, full L<build-logs|$doc/HOWTO.html#Build-Logging> will be written to
+C<CORPUS_ROOT/log/update.I<DATETIME>.log>, and some progress information
+will be printed to the console via 
+L<C<cronit.perl -echo-preset=make-info>|$doc/HOWTO.html#cronit.perl>.
+See L<"Incremental Update" in C<README_build.txt>|$doc/README_build.html#Incremental-Update>
+for more details.
+
+=item MYCORPUS post-update
+
+After updating a corpus with the
+L<update|/update>
+action, proceed as you
+would after a L<build|/build> action, i.e.
+with L<consistency testing|/MYCORPUS consistency testing>,
+L<staging|/MYCORPUS staging>,
+L<deployment|/MYCORPUS deployment>,
+and L<post-deployment|/MYCORPUS post-deployment>.
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Example: Corpus Metadata Update
+
+Before attempting to update corpus metadata, you should ensure that
+you have fulfilled all the L</Common Prerequisites>, and that you
+have an up-to-date instance of the L<C<CORPUS_ROOT>|/-C CORPUS_ROOT>
+checkout -- including any intermediate build data -- on the gantry host,
+typically under C<DSTAR_ROOT/corpora/MYCORPUS>.
+
+=over 4
+
+=item MYCORPUS metadata-update
+
+ $ dstar-gantry.sh -c MYCORPUS update-meta
+
+Updating metadata for an existing corpus index after some source file(s) have been changed, added,
+and/or deleted by means of the gantry L<update-meta|/update-meta> action follows the basic
+pattern described under
+L<"Metadata Update" in C<README_build.txt>|$doc/README_build.html#Metadata-Update>.
+The gantry L<update-update|/update-meta> action uses
+uses L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#dstar-checkout-corpus.sh>
+to update the existing L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> superstructure,
+and calls L<C</dstar/corpora/MYCORPUS/build.sh -update-meta>|$doc/HOWTO.html#build.sh> in the
+in the embedded L<C<dstar-buildhost>|/-i IMAGE> container to perform the
+index metadata update.
+By default, full L<build-logs|$doc/HOWTO.html#Build-Logging> will be written to
+C<CORPUS_ROOT/log/update-meta.I<DATETIME>.log>, and some progress information
+will be printed to the console via 
+L<C<cronit.perl -echo-preset=make-info>|$doc/HOWTO.html#cronit.perl>.
+See L<"Metadata Update" in C<README_build.txt>|$doc/README_build.html#Metadata-Update>
+for more details.
+
+=item MYCORPUS post-metadata-update
+
+After updating a corpus with the
+L<update-meta|/update-meta>
+action, proceed as you would after a L<build|/build> action, i.e.
+with L<consistency testing|/MYCORPUS consistency testing>,
+L<staging|/MYCORPUS staging>,
+L<deployment|/MYCORPUS deployment>,
+and L<post-deployment|/MYCORPUS post-deployment>.
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Example: Corpus Build Archive
+
+=over 4
+
+=item MYCORPUS build archive
+
+ $ dstar-gantry.sh -c pnn_test archive-build
+ $ rm -rf ~/dstar/corpora/pnn_test/{build,server,web}
+
+If your L<C<CORPUS_ROOT/build/>|/-C CORPUS_ROOT> directory is taking up too much space
+after L<deployment|/publish>
+and doesn't participate in any
+L<superordinate metacorpora|$doc/HOWTO.html#Superordinate-Metacorpora>,
+L<incremental updates|$doc/README_build.html#Incremental-Update>,
+or other operations requiring access to intermediate build files,
+then you may want to archive it and remove the original L<C<CORPUS_ROOT>|/-C CORPUS_ROOT>
+on the gantry host to save disk space (... but take care not to remove the archive while doing so).
+You can use the gantry L<C<arhive-build>|/archive-build> action
+for this purpose, which creates a gzipped tar archive
+C<${dstar_archive_dir}/MYCORPUS.build-I<DATETIME>.tar.gz>,
+where I<DATETIME> is a timestamp in I<YYYY-MM-DD.HHMMSS> format and
+C<${dstar_archive_dir}> is a L<container environment variable|/-e VAR=VALUE>,
+by default C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>.
+
+=item MYCORPUS build archive restoration
+
+If you want to restore an archived corpus build directory, just unpack
+the archive file back into the L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> directory:
+
+ $ cd ~/dstar/corpora/MYCORPUS/archive
+ $ tar xzf MYCORPUS.build-DATETIME.tar.gz -C ..
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Example: Corpus Deployment Archive
+
+=over 4
+
+=item MYCORPUS deployment archive
+
+ $ dstar-gantry.sh -c pnn_test archive-publish
+ $ rm -rf ~/dstar/corpora/pnn_test/{server,web}
+
+You can create a "snapshot" of publishable corpus data from
+a L<C<CORPUS_ROOT/build/>|/-C CORPUS_ROOT> directory
+by means of the gantry L<|/archive-publish> action.  The resulting
+archive will be created as
+C<${dstar_archive_dir}/MYCORPUS.publish-I<DATETIME>.tar.gz>,
+where I<DATETIME> is a timestamp in I<YYYY-MM-DD.HHMMSS> format and
+C<${dstar_archive_dir}> is a L<container environment variable|/-e VAR=VALUE>,
+by default C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>,
+and should contain all the index data required
+for a production runtime corpus instance on L<C<RUNHOST> and/or C<WEBHOST>|$doc/README.html#Hosts-and-Roles>).
+
+=item MYCORPUS deployment archive restoration
+
+If you want to restore an archived corpus build directory, just unpack
+the archive file back into the L<C<CORPUS_ROOT/build/>|/-C CORPUS_ROOT> directory:
+
+ $ cd ~/dstar/corpora/MYCORPUS/archive
+ $ tar xzf MYCORPUS.publish-DATETIME.tar.gz -C ../build
+
+To re-deploy the restored archive data to runtime "production" hosts, you
+should follow this up with a L<|/publish> operation.
+
+=back
+
+=cut
+
+##--------------------------------------------------------------
+=pod
+
+=head2 Example: Corpus Removal
+
+C<dstar-gantry> does not currently provide any shortcuts for removing
+an existing corpus, but it is straightforward to do by hand.
+
+=over 4
+
+=item MYCORPUS gantry host removal
+
+ $ rm -rf ~/dstar/corpora/MYCORPUS/{build,server,web}
+
+To remove all corpus L<build|/build> and L<staging|/MYCORPUS staging> data,
+simply delete the relevant subdirectories from the gantry host.
+This will remove all dstar data created by the gantry actions
+L<|/build>, L<|/update>, L<|/install>, etc., including intermediate build files.
+If you have created any
+L<build-|/archive-build>
+and/or
+L<publish-|/archive-publish>archives
+under C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/> which you want to save,
+you may want to move them to a different location (e.g. C<$HOME/attic/>):
+
+ $ mv ~/dstar/corpora/MYCORPUS/archive/*.tar.gz ~/attic/
+
+Otherwise, or if you wish to delete any old archives under
+under C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>, you can delete
+the entire C<L<CORPUS_ROOT|/-C CORPUS_ROOT>> directory:
+
+ $ rm -rf ~/dstar/corpora/MYCORPUS/
+
+=item MYCORPUS decommissioning
+
+To decommission ("un-deploy") a corpus instance
+which has already been deployed to
+a runtime "production" L<C<RUNHOST>|$doc/README.html#RUNHOST>
+and/or L<C<WEBHOST>|$doc/README.html#WEBHOST>,
+follow the general procedure described under
+L<"Corpus Removal" in the dstar-HOWTO|$doc/HOWTO.html#Corpus-Removal>,
+where the gantry host acts as the C<BUILDHOST>,
+so L<gantry host removal|/MYCORPUS gantry host removal>
+replaces the
+L<"Freeze or remove build data"|$doc/HOWTO.html#Freeze-or-remove-build-data-optional>
+step in the general HOWTO.
+
+
+=back
 
 =cut
 
@@ -862,16 +1308,20 @@ Typically, the C<aufs> driver can be enabled by editing the file F</etc/docker/d
 If you build a corpus with C<dstar-gantry> in a non-standard location and/or on a non-production
 host, you implicitly assume all resonsibility for keeping track of the intermediate build
 files in C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>.  Deploying only a corpus runtime instance
-to "production" hosts by means of the L</publish> action is B<not> sufficient to allow integration
-of new dstar functionality or to enable many bug-fixes.  You are free to delete or archive corpus build
+to "production" hosts by means of the L</publish> action is B<not> sufficient to enable
+subsequent L<incremental corpus updates|$doc/README_build.html#Incremental-Update>,
+integration of new dstar functionality, or to enable many bug-fixes.  You are free to delete or archive corpus build
 directories once you're done with them, but this is likely to make more work for everyone (yourself included)
-down the road.
+down the road.  Consider L<archiving the corpus build directory|/MYCORPUS build archiving>
+if you need to save disk space.
 
 =head2 log changes
 
 When making changes to a corpus configuration in SVN, remember to
 log any changes to L<DSTAR_ROOT/doc/Changes.txt|$doc/HOWTO.html#doc%2FChanges.txt>.
-If you are using a C<CORPUS_ROOT/config.local/> directory for corpus configuration
+If you are using a
+L<C<CORPUS_ROOT/config.local/>|$doc/README_build.html#Corpus-specific-customizations-with-config.local>
+directory for corpus configuration
 outside of version control, remember to L</build responsibly>, and seriously consider
 checking the final configuration into version control.
 
