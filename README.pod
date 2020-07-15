@@ -424,9 +424,8 @@ the command-line:
  /etc/dstar-gantry.rc
  $HOME/.dstar-gantry.rc
 
-See the example L<C<dstar-gantry.rc> file|
-See L</Gantry Configuration Variables> for a list of known gantry
-configuration variables you can set here.
+See the example
+L<C<dstar-gantry.rc> file|http://odo.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Fdocker%2Fgantry%2Ftrunk%2Fdstar-gantry.rc> in the C<dstar-gantry> distribution for a list of available variables.
 
 =item -i IMAGE
 
@@ -874,20 +873,6 @@ see L<"Customizable Variables" in C<README_build.txt>|$doc/README_build.html#Cus
 for more (non-exhaustive) details.
 
 =back
-
-=cut
-
-##======================================================================
-=pod
-
-=head2 Gantry Configuration Variables
-
-
-The following shell variables are used internally by the C<dstar-gantry.sh> script,
-and may be set or modified by L<configuration file(s)|/-f RCFILE>.  Default
-values are shown where appropriate, but may differ in some situations
-(e.g. running via sudo).  See the example C<dstar-gantry.rc> file in the
-gantry distribution for details.
 
 =cut
 

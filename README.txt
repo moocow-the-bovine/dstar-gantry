@@ -365,8 +365,11 @@ USAGE
          /etc/dstar-gantry.rc
          $HOME/.dstar-gantry.rc
 
-        See "Gantry Configuration Variables" for a list of known gantry
-        configuration variables you can set here.
+        See the example "dstar-gantry.rc" file
+        <http://odo.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repos
+        itory&path=%2Fddc-dstar%2Fdocker%2Fgantry%2Ftrunk%2Fdstar-gantry.rc>
+        in the "dstar-gantry" distribution for a list of available
+        variables.
 
     -i IMAGE
         Specifies the docker image to be pulled and/or invoked via "docker
@@ -715,13 +718,6 @@ USAGE
         "make"); see "Customizable Variables" in "README_build.txt"
         <https://kaskade.dwds.de/dstar/doc/README_build.html#Customizable-Va
         riables> for more (non-exhaustive) details.
-
-  Gantry Configuration Variables
-    The following shell variables are used internally by the
-    "dstar-gantry.sh" script, and may be set or modified by configuration
-    file(s). Default values are shown where appropriate, but may differ in
-    some situations (e.g. running via sudo). See the example
-    "dstar-gantry.rc" file in the gantry distribution for details.
 
 EXAMPLES
     This section provides rudimentary sketches of some typical dstar corpus
