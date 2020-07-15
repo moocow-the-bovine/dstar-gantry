@@ -343,7 +343,7 @@ C<DOCKER_OPTS> are passed to
 the L<C<docker-run>|https://docs.docker.com/engine/reference/run/>
 subprocess for the embedded C<dstar-buildhost> container.
 
-=item L<BUILD_ARGS|/Container Arguments>
+=item L<BUILD_ARGS|/Container Actions>
 
 C<BUILD_ARGS> are passed to the
 C</dstar/docker/build> script in the invoked C<dstar-buildhost> container.
@@ -386,9 +386,9 @@ See L<docker-run(1)|https://docs.docker.com/engine/reference/run/#options> for d
 If you choose to run the container
 in the background (e.g. for L</build> operations on large corpora), you
 can still view the default console ouptut with the
-L<C<docker logs>|/https://docs.docker.com/engine/reference/commandline/logs/> command,
+L<C<docker logs>|https://docs.docker.com/engine/reference/commandline/logs/> command,
 or inspect the build logs in
-C<L<CORPUS_ROOT>|/-C CORPUS_ROOT>/build/log/> directly.
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/log/> directly.
 
 
 =item -rm, -persist
@@ -1066,7 +1066,7 @@ in the embedded C<dstar-buildhost> container, analogous to
 functionality for "bare-metal" dstar corpus builds.
 Use the gantry L<-p HTTP_PORT|/-p HTTP_PORT> option to specify a host
 port number to map to the embedded HTTP server, and use the
-gantry L<C<-bg>/-fg, -bg> or L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
+gantry L<C<-bg>|/-fg, -bg> or L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
 to run the embedded container in the background.  When you are done with manual
 testing, remember to terminate the running container with C<docker kill>.
 
@@ -1267,11 +1267,11 @@ where I<DATETIME> is a timestamp in I<YYYY-MM-DD.HHMMSS> format and
 C<${dstar_archive_dir}> is a L<container environment variable|/-e VAR=VALUE>,
 by default C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/archive/>,
 and should contain all the index data required
-for a production runtime corpus instance on L<C<RUNHOST> and/or C<WEBHOST>|$doc/README.html#Hosts-and-Roles>).
+for a production runtime corpus instance on L<C<RUNHOST> and/or C<WEBHOST>|$doc/README.html#Hosts-and-Roles>.
 
 =item MYCORPUS deployment archive restoration
 
-If you want to restore an archived corpus build directory, just unpack
+If you want to restore an archived corpus deployment snapshot, just unpack
 the archive file back into the L<C<CORPUS_ROOT/build/>|/-C CORPUS_ROOT> directory:
 
  $ cd ~/dstar/corpora/MYCORPUS/archive
@@ -1378,13 +1378,13 @@ to "production" hosts by means of the L</publish> action is B<not> sufficient to
 subsequent L<incremental corpus updates|$doc/README_build.html#Incremental-Update>,
 integration of new dstar functionality, or to enable many bug-fixes.  You are free to delete or archive corpus build
 directories once you're done with them, but this is likely to make more work for everyone (yourself included)
-down the road.  Consider L<archiving the corpus build directory|/MYCORPUS build archiving>
+down the road.  Consider L<archiving the corpus build directory|/MYCORPUS build archive>
 if you need to save disk space.
 
 =head2 log changes
 
 When making changes to a corpus configuration in SVN, remember to
-log any changes to L<DSTAR_ROOT/doc/Changes.txt|$doc/HOWTO.html#doc%2FChanges.txt>.
+log any changes to L<C<DSTAR_ROOT/doc/Changes.txt>|$doc/HOWTO.html#doc%2FChanges.txt>.
 If you are using a
 L<C<CORPUS_ROOT/config.local/>|$doc/README_build.html#Corpus-specific-customizations-with-config.local>
 directory for corpus configuration
@@ -1414,7 +1414,7 @@ gantry build L<C<USER>|/-u USER> and/or L<C<GROUP>|/-g GROUP> does not
 have sufficient permissions.  Typically, this is because the
 L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> checkout is owned by a different user.
 If you consistently use the default C<ddc-admin> user for corpus operations
-as L<recommended in the dstar-HOWTO|/$doc/HOWTO.html#Play-nicely>,
+as L<recommended in the dstar-HOWTO|$doc/HOWTO.html#Play-nicely>,
 you should never encounter this error.
 
 How you solve this problem is entirely up to you.

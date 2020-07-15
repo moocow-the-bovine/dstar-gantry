@@ -6,8 +6,11 @@ SYNOPSIS
      dstar-gantry.sh [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]]]
 
      dstar-gantry.sh Options (GANTRY_OPTS):
-       -h, -help             # this help message
-       -n, -dry-run          # just print what we would do
+       -h  , -help           # this help message
+       -V  , -version        # show program version and exit
+       -n  , -dry-run        # just print what we would do
+       -fg , -bg             # run container in foreground (default) or background
+       -rm , -persist        # remove container on termination (default) or don't
        -c CORPUS             # dstar corpus label (required for most operations)
        -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
        -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
@@ -302,9 +305,39 @@ USAGE
     -h, -help
         Display a brief help message.
 
+    -V, -version
+        Display the version information for "dstar-gantry" itself.
+
     -n, -dry-run
         If specified, just prints what would have been done, but doesn't
         perform any destructive actions.
+
+    -fg, -bg
+        Specifies whether to run the embedded "dstar-buildhost" container
+        interactively in the foreground ("-fg", default) or detached in the
+        background ("-bg"). Foreground ("-fg") operation is equivalent to
+        the "docker-run" "--tty=true" and "--interactive=true" options and
+        background ("-bg") operation is equivalent to the "docker-run"
+        "--detached=true" option. See docker-run(1)
+        <https://docs.docker.com/engine/reference/run/#options> for details.
+
+        If you choose to run the container in the background (e.g. for
+        "build" operations on large corpora), you can still view the default
+        console ouptut with the "docker logs"
+        <https://docs.docker.com/engine/reference/commandline/logs/>
+        command, or inspect the build logs in "CORPUS_ROOT/build/log/"
+        directly.
+
+    -rm, -persist
+        Specifies whether ("-rm") or not ("-persist") to remove the embedded
+        "dstar-buildhost" container when the requested build operation(s)
+        have completed. This behavior is implemented in terms of the
+        "docker-run" "--rm" option; see docker-run(1)
+        <https://docs.docker.com/engine/reference/run/#options> for details.
+        If you request container persistence with the "-persist" option (or
+        the lower-level docker option "--rm=false"), you will have to remove
+        it yourself with the "docker rm"
+        <https://docs.docker.com/engine/reference/commandline/rm/> command.
 
     -c CORPUS
         Specifies the dstar corpus label ("collection label") for the
@@ -809,7 +842,7 @@ EXAMPLES
     have fulfilled all the "Common Prerequisites".
 
     MYCORPUS build
-         $ dstar-gantry.sh -c MYCORPUS build
+         $ dstar-gantry.sh -bg -c MYCORPUS build
 
         Building a corpus index from TEI-XML sources or re-building an
         existing corpus index with the gantry "build" action follows the
@@ -844,7 +877,7 @@ EXAMPLES
         progress information will be printed to the console.
 
     MYCORPUS staging
-         $ dstar-gantry.sh -p 8001 -c MYCORPUS install run -- -d
+         $ dstar-gantry.sh -bg -p 8001 -c MYCORPUS install run
          $ sensible-browser http://localhost:8001/dstar/MYCORPUS
          ... do some manual testing ...
          $ docker kill dstar-gantry-MYCORPUS
@@ -858,7 +891,7 @@ EXAMPLES
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing>
         functionality for "bare-metal" dstar corpus builds. Use the gantry
         -p HTTP_PORT option to specify a host port number to map to the
-        embedded HTTP server, and use the "docker run -d"
+        embedded HTTP server, and use the gantry "-bg" or "docker run -d"
         <https://docs.docker.com/engine/reference/run/#detached--d> option
         to run the embedded container in the background. When you are done
         with manual testing, remember to terminate the running container
@@ -914,7 +947,7 @@ EXAMPLES
     "DSTAR_ROOT/corpora/MYCORPUS".
 
     MYCORPUS update
-         $ dstar-gantry.sh -c MYCORPUS update
+         $ dstar-gantry.sh -bg -c MYCORPUS update
 
         Updating an existing corpus index after some source file(s) have
         been changed, added, and/or deleted by means of the gantry update
@@ -950,7 +983,7 @@ EXAMPLES
     "DSTAR_ROOT/corpora/MYCORPUS".
 
     MYCORPUS metadata-update
-         $ dstar-gantry.sh -c MYCORPUS update-meta
+         $ dstar-gantry.sh -bg -c MYCORPUS update-meta
 
         Updating metadata for an existing corpus index after some source
         file(s) have been changed, added, and/or deleted by means of the
@@ -1022,10 +1055,10 @@ EXAMPLES
         default "CORPUS_ROOT/archive/", and should contain all the index
         data required for a production runtime corpus instance on "RUNHOST"
         and/or "WEBHOST"
-        <https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles>).
+        <https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles>.
 
     MYCORPUS deployment archive restoration
-        If you want to restore an archived corpus build directory, just
+        If you want to restore an archived corpus deployment snapshot, just
         unpack the archive file back into the "CORPUS_ROOT/build/"
         directory:
 
@@ -1116,7 +1149,7 @@ CAVEATS
 
   log changes
     When making changes to a corpus configuration in SVN, remember to log
-    any changes to DSTAR_ROOT/doc/Changes.txt
+    any changes to "DSTAR_ROOT/doc/Changes.txt"
     <https://kaskade.dwds.de/dstar/doc/HOWTO.html#doc%2FChanges.txt>. If you
     are using a "CORPUS_ROOT/config.local/"
     <https://kaskade.dwds.de/dstar/doc/README_build.html#Corpus-specific-cus
@@ -1136,8 +1169,9 @@ KNOWN BUGS AND COMMON ERRORS
         build "USER" and/or "GROUP" does not have sufficient permissions.
         Typically, this is because the "CORPUS_ROOT" checkout is owned by a
         different user. If you consistently use the default "ddc-admin" user
-        for corpus operations as recommended in the dstar-HOWTO, you should
-        never encounter this error.
+        for corpus operations as recommended in the dstar-HOWTO
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Play-nicely>, you
+        should never encounter this error.
 
         How you solve this problem is entirely up to you. Some possibilities
         include:
