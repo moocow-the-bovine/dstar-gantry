@@ -46,6 +46,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
  Container docker/build Arguments (BUILD_ARGS; see also `dstar-gantry.sh help`):
    help                  # show help for container docker/build script
    self-test             # run rudimentary self-test(s)
+   checkout              # checkout corpus build superstructure to CORPUS_ROOT/build/
    build                 # index a corpus in CORPUS_ROOT/build from sources in CORPUS_SRC/
    update                # update an existing index in CORPUS_ROOT/build/ from CORPUS_SRC/
    update-meta           # update index metadata in in CORPUS_ROOT/build/ from CORPUS_SRC/
@@ -558,6 +559,15 @@ Runs some rudimentary self-test(s) and reports results.
 Not all self-tests need to pass in order for C<dstar-gantry.sh> to be useful;
 the functionality you need depends on what you're trying to do
 and your personal preferences.
+
+=item checkout
+
+Creates or updates corpus build superstructure in
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/> from SVN.
+This is basically a wrapper for
+L<C<dstar-checkout-corpus.sh>|$doc/HOWTO.html#Corpus-Checkout>,
+i.e.
+a L<corpus checkout|/$doc/HOWTO.html#Corpus-Checkout>.
 
 =item build
 

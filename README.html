@@ -106,6 +106,7 @@
  Container docker/build Arguments (BUILD_ARGS; see also `dstar-gantry.sh help`):
    help                  # show help for container docker/build script
    self-test             # run rudimentary self-test(s)
+   checkout              # checkout corpus build superstructure to CORPUS_ROOT/build/
    build                 # index a corpus in CORPUS_ROOT/build from sources in CORPUS_SRC/
    update                # update an existing index in CORPUS_ROOT/build/ from CORPUS_SRC/
    update-meta           # update index metadata in in CORPUS_ROOT/build/ from CORPUS_SRC/
@@ -515,6 +516,12 @@
 <dd>
 
 <p>Runs some rudimentary self-test(s) and reports results. Not all self-tests need to pass in order for <code>dstar-gantry.sh</code> to be useful; the functionality you need depends on what you&#39;re trying to do and your personal preferences.</p>
+
+</dd>
+<dt id="checkout">checkout</dt>
+<dd>
+
+<p>Creates or updates corpus build superstructure in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> from SVN. This is basically a wrapper for <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout"><code>dstar-checkout-corpus.sh</code></a>, i.e. a <a href="#https:-kaskade.dwds.de-dstar-doc-HOWTO.html-Corpus-Checkout">corpus checkout</a>.</p>
 
 </dd>
 <dt id="build">build</dt>

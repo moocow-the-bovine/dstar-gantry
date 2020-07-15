@@ -71,6 +71,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
  Container docker/build Arguments (BUILD_ARGS; see also dstar/docker/build):
    help                  # show help for container docker/build script
    self-test             # run rudimentary self-test(s)
+   checkout              # checkout corpus build superstructure to CORPUS_ROOT/build/
    build                 # index a corpus in CORPUS_ROOT/build from sources in CORPUS_SRC/
    update                # update an existing index in CORPUS_ROOT/build/ from CORPUS_SRC/
    update-meta           # update index metadata in in CORPUS_ROOT/build/ from CORPUS_SRC/
@@ -442,9 +443,15 @@ if [ -z "$gantry_cabdir" -a "${DSTAR_ROOT:-no}" != "no" -a -e "$DSTAR_ROOT/resou
     vinfo "setting RESOURCE_DIR=$gantry_cabdir"
 fi
 
+##-- defaults: user+group
+[[ "$gantry_user"  == *[^0-9]* ]] && gantry_uid=$(id -u "$gantry_user")  || gantry_uid="$gantry_user"
+[[ "$gantry_group" == *[^0-9]* ]] && gantry_gid=$(id -u "$gantry_group") || gantry_gid="$gantry_group"
+[ -n "$gantry_uid" ] || die "unknown host user '$gantry_user'"
+[ -n "$gantry_gid" ] || die "unknown host group '$gantry_group'"
+
 ##-- sanity check(s)
 if [ \! -e "$gantry_corpus_root" ] ; then
-    if [[ " ${gantry_build_args[*]} ${gantry_extra_build_args[*]} " == *" "@(build|"test"|update*|install|publish|archive*|run)" "* ]] ; then
+    if [[ " ${gantry_build_args[*]} ${gantry_extra_build_args[*]} " == *" "@(checkout|build|"test"|update*|install|publish|archive*|run)" "* ]] ; then
 	warn "CORPUS_ROOT=$gantry_corpus_root does not exist; creating"
 	runordie mkdir -p "$gantry_corpus_root"
     else
@@ -490,10 +497,6 @@ gantry_docker_opts[${#gantry_docker_opts[@]}]="-eSSH_AUTH_SOCK=/tmp/ssh-auth-gan
     || gantry_docker_opts[${#gantry_docker_opts[@]}]=-v"${gantry_corpus_root}:/dstar/corpora/${gantry_corpus}"
 
 ##-- gantry docker opts: environment: owner+group
-[[ "$gantry_user"  == *[^0-9]* ]] && gantry_uid=$(id -u "$gantry_user")  || gantry_uid="$gantry_user"
-[[ "$gantry_group" == *[^0-9]* ]] && gantry_gid=$(id -u "$gantry_group") || gantry_gid="$gantry_group"
-[ -n "$gantry_uid" ] || die "unknown host user '$gantry_user'"
-[ -n "$gantry_gid" ] || die "unknown host group '$gantry_group'"
 gantry_docker_opts[${#gantry_docker_opts[@]}]="-edstar_build_uid=${gantry_uid}"
 gantry_docker_opts[${#gantry_docker_opts[@]}]="-edstar_build_gid=${gantry_gid}"
 gantry_docker_opts[${#gantry_docker_opts[@]}]="-eDSTAR_USER=${SUDO_USER:-$(id -un)}" ##-- try to use "real" user-config

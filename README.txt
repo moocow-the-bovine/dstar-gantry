@@ -38,6 +38,7 @@ SYNOPSIS
      Container docker/build Arguments (BUILD_ARGS; see also `dstar-gantry.sh help`):
        help                  # show help for container docker/build script
        self-test             # run rudimentary self-test(s)
+       checkout              # checkout corpus build superstructure to CORPUS_ROOT/build/
        build                 # index a corpus in CORPUS_ROOT/build from sources in CORPUS_SRC/
        update                # update an existing index in CORPUS_ROOT/build/ from CORPUS_SRC/
        update-meta           # update index metadata in in CORPUS_ROOT/build/ from CORPUS_SRC/
@@ -466,6 +467,13 @@ USAGE
         self-tests need to pass in order for "dstar-gantry.sh" to be useful;
         the functionality you need depends on what you're trying to do and
         your personal preferences.
+
+    checkout
+        Creates or updates corpus build superstructure in
+        "CORPUS_ROOT/build/" from SVN. This is basically a wrapper for
+        "dstar-checkout-corpus.sh"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Checkout>, i.e.
+        a corpus checkout.
 
     build
         (Re-)indexes a corpus in "CORPUS_ROOT/build/" from TEI-XML sources
