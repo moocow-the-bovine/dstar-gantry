@@ -369,8 +369,8 @@ USAGE
     -S CORPUS_SRC
         Specifies the host path (or symlink) where dstar corpus sources
         reside (default="DSTAR_ROOT/sources/CORPUS/" if present, otherwise
-        required). Implies volume mount "-v
-        CORPUS_SRC:/dstar/sources/CORPUS:ro".
+        `readlink -m CORPUS_ROOT/src` if present, otherwise required).
+        Implies volume mount "-v CORPUS_SRC:/dstar/sources/CORPUS:ro".
 
     -R RESOURCES_DIR
         Specifies the host path (or symlink) for persistent CAB resources

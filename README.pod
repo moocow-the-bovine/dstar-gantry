@@ -433,7 +433,9 @@ Implies volume mount L<C<-v CORPUS_ROOT:/dstar/corpora/CORPUS>|/-v /PATH:/MOUNT>
 =item -S CORPUS_SRC
 
 Specifies the host path (or symlink) where dstar corpus sources reside (default=C<L<DSTAR_ROOT|/-d DSTAR_ROOT>/sources/L<CORPUS|/-c CORPUS>/>
-if present, otherwise required).
+if present,
+otherwise C<`readlink -m L<CORPUS_ROOT|/-C CORPUS_ROOT>/src`> if present,
+otherwise required).
 Implies volume mount L<C<-v CORPUS_SRC:/dstar/sources/CORPUS:ro>|/-v /PATH:/MOUNT>.
 
 =item -R RESOURCES_DIR

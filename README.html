@@ -409,7 +409,7 @@
 <dt id="S-CORPUS_SRC">-S CORPUS_SRC</dt>
 <dd>
 
-<p>Specifies the host path (or symlink) where dstar corpus sources reside (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/sources/<a href="#c-CORPUS">CORPUS</a>/</code> if present, otherwise required). Implies volume mount <a href="#v-PATH:-MOUNT"><code>-v CORPUS_SRC:/dstar/sources/CORPUS:ro</code></a>.</p>
+<p>Specifies the host path (or symlink) where dstar corpus sources reside (default=<code><a href="#d-DSTAR_ROOT">DSTAR_ROOT</a>/sources/<a href="#c-CORPUS">CORPUS</a>/</code> if present, otherwise <code>`readlink -m <a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/src`</code> if present, otherwise required). Implies volume mount <a href="#v-PATH:-MOUNT"><code>-v CORPUS_SRC:/dstar/sources/CORPUS:ro</code></a>.</p>
 
 </dd>
 <dt id="R-RESOURCES_DIR">-R RESOURCES_DIR</dt>
