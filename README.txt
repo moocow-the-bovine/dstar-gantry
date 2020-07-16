@@ -1169,8 +1169,8 @@ KNOWN BUGS AND COMMON ERRORS
         credentials".
 
     E000013 ... Permission denied
-         CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus pnn_test
-         svn: E000013: Can't create directory '/home/ddc-dstar/dstar/corpora/pnn_test/.svn': Permission denied
+         CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus MYCORPUS
+         svn: E000013: Can't create directory '/home/ddc-dstar/dstar/corpora/MYCORPUS/.svn': Permission denied
 
         "Permission denied" errors from SVN during corpus checkout in the
         embedded "dstar-buildhost" container can occur whenever you attempt

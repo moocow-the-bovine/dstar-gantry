@@ -991,8 +991,8 @@
 <dt id="E000013-...-Permission-denied">E000013 ... Permission denied</dt>
 <dd>
 
-<pre><code> CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus pnn_test
- svn: E000013: Can&#39;t create directory &#39;/home/ddc-dstar/dstar/corpora/pnn_test/.svn&#39;: Permission denied</code></pre>
+<pre><code> CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus MYCORPUS
+ svn: E000013: Can&#39;t create directory &#39;/home/ddc-dstar/dstar/corpora/MYCORPUS/.svn&#39;: Permission denied</code></pre>
 
 <p>&quot;Permission denied&quot; errors from SVN during corpus checkout in the embedded <code>dstar-buildhost</code> container can occur whenever you attempt to operate on a <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> working copy for which the gantry build <a href="#u-USER"><code>USER</code></a> and/or <a href="#g-GROUP"><code>GROUP</code></a> does not have sufficient permissions. Typically, this is because the <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> checkout is owned by a different user. If you consistently use the default <code>ddc-admin</code> user for corpus operations as <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Play-nicely">recommended in the dstar-HOWTO</a>, you should never encounter this error.</p>
 
