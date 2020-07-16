@@ -100,16 +100,16 @@
 ##--------------------------------------------------------------
 ## docker options
 
-## gantry_extra_docker_opts
-##  + bash-array of extra options to `docker run`
+## gantry_docker_opts
+##  + bash-array of initial options to `docker run`
 ##  + use this to set additional default volumes, environment overrides, etc.
-#gantry_extra_docker_opts=()
+#gantry_docker_opts=()
  
 ##--------------------------------------------------------------
 ## build args
 
-## gantry_extra_build_args
-##  + bash-array of extra arguments to container `/dstar/docker/build` script
+## gantry_build_args
+##  + bash-array of initial arguments to container `/dstar/docker/build` script
 ##  + probably not very useful to set here
-#gantry_extra_docker_opts=()
+#gantry_build_args=()
 
