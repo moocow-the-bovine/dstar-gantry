@@ -293,7 +293,7 @@ gantry_dry_run=""
 gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
 gantry_corpus=""
 gantry_corpus_root="" #$DSTAR_ROOT/corpora/$gantry_corpus
-gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus/current
+gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus
 gantry_cabdir="" #$DSTAR_ROOT/resources
 gantry_cabdir_ro=""
 gantry_cabrun="dstar-http-9096"
@@ -427,16 +427,18 @@ fi
 
 ##-- defaults: gantry_corpus_src
 if [ -z "$gantry_corpus_src" ] ; then
-    if [ -h "$gantry_corpus_root/src" ] ; then
-	##-- gantry_corpus_src: use CORPUS_ROOT/src symlink
-	gantry_corpus_src=$(readlink -f "$gantry_corpus_root/src")
-    elif [ "${DSTAR_ROOT:-no}" != "no" -a -n "$gantry_corpus" -a -e "$DSTAR_ROOT/sources/$gantry_corpus" ] ; then
-	##-- gantry_corpus_src: use persistent DSTAR_ROOT/sources/CORPUS
+    if [ "${DSTAR_ROOT:-no}" != "no" -a -n "$gantry_corpus" -a -e "$DSTAR_ROOT/sources/$gantry_corpus" ] ; then
+	##-- gantry_corpus_src: perfer use persistent DSTAR_ROOT/sources/CORPUS
+	##  + 2020-07-16: prefer persistent sources to attempted resolution of CORPUS_ROOT/src symlinks
+	##                (because things break if they're both present)
 	gantry_corpus_src="$DSTAR_ROOT/sources/$gantry_corpus"
 	## ... and honor sources/CORPUS/current/ convention
 	## NO: this breaks relative src/ symlinks
 	#[ \! -e "$gantry_corpus_src/curent" ] \
-	#    || gantry_corpus_src="$gantry_corpus_src/current"
+	    #    || gantry_corpus_src="$gantry_corpus_src/current"
+    elif [ -h "$gantry_corpus_root/src" ] ; then
+	##-- gantry_corpus_src: use CORPUS_ROOT/src symlink (only if no persistent sources are present)
+	gantry_corpus_src=$(readlink -f "$gantry_corpus_root/src")
     fi
     if [ -n "$gantry_corpus_src" ] ; then
 	vinfo "setting CORPUS_SRC=$gantry_corpus_src"
