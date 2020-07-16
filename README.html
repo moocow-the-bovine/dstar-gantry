@@ -978,6 +978,16 @@
 
 <dl>
 
+<dt id="Error-response-from-daemon:-...-no-basic-auth-credentials">Error response from daemon: ... no basic auth credentials</dt>
+<dd>
+
+<pre><code> dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
+ Error response from daemon: Get https://lex.dwds.de:443/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
+ dstar-gantry.sh: ERROR: command `docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest` exited abnormally with status 1</code></pre>
+
+<p>This error can occur when executing a <a href="#pull"><code>gantry pull</code></a> if you neglected to run <code>docker login</code> for the ZDL docker registry. See <a href="#registry-credentials">&quot;registry credentials&quot;</a>.</p>
+
+</dd>
 <dt id="E000013-...-Permission-denied">E000013 ... Permission denied</dt>
 <dd>
 

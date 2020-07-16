@@ -1401,6 +1401,16 @@ checking the final configuration into version control.
 
 =over 4
 
+=item Error response from daemon: ... no basic auth credentials
+
+ dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
+ Error response from daemon: Get https://lex.dwds.de:443/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
+ dstar-gantry.sh: ERROR: command `docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest` exited abnormally with status 1
+
+This error can occur when executing a L<C<gantry pull>|/pull> if you neglected to
+run C<docker login> for the ZDL docker registry.
+See L</registry credentials>.
+
 =item E000013 ... Permission denied
 
  CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus pnn_test

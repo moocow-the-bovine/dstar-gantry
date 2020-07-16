@@ -1159,6 +1159,15 @@ CAVEATS
     control.
 
 KNOWN BUGS AND COMMON ERRORS
+    Error response from daemon: ... no basic auth credentials
+         dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
+         Error response from daemon: Get https://lex.dwds.de:443/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
+         dstar-gantry.sh: ERROR: command `docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest` exited abnormally with status 1
+
+        This error can occur when executing a "gantry pull" if you neglected
+        to run "docker login" for the ZDL docker registry. See "registry
+        credentials".
+
     E000013 ... Permission denied
          CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus pnn_test
          svn: E000013: Can't create directory '/home/ddc-dstar/dstar/corpora/pnn_test/.svn': Permission denied
