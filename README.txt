@@ -1341,9 +1341,9 @@ KNOWN BUGS AND COMMON ERRORS
         "WEB_SITE_AUTH_EXTERNAL=no"
         <https://kaskade.dwds.de/dstar/doc/README_build.html#WEB_SITE_AUTH_E
         XTERNAL> with the "-e VAR=VALUE" option. It's probably a good idea
-        to force "WEB_SITE_AUTH_PUBLIC=yes"
-        <https://kaskade.dwds.de/dstar/doc/README_build.html#WEB_SITE_AUTH_P
-        UBLIC> in staging containers too:
+        to force "WEB_SITE_PUBLIC=yes"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#WEB_SITE_PUBLIC
+        > in staging containers too:
 
          $ dstar-gantry.sh -c MYCORPUS -eWEB_SITE_AUTH_EXTERNAL=no -eWEB_SITE_PUBLIC=yes run
 

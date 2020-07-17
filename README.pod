@@ -1620,7 +1620,7 @@ the apache external authorization module,
 so you should specify an override
 L<C<WEB_SITE_AUTH_EXTERNAL=no>|$doc/README_build.html#WEB_SITE_AUTH_EXTERNAL>
 with the L</-e VAR=VALUE> option.  It's probably a good idea to force
-L<C<WEB_SITE_AUTH_PUBLIC=yes>|$doc/README_build.html#WEB_SITE_AUTH_PUBLIC>
+L<C<WEB_SITE_PUBLIC=yes>|$doc/README_build.html#WEB_SITE_PUBLIC>
 in staging containers too:
 
  $ dstar-gantry.sh -c MYCORPUS -eWEB_SITE_AUTH_EXTERNAL=no -eWEB_SITE_PUBLIC=yes run
