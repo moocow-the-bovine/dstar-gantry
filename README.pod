@@ -702,7 +702,7 @@ Future versions of this software may support additional operations on such archi
 
 Note that archives created with the C<archive-publish> action only
 include that subset of the data from local corpus build directory C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/>
-which would be deployed by a L<|/publish> operation,
+which would be deployed by a L</publish> operation,
 and B<not>
 the actual published index data from remote runtime "production"
 host(s) as specified by the C<PUBLISH_DEST> and/or C<WEB_PUBLISH_DEST>
@@ -710,8 +710,8 @@ dstar make variables.
 Archives created with the C<archive-publish> action will also
 B<not> include any intermediate build files,
 so it should be much smaller
-in size than those created by the L<|/archive-build> action.
-Unlike an L<|/archive-build> archive however, an
+in size than those created by the L</archive-build> action.
+Unlike an L</archive-build> archive however, an
 C<archive-publish> archive cannot be used as the basis for subsequent
 subsequent L<incremental corpus updates|$doc/README_build.html#Incremental-Update>
 or infrastructure maintainence; please L<act responsibly|/build responsibly>.
@@ -726,7 +726,7 @@ C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/{server,web}/>
 within the running C<dstar-buildhost> container,
 usually in preparation for
 L<local staging|/MYCORPUS staging>.
-See also L<|/uninstall>.
+See also L</uninstall>.
 
 =item uninstall
 
@@ -852,7 +852,7 @@ Alias for L</dstar_corpora>.
 =item dstar_archive_dir
 
 Target directory for
-L<|/archive-build> and L<|/archive-publish>
+L</archive-build> and L</archive-publish>
 actions.  Empty (unset) by default.
 
 
@@ -893,7 +893,7 @@ Default: C<-echo-preset=make-info>.
 
 =item dstar_cabx_run
 
-Specifies which CAB server(s) to start in the container for the L<|/run> action
+Specifies which CAB server(s) to start in the container for the L</run> action
 as a whitespace-separated list.
 CAB server(s) are identified by the file basename up to the first dot (".")
 of the corresponding configuration file C</dstar/cabx/*.rc>.
@@ -1087,18 +1087,18 @@ L<C<RUNHOST> and C<WEBHOST> roles|$doc/README.html#Hosts-and-Roles> for that cor
 in the embedded C<dstar-buildhost> container, analogous to
 (but independent of) the L<"Sandbox Testing"|$doc/HOWTO.html#Sandbox-Testing>
 functionality for "bare-metal" dstar corpus builds.
-You only need to L<|/install> if you have updated corpus index data in the
+You only need to L</install> if you have updated corpus index data in the
 C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/> directory, e.g.
-via the L<|/build>, L<|/update>, or L<|/update-meta> operations); you
+via the L</build>, L</update>, or L</update-meta> operations); you
 can re-stage an existing L<installation|/install> with the
-gantry L<|/run> action.
+gantry L</run> action.
 
 Use the gantry L<-p HTTP_PORT|/-p HTTP_PORT> option to specify a host
 port number to map to the embedded HTTP server, and use the
 gantry L<C<-bg>|/-fg, -bg> or L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
 to run the embedded container in the background.  When you are done with manual
 testing, remember to terminate the running container with C<docker kill>.
-It is also good practice to L<|/uninstall> the runtime data when
+It is also good practice to L</uninstall> the runtime data when
 you are done with the staging instance.
 
 If you are running dstar-gantry on a L<C<GANTRYHOST>|$doc/README.html#GANTRYHOST> behind
@@ -1311,7 +1311,7 @@ the archive file back into the L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> directory:
 
 You can create a "snapshot" of publishable corpus data from
 a L<C<CORPUS_ROOT/build/>|/-C CORPUS_ROOT> directory
-by means of the gantry L<|/archive-publish> action.  The resulting
+by means of the gantry L</archive-publish> action.  The resulting
 archive will be created as
 C<${dstar_archive_dir}/MYCORPUS.publish-I<DATETIME>.tar.gz>,
 where I<DATETIME> is a timestamp in I<YYYY-MM-DD.HHMMSS> format and
@@ -1329,7 +1329,7 @@ the archive file back into the L<C<CORPUS_ROOT/build/>|/-C CORPUS_ROOT> director
  $ tar xzf MYCORPUS.publish-DATETIME.tar.gz -C ../build
 
 To re-deploy the restored archive data to runtime "production" hosts, you
-should follow this up with a L<|/publish> operation.
+should follow this up with a L</publish> operation.
 
 =back
 
@@ -1352,7 +1352,7 @@ an existing corpus, but it is straightforward to do by hand.
 To remove all corpus L<build|/build> and L<staging|/MYCORPUS staging> data,
 simply delete the relevant subdirectories from the gantry host.
 This will remove all dstar data created by the gantry actions
-L<|/build>, L<|/update>, L<|/install>, etc., including intermediate build files.
+L</build>, L</update>, L</install>, etc., including intermediate build files.
 If you have created any
 L<build-|/archive-build>
 and/or
@@ -1468,13 +1468,13 @@ See L</registry credentials>.
 
 This warning message usually indicates that you forgot to specify either a corpus label
 with the L</-c CORPUS> option or a corpus root directory with the L</-C CORPUS_ROOT> option.
-In this case, any corpus-dependent operation such as L<|/build>, L<|/test>, etc. is likely to fail
+In this case, any corpus-dependent operation such as L</build>, L</test>, etc. is likely to fail
 ... unless you have set appropriate
 L<container variables|/Container Environment Variables> such as
 L</dstar_corpora> with the L</-e VAR=VALUE> option and
 volume mounts with the L</-v /PATH:/MOUNT> option.
 If the requested L<gantry action|/Gantry Actions> is not a corpus-dependent operation
-(e.g. L<|/shell>), you can ignore this warning.
+(e.g. L</shell>), you can ignore this warning.
 
 =item WARNING: no CORPUS_SRC directory specified
 
