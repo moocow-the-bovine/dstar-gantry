@@ -81,6 +81,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    archive-build         # archive CORPUS_ROOT/build/ to \${dstar_archive_dir}
    archive-publish       # archive publishable corpus data to \${dstar_archive_dir}
    install               # install CORPUS_ROOT/build/ to CORPUS_ROOT/{server,web}/
+   uninstall             # remove CORPUS_ROOT/{server,web}/
    publish               # deploy CORPUS_ROOT/build/ to production host(s)
    run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
    exec CMD...           # just execute CMD... in container
@@ -461,7 +462,7 @@ fi
 
 ##-- sanity check(s)
 if [ \! -e "$gantry_corpus_root" ] ; then
-    if [[ " ${gantry_build_args[*]} ${gantry_extra_build_args[*]} " == *" "@(checkout|build|"test"|update*|install|publish|archive*|run)" "* ]] ; then
+    if [[ " ${gantry_build_args[*]} ${gantry_extra_build_args[*]} " == *" "@(checkout|build|"test"|update*|install|uninstall|publish|archive*|run)" "* ]] ; then
 	warn "CORPUS_ROOT=$gantry_corpus_root does not exist; creating"
 	runordie mkdir -p "$gantry_corpus_root"
     else
