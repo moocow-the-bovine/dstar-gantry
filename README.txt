@@ -1239,7 +1239,7 @@ KNOWN BUGS AND COMMON ERRORS
         "update-meta" are likely to fail unless you specify additional
         container variables and/or volume mounts.
 
-        If the requested gantry action is s source-independent operation
+        If the requested gantry action is a source-independent operation
         such as "install", "publish", or "run", you can ignore this warning.
 
     Conflict. The container name "/dstar-gantry-MYCORPUS" is already in use

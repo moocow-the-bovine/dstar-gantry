@@ -1488,7 +1488,7 @@ unless you specify additional
 L<container variables|/Container Environment Variables> and/or
 L<volume mounts|/-v /PATH:/MOUNT>.
 
-If the requested L<gantry action|/Gantry Actions> is s source-independent operation
+If the requested L<gantry action|/Gantry Actions> is a source-independent operation
 such as L</install>, L</publish>, or L</run>, you can ignore this warning.
 
 =item Conflict. The container name "/dstar-gantry-MYCORPUS" is already in use
