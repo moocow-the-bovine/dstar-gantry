@@ -299,8 +299,8 @@ USAGE
         embedded "dstar-buildhost" container.
 
     BUILD_ARGS
-        "BUILD_ARGS" are passed to the "/dstar/docker/build" script in the
-        invoked "dstar-buildhost" container.
+        "BUILD_ARGS" are passed to the "/dstar/docker/build" script
+        invocation in the embedded "dstar-buildhost" container.
 
   Gantry Options
     -h, -help

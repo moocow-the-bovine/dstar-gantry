@@ -347,7 +347,7 @@ subprocess for the embedded C<dstar-buildhost> container.
 =item L<BUILD_ARGS|/Container Actions>
 
 C<BUILD_ARGS> are passed to the
-C</dstar/docker/build> script in the invoked C<dstar-buildhost> container.
+C</dstar/docker/build> script invocation in the embedded C<dstar-buildhost> container.
 
 =back
 
