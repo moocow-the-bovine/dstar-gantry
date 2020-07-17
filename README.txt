@@ -595,14 +595,15 @@ USAGE
 
         Note that archives created with the "archive-publish" action only
         include that subset of the data from local corpus build directory
-        "CORPUS_ROOT/build/" which would be deployed by a operation, and not
-        the actual published index data from remote runtime "production"
-        host(s) as specified by the "PUBLISH_DEST" and/or "WEB_PUBLISH_DEST"
-        dstar make variables. Archives created with the "archive-publish"
-        action will also not include any intermediate build files, so it
-        should be much smaller in size than those created by the action.
-        Unlike an archive however, an "archive-publish" archive cannot be
-        used as the basis for subsequent subsequent incremental corpus
+        "CORPUS_ROOT/build/" which would be deployed by a "publish"
+        operation, and not the actual published index data from remote
+        runtime "production" host(s) as specified by the "PUBLISH_DEST"
+        and/or "WEB_PUBLISH_DEST" dstar make variables. Archives created
+        with the "archive-publish" action will also not include any
+        intermediate build files, so it should be much smaller in size than
+        those created by the "archive-build" action. Unlike an
+        "archive-build" archive however, an "archive-publish" archive cannot
+        be used as the basis for subsequent subsequent incremental corpus
         updates
         <https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Upd
         ate> or infrastructure maintainence; please act responsibly.
@@ -610,7 +611,8 @@ USAGE
     install
         Installs an existing corpus index from "CORPUS_ROOT/build/" to
         "CORPUS_ROOT/{server,web}/" within the running "dstar-buildhost"
-        container, usually in preparation for local staging. See also .
+        container, usually in preparation for local staging. See also
+        "uninstall".
 
     uninstall
         Recursively removes corpus runtime data directories
@@ -699,7 +701,8 @@ USAGE
         Alias for "dstar_corpora".
 
     dstar_archive_dir
-        Target directory for and actions. Empty (unset) by default.
+        Target directory for "archive-build" and "archive-publish" actions.
+        Empty (unset) by default.
 
     dstar_sync_resources
         Whether or not to synchronize CAB resources to "RESOURCES_DIR" on
@@ -728,10 +731,10 @@ USAGE
 
     dstar_cabx_run
         Specifies which CAB server(s) to start in the container for the
-        action as a whitespace-separated list. CAB server(s) are identified
-        by the file basename up to the first dot (".") of the corresponding
-        configuration file "/dstar/cabx/*.rc". Default: "dstar-http-9096".
-        Known values:
+        "run" action as a whitespace-separated list. CAB server(s) are
+        identified by the file basename up to the first dot (".") of the
+        corresponding configuration file "/dstar/cabx/*.rc". Default:
+        "dstar-http-9096". Known values:
 
          dstar-http-9096       - runtime expansion for synchronic German
          dstar-http-dta-8088   - runtime expansion for historical German
@@ -904,17 +907,19 @@ EXAMPLES
         to (but independent of) the "Sandbox Testing"
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing>
         functionality for "bare-metal" dstar corpus builds. You only need to
-        if you have updated corpus index data in the "CORPUS_ROOT/build/"
-        directory, e.g. via the , , or operations); you can re-stage an
-        existing installation with the gantry action.
+        "install" if you have updated corpus index data in the
+        "CORPUS_ROOT/build/" directory, e.g. via the "build", "update", or
+        "update-meta" operations); you can re-stage an existing installation
+        with the gantry "run" action.
 
         Use the gantry -p HTTP_PORT option to specify a host port number to
         map to the embedded HTTP server, and use the gantry "-bg" or "docker
         run -d" <https://docs.docker.com/engine/reference/run/#detached--d>
         option to run the embedded container in the background. When you are
         done with manual testing, remember to terminate the running
-        container with "docker kill". It is also good practice to the
-        runtime data when you are done with the staging instance.
+        container with "docker kill". It is also good practice to
+        "uninstall" the runtime data when you are done with the staging
+        instance.
 
         If you are running dstar-gantry on a "GANTRYHOST"
         <https://kaskade.dwds.de/dstar/doc/README.html#GANTRYHOST> behind a
@@ -1089,8 +1094,8 @@ EXAMPLES
          $ rm -rf ~/dstar/corpora/pnn_test/{server,web}
 
         You can create a "snapshot" of publishable corpus data from a
-        "CORPUS_ROOT/build/" directory by means of the gantry action. The
-        resulting archive will be created as
+        "CORPUS_ROOT/build/" directory by means of the gantry
+        "archive-publish" action. The resulting archive will be created as
         "${dstar_archive_dir}/MYCORPUS.publish-*DATETIME*.tar.gz", where
         *DATETIME* is a timestamp in *YYYY-MM-DD.HHMMSS* format and
         "${dstar_archive_dir}" is a container environment variable, by
@@ -1108,7 +1113,7 @@ EXAMPLES
          $ tar xzf MYCORPUS.publish-DATETIME.tar.gz -C ../build
 
         To re-deploy the restored archive data to runtime "production"
-        hosts, you should follow this up with a operation.
+        hosts, you should follow this up with a "publish" operation.
 
   Example: Corpus Removal
     "dstar-gantry" does not currently provide any shortcuts for removing an
@@ -1119,11 +1124,11 @@ EXAMPLES
 
         To remove all corpus build and staging data, simply delete the
         relevant subdirectories from the gantry host. This will remove all
-        dstar data created by the gantry actions , , , etc., including
-        intermediate build files. If you have created any build- and/or
-        publish-archives under "CORPUS_ROOT/archive/" which you want to
-        save, you may want to move them to a different location (e.g.
-        "$HOME/attic/"):
+        dstar data created by the gantry actions "build", "update",
+        "install", etc., including intermediate build files. If you have
+        created any build- and/or publish-archives under
+        "CORPUS_ROOT/archive/" which you want to save, you may want to move
+        them to a different location (e.g. "$HOME/attic/"):
 
          $ mv ~/dstar/corpora/MYCORPUS/archive/*.tar.gz ~/attic/
 
@@ -1216,11 +1221,11 @@ KNOWN BUGS AND COMMON ERRORS
         This warning message usually indicates that you forgot to specify
         either a corpus label with the "-c CORPUS" option or a corpus root
         directory with the "-C CORPUS_ROOT" option. In this case, any
-        corpus-dependent operation such as , , etc. is likely to fail ...
-        unless you have set appropriate container variables such as
-        "dstar_corpora" with the "-e VAR=VALUE" option and volume mounts
+        corpus-dependent operation such as "build", "test", etc. is likely
+        to fail ... unless you have set appropriate container variables such
+        as "dstar_corpora" with the "-e VAR=VALUE" option and volume mounts
         with the "-v /PATH:/MOUNT" option. If the requested gantry action is
-        not a corpus-dependent operation (e.g. ), you can ignore this
+        not a corpus-dependent operation (e.g. "shell"), you can ignore this
         warning.
 
     WARNING: no CORPUS_SRC directory specified

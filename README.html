@@ -584,13 +584,13 @@
 
 <p>Archives publishable corpus data from the corpus build directory <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> to the directory <a href="#dstar_archive_dir"><code>${dstar_archive_dir}</code></a> if set, otherwise to the (corpus-specific) directory specified by the <code>ARC_PUBLISH_DIR</code> dstar make variable; usually <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/archive/</code>. The publish-archive will be created as a gzipped tar archive <code><a href="#c-CORPUS">CORPUS</a>.publish-<i>DATETIME</i>.tar.gz</code> where <i>DATETIME</i> is a timestamp in <i>YYYY-MM-DD.HHMMSS</i> format, and should contain all the index data required for a production runtime corpus instance on <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and/or <code>WEBHOST</code></a>). Future versions of this software may support additional operations on such archives.</p>
 
-<p>Note that archives created with the <code>archive-publish</code> action only include that subset of the data from local corpus build directory <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> which would be deployed by a <a href="#publish"></a> operation, and <b>not</b> the actual published index data from remote runtime &quot;production&quot; host(s) as specified by the <code>PUBLISH_DEST</code> and/or <code>WEB_PUBLISH_DEST</code> dstar make variables. Archives created with the <code>archive-publish</code> action will also <b>not</b> include any intermediate build files, so it should be much smaller in size than those created by the <a href="#archive-build"></a> action. Unlike an <a href="#archive-build"></a> archive however, an <code>archive-publish</code> archive cannot be used as the basis for subsequent subsequent <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">incremental corpus updates</a> or infrastructure maintainence; please <a href="#build-responsibly">act responsibly</a>.</p>
+<p>Note that archives created with the <code>archive-publish</code> action only include that subset of the data from local corpus build directory <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> which would be deployed by a <a href="#publish">&quot;publish&quot;</a> operation, and <b>not</b> the actual published index data from remote runtime &quot;production&quot; host(s) as specified by the <code>PUBLISH_DEST</code> and/or <code>WEB_PUBLISH_DEST</code> dstar make variables. Archives created with the <code>archive-publish</code> action will also <b>not</b> include any intermediate build files, so it should be much smaller in size than those created by the <a href="#archive-build">&quot;archive-build&quot;</a> action. Unlike an <a href="#archive-build">&quot;archive-build&quot;</a> archive however, an <code>archive-publish</code> archive cannot be used as the basis for subsequent subsequent <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">incremental corpus updates</a> or infrastructure maintainence; please <a href="#build-responsibly">act responsibly</a>.</p>
 
 </dd>
 <dt id="install">install</dt>
 <dd>
 
-<p>Installs an existing corpus index from <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/{server,web}/</code> within the running <code>dstar-buildhost</code> container, usually in preparation for <a href="#MYCORPUS-staging">local staging</a>. See also <a href="#uninstall"></a>.</p>
+<p>Installs an existing corpus index from <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/{server,web}/</code> within the running <code>dstar-buildhost</code> container, usually in preparation for <a href="#MYCORPUS-staging">local staging</a>. See also <a href="#uninstall">&quot;uninstall&quot;</a>.</p>
 
 </dd>
 <dt id="uninstall">uninstall</dt>
@@ -681,7 +681,7 @@
 <dt id="dstar_archive_dir">dstar_archive_dir</dt>
 <dd>
 
-<p>Target directory for <a href="#archive-build"></a> and <a href="#archive-publish"></a> actions. Empty (unset) by default.</p>
+<p>Target directory for <a href="#archive-build">&quot;archive-build&quot;</a> and <a href="#archive-publish">&quot;archive-publish&quot;</a> actions. Empty (unset) by default.</p>
 
 </dd>
 <dt id="dstar_sync_resources">dstar_sync_resources</dt>
@@ -711,7 +711,7 @@
 <dt id="dstar_cabx_run">dstar_cabx_run</dt>
 <dd>
 
-<p>Specifies which CAB server(s) to start in the container for the <a href="#run"></a> action as a whitespace-separated list. CAB server(s) are identified by the file basename up to the first dot (&quot;.&quot;) of the corresponding configuration file <code>/dstar/cabx/*.rc</code>. Default: <code>dstar-http-9096</code>. Known values:</p>
+<p>Specifies which CAB server(s) to start in the container for the <a href="#run">&quot;run&quot;</a> action as a whitespace-separated list. CAB server(s) are identified by the file basename up to the first dot (&quot;.&quot;) of the corresponding configuration file <code>/dstar/cabx/*.rc</code>. Default: <code>dstar-http-9096</code>. Known values:</p>
 
 <pre><code> dstar-http-9096       - runtime expansion for synchronic German
  dstar-http-dta-8088   - runtime expansion for historical German
@@ -817,9 +817,9 @@
  $ docker kill dstar-gantry-MYCORPUS
  $ dstar-gantry.sh -RO -c MYCORPUS uninstall</code></pre>
 
-<p>Once a corpus index has been succesfully <a href="#build">built</a>, you can use <code>dstar-gantry.sh</code> to <a href="#install">install</a> and <a href="#run">run</a> a staging&quot; instance of the dstar <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code> roles</a> for that corpus in the embedded <code>dstar-buildhost</code> container, analogous to (but independent of) the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing">&quot;Sandbox Testing&quot;</a> functionality for &quot;bare-metal&quot; dstar corpus builds. You only need to <a href="#install"></a> if you have updated corpus index data in the <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> directory, e.g. via the <a href="#build"></a>, <a href="#update"></a>, or <a href="#update-meta"></a> operations); you can re-stage an existing <a href="#install">installation</a> with the gantry <a href="#run"></a> action.</p>
+<p>Once a corpus index has been succesfully <a href="#build">built</a>, you can use <code>dstar-gantry.sh</code> to <a href="#install">install</a> and <a href="#run">run</a> a staging&quot; instance of the dstar <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code> roles</a> for that corpus in the embedded <code>dstar-buildhost</code> container, analogous to (but independent of) the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing">&quot;Sandbox Testing&quot;</a> functionality for &quot;bare-metal&quot; dstar corpus builds. You only need to <a href="#install">&quot;install&quot;</a> if you have updated corpus index data in the <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> directory, e.g. via the <a href="#build">&quot;build&quot;</a>, <a href="#update">&quot;update&quot;</a>, or <a href="#update-meta">&quot;update-meta&quot;</a> operations); you can re-stage an existing <a href="#install">installation</a> with the gantry <a href="#run">&quot;run&quot;</a> action.</p>
 
-<p>Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the gantry <a href="#fg--bg"><code>-bg</code></a> or <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <code>docker kill</code>. It is also good practice to <a href="#uninstall"></a> the runtime data when you are done with the staging instance.</p>
+<p>Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the gantry <a href="#fg--bg"><code>-bg</code></a> or <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <code>docker kill</code>. It is also good practice to <a href="#uninstall">&quot;uninstall&quot;</a> the runtime data when you are done with the staging instance.</p>
 
 <p>If you are running dstar-gantry on a <a href="https://kaskade.dwds.de/dstar/doc/README.html#GANTRYHOST"><code>GANTRYHOST</code></a> behind a firewall and you wish to call your browser on a different machine (let&#39;s call it <code>WORKSTATION</code>), you may need to setup an <a href="https://www.ssh.com/ssh/tunneling/example">ssh tunnel</a> to the remote port, and shut it down again when you&#39;re finished with the staging instance. This can be accomplished by e.g.:</p>
 
@@ -930,7 +930,7 @@
 <pre><code> $ dstar-gantry.sh -RO -c pnn_test archive-publish
  $ rm -rf ~/dstar/corpora/pnn_test/{server,web}</code></pre>
 
-<p>You can create a &quot;snapshot&quot; of publishable corpus data from a <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/build/</code></a> directory by means of the gantry <a href="#archive-publish"></a> action. The resulting archive will be created as <code>${dstar_archive_dir}/MYCORPUS.publish-<i>DATETIME</i>.tar.gz</code>, where <i>DATETIME</i> is a timestamp in <i>YYYY-MM-DD.HHMMSS</i> format and <code>${dstar_archive_dir}</code> is a <a href="#e-VAR-VALUE">container environment variable</a>, by default <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/archive/</code>, and should contain all the index data required for a production runtime corpus instance on <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and/or <code>WEBHOST</code></a>.</p>
+<p>You can create a &quot;snapshot&quot; of publishable corpus data from a <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/build/</code></a> directory by means of the gantry <a href="#archive-publish">&quot;archive-publish&quot;</a> action. The resulting archive will be created as <code>${dstar_archive_dir}/MYCORPUS.publish-<i>DATETIME</i>.tar.gz</code>, where <i>DATETIME</i> is a timestamp in <i>YYYY-MM-DD.HHMMSS</i> format and <code>${dstar_archive_dir}</code> is a <a href="#e-VAR-VALUE">container environment variable</a>, by default <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/archive/</code>, and should contain all the index data required for a production runtime corpus instance on <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and/or <code>WEBHOST</code></a>.</p>
 
 </dd>
 <dt id="MYCORPUS-deployment-archive-restoration">MYCORPUS deployment archive restoration</dt>
@@ -941,7 +941,7 @@
 <pre><code> $ cd ~/dstar/corpora/MYCORPUS/archive
  $ tar xzf MYCORPUS.publish-DATETIME.tar.gz -C ../build</code></pre>
 
-<p>To re-deploy the restored archive data to runtime &quot;production&quot; hosts, you should follow this up with a <a href="#publish"></a> operation.</p>
+<p>To re-deploy the restored archive data to runtime &quot;production&quot; hosts, you should follow this up with a <a href="#publish">&quot;publish&quot;</a> operation.</p>
 
 </dd>
 </dl>
@@ -957,7 +957,7 @@
 
 <pre><code> $ rm -rf ~/dstar/corpora/MYCORPUS/{build,server,web}</code></pre>
 
-<p>To remove all corpus <a href="#build">build</a> and <a href="#MYCORPUS-staging">staging</a> data, simply delete the relevant subdirectories from the gantry host. This will remove all dstar data created by the gantry actions <a href="#build"></a>, <a href="#update"></a>, <a href="#install"></a>, etc., including intermediate build files. If you have created any <a href="#archive-build">build-</a> and/or <a href="#archive-publish">publish-</a>archives under <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/archive/</code> which you want to save, you may want to move them to a different location (e.g. <code>$HOME/attic/</code>):</p>
+<p>To remove all corpus <a href="#build">build</a> and <a href="#MYCORPUS-staging">staging</a> data, simply delete the relevant subdirectories from the gantry host. This will remove all dstar data created by the gantry actions <a href="#build">&quot;build&quot;</a>, <a href="#update">&quot;update&quot;</a>, <a href="#install">&quot;install&quot;</a>, etc., including intermediate build files. If you have created any <a href="#archive-build">build-</a> and/or <a href="#archive-publish">publish-</a>archives under <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/archive/</code> which you want to save, you may want to move them to a different location (e.g. <code>$HOME/attic/</code>):</p>
 
 <pre><code> $ mv ~/dstar/corpora/MYCORPUS/archive/*.tar.gz ~/attic/</code></pre>
 
@@ -1019,7 +1019,7 @@
 
 <pre><code> dstar-gantry.sh: WARNING: neither CORPUS nor CORPUS_ROOT specified (use the -c or -C options)</code></pre>
 
-<p>This warning message usually indicates that you forgot to specify either a corpus label with the <a href="#c-CORPUS">&quot;-c CORPUS&quot;</a> option or a corpus root directory with the <a href="#C-CORPUS_ROOT">&quot;-C CORPUS_ROOT&quot;</a> option. In this case, any corpus-dependent operation such as <a href="#build"></a>, <a href="#test"></a>, etc. is likely to fail ... unless you have set appropriate <a href="#Container-Environment-Variables">container variables</a> such as <a href="#dstar_corpora">&quot;dstar_corpora&quot;</a> with the <a href="#e-VAR-VALUE">&quot;-e VAR=VALUE&quot;</a> option and volume mounts with the <a href="#v-PATH:-MOUNT">&quot;-v /PATH:/MOUNT&quot;</a> option. If the requested <a href="#Gantry-Actions">gantry action</a> is not a corpus-dependent operation (e.g. <a href="#shell"></a>), you can ignore this warning.</p>
+<p>This warning message usually indicates that you forgot to specify either a corpus label with the <a href="#c-CORPUS">&quot;-c CORPUS&quot;</a> option or a corpus root directory with the <a href="#C-CORPUS_ROOT">&quot;-C CORPUS_ROOT&quot;</a> option. In this case, any corpus-dependent operation such as <a href="#build">&quot;build&quot;</a>, <a href="#test">&quot;test&quot;</a>, etc. is likely to fail ... unless you have set appropriate <a href="#Container-Environment-Variables">container variables</a> such as <a href="#dstar_corpora">&quot;dstar_corpora&quot;</a> with the <a href="#e-VAR-VALUE">&quot;-e VAR=VALUE&quot;</a> option and volume mounts with the <a href="#v-PATH:-MOUNT">&quot;-v /PATH:/MOUNT&quot;</a> option. If the requested <a href="#Gantry-Actions">gantry action</a> is not a corpus-dependent operation (e.g. <a href="#shell">&quot;shell&quot;</a>), you can ignore this warning.</p>
 
 </dd>
 <dt id="WARNING:-no-CORPUS_SRC-directory-specified">WARNING: no CORPUS_SRC directory specified</dt>
