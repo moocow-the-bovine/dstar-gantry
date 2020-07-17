@@ -917,9 +917,10 @@ EXAMPLES
         run -d" <https://docs.docker.com/engine/reference/run/#detached--d>
         option to run the embedded container in the background. When you are
         done with manual testing, remember to terminate the running
-        container with "docker kill". It is also good practice to
-        "uninstall" the runtime data when you are done with the staging
-        instance.
+        container with "docker kill"
+        <https://docs.docker.com/engine/reference/commandline/kill/> It is
+        also good practice to "uninstall" the runtime data when you are done
+        with the staging instance.
 
         If you are running dstar-gantry on a "GANTRYHOST"
         <https://kaskade.dwds.de/dstar/doc/README.html#GANTRYHOST> behind a
@@ -1240,6 +1241,48 @@ KNOWN BUGS AND COMMON ERRORS
 
         If the requested gantry action is s source-independent operation
         such as "install", "publish", or "run", you can ignore this warning.
+
+    Conflict. The container name "/dstar-gantry-MYCORPUS" is already in use
+         docker:
+          Error response from daemon:
+          Conflict.
+          The container name "/dstar-gantry-MYCORPUS" is already in use by container "51cea72ba7cf14a5a44ee373b6f81f1b07da5b947e4f852cea8566b11017752d".
+          You have to remove (or rename) that container to be able to reuse that name.
+         See 'docker run --help'.
+
+        This error is emitted by "docker run"
+        <https://docs.docker.com/engine/reference/run/> if you attempt to
+        invoke a "dstar-gantry" operation for a "CORPUS" for which there is
+        already a docker container running (or if you attempt to invoke
+        multiple simultaneous "dstar-gantry" operations without specifying
+        any "CORPUS"). By default, "dstar-gantry.sh" implicitly prepends the
+        "--name=dstar-gantry-MYCORPUS"
+        <https://docs.docker.com/engine/reference/run/#name---name> option
+        to "DOCKER_OPTS" when invoking the embedded container. Since "docker
+        run" <https://docs.docker.com/engine/reference/run> will refuse to
+        run 2 different containers of the same name (as the error message
+        clearly states), at most one gantry container can be running per
+        corpus and "GANTRYHOST" by default.
+
+        To see which "docker" containers are currently running, you can use
+        the "docker ps"
+        <https://docs.docker.com/engine/reference/commandline/ps/> command
+        (also check "docker ps -a"
+        <https://docs.docker.com/engine/reference/commandline/ps/> to
+        include stopped or terminated containers).
+
+        If you *really* want to run a second docker container for a given
+        "CORPUS", you will need to override the default container name in
+        "DOCKER_OPTS", e.g.:
+
+         $ dstar-gantry.sh -c MYCORPUS -p 8001 run -- -name=MYCORPUS-8001
+
+        If you use an alternative container name for a staging instance with
+        the gantry "run" action, you will need to adjust the "docker kill"
+        <https://docs.docker.com/engine/reference/commandline/kill/> command
+        accordingly:
+
+         $ docker kill MYCORPUS-8001
 
     E000013 ... Permission denied
          CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus MYCORPUS

@@ -1097,7 +1097,7 @@ Use the gantry L<-p HTTP_PORT|/-p HTTP_PORT> option to specify a host
 port number to map to the embedded HTTP server, and use the
 gantry L<C<-bg>|/-fg, -bg> or L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
 to run the embedded container in the background.  When you are done with manual
-testing, remember to terminate the running container with C<docker kill>.
+testing, remember to terminate the running container with L<C<docker kill>|https://docs.docker.com/engine/reference/commandline/kill/>
 It is also good practice to L</uninstall> the runtime data when
 you are done with the staging instance.
 
@@ -1490,6 +1490,47 @@ L<volume mounts|/-v /PATH:/MOUNT>.
 
 If the requested L<gantry action|/Gantry Actions> is s source-independent operation
 such as L</install>, L</publish>, or L</run>, you can ignore this warning.
+
+=item Conflict. The container name "/dstar-gantry-MYCORPUS" is already in use
+
+ docker:
+  Error response from daemon:
+  Conflict.
+  The container name "/dstar-gantry-MYCORPUS" is already in use by container "51cea72ba7cf14a5a44ee373b6f81f1b07da5b947e4f852cea8566b11017752d".
+  You have to remove (or rename) that container to be able to reuse that name.
+ See 'docker run --help'.
+
+This error is emitted by L<C<docker run>|https://docs.docker.com/engine/reference/run/> if you attempt
+to invoke a C<dstar-gantry> operation for a C<L<CORPUS|/-c CORPUS>> for which there is already
+a docker container running (or if you attempt to invoke multiple simultaneous C<dstar-gantry> operations
+without specifying any C<L<CORPUS|/-c CORPUS>>).  By default, C<dstar-gantry.sh> implicitly prepends the
+L<C<--name=dstar-gantry-MYCORPUS>|https://docs.docker.com/engine/reference/run/#name---name>
+option
+to L<C<DOCKER_OPTS>|/Docker Options>
+when invoking the embedded container.
+Since
+L<C<docker run>|https://docs.docker.com/engine/reference/run> will refuse to run 2 different
+containers of the same name (as the error message clearly states), at most one gantry container
+can be running per corpus and C<GANTRYHOST> by default.
+
+To see which C<docker> containers are currently running, you can
+use the L<C<docker ps>|https://docs.docker.com/engine/reference/commandline/ps/> command
+(also check L<C<docker ps -a>|https://docs.docker.com/engine/reference/commandline/ps/> to include
+stopped or terminated containers).
+
+If you I<really> want to run a second docker container for a given
+L<C<CORPUS>|/-c CORPUS>, you will need to override the default container name
+in L<C<DOCKER_OPTS>|/Docker Options>, e.g.:
+
+ $ dstar-gantry.sh -c MYCORPUS -p 8001 run -- -name=MYCORPUS-8001
+
+If you use an alternative container name for a
+L<staging|/MYCORPUS staging> instance with the gantry L</run> action, you will
+need to adjust the
+L<C<docker kill>|https://docs.docker.com/engine/reference/commandline/kill/>
+command accordingly:
+
+ $ docker kill MYCORPUS-8001
 
 
 =item E000013 ... Permission denied

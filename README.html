@@ -819,7 +819,7 @@
 
 <p>Once a corpus index has been succesfully <a href="#build">built</a>, you can use <code>dstar-gantry.sh</code> to <a href="#install">install</a> and <a href="#run">run</a> a staging&quot; instance of the dstar <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code> roles</a> for that corpus in the embedded <code>dstar-buildhost</code> container, analogous to (but independent of) the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing">&quot;Sandbox Testing&quot;</a> functionality for &quot;bare-metal&quot; dstar corpus builds. You only need to <a href="#install">&quot;install&quot;</a> if you have updated corpus index data in the <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> directory, e.g. via the <a href="#build">&quot;build&quot;</a>, <a href="#update">&quot;update&quot;</a>, or <a href="#update-meta">&quot;update-meta&quot;</a> operations); you can re-stage an existing <a href="#install">installation</a> with the gantry <a href="#run">&quot;run&quot;</a> action.</p>
 
-<p>Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the gantry <a href="#fg--bg"><code>-bg</code></a> or <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <code>docker kill</code>. It is also good practice to <a href="#uninstall">&quot;uninstall&quot;</a> the runtime data when you are done with the staging instance.</p>
+<p>Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the gantry <a href="#fg--bg"><code>-bg</code></a> or <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <a href="https://docs.docker.com/engine/reference/commandline/kill/"><code>docker kill</code></a> It is also good practice to <a href="#uninstall">&quot;uninstall&quot;</a> the runtime data when you are done with the staging instance.</p>
 
 <p>If you are running dstar-gantry on a <a href="https://kaskade.dwds.de/dstar/doc/README.html#GANTRYHOST"><code>GANTRYHOST</code></a> behind a firewall and you wish to call your browser on a different machine (let&#39;s call it <code>WORKSTATION</code>), you may need to setup an <a href="https://www.ssh.com/ssh/tunneling/example">ssh tunnel</a> to the remote port, and shut it down again when you&#39;re finished with the staging instance. This can be accomplished by e.g.:</p>
 
@@ -1030,6 +1030,29 @@
 <p>This warning message indicates that <code>dstar-gantry.sh</code> could not locate a <a href="#S-CORPUS_SRC">corpus source directory</a> in any of the default locations, and that you haven&#39;t specified one with the <a href="#S-CORPUS_SRC">&quot;-S CORPUS_SRC&quot;</a> option. Source-dependent operations such as <a href="#build">&quot;build&quot;</a>, <a href="#update">&quot;update&quot;</a>, and <a href="#update-meta">&quot;update-meta&quot;</a> are likely to fail unless you specify additional <a href="#Container-Environment-Variables">container variables</a> and/or <a href="#v-PATH:-MOUNT">volume mounts</a>.</p>
 
 <p>If the requested <a href="#Gantry-Actions">gantry action</a> is s source-independent operation such as <a href="#install">&quot;install&quot;</a>, <a href="#publish">&quot;publish&quot;</a>, or <a href="#run">&quot;run&quot;</a>, you can ignore this warning.</p>
+
+</dd>
+<dt id="Conflict.-The-container-name-dstar-gantry-MYCORPUS-is-already-in-use">Conflict. The container name &quot;/dstar-gantry-MYCORPUS&quot; is already in use</dt>
+<dd>
+
+<pre><code> docker:
+  Error response from daemon:
+  Conflict.
+  The container name &quot;/dstar-gantry-MYCORPUS&quot; is already in use by container &quot;51cea72ba7cf14a5a44ee373b6f81f1b07da5b947e4f852cea8566b11017752d&quot;.
+  You have to remove (or rename) that container to be able to reuse that name.
+ See &#39;docker run --help&#39;.</code></pre>
+
+<p>This error is emitted by <a href="https://docs.docker.com/engine/reference/run/"><code>docker run</code></a> if you attempt to invoke a <code>dstar-gantry</code> operation for a <code><a href="#c-CORPUS">CORPUS</a></code> for which there is already a docker container running (or if you attempt to invoke multiple simultaneous <code>dstar-gantry</code> operations without specifying any <code><a href="#c-CORPUS">CORPUS</a></code>). By default, <code>dstar-gantry.sh</code> implicitly prepends the <a href="https://docs.docker.com/engine/reference/run/#name---name"><code>--name=dstar-gantry-MYCORPUS</code></a> option to <a href="#Docker-Options"><code>DOCKER_OPTS</code></a> when invoking the embedded container. Since <a href="https://docs.docker.com/engine/reference/run"><code>docker run</code></a> will refuse to run 2 different containers of the same name (as the error message clearly states), at most one gantry container can be running per corpus and <code>GANTRYHOST</code> by default.</p>
+
+<p>To see which <code>docker</code> containers are currently running, you can use the <a href="https://docs.docker.com/engine/reference/commandline/ps/"><code>docker ps</code></a> command (also check <a href="https://docs.docker.com/engine/reference/commandline/ps/"><code>docker ps -a</code></a> to include stopped or terminated containers).</p>
+
+<p>If you <i>really</i> want to run a second docker container for a given <a href="#c-CORPUS"><code>CORPUS</code></a>, you will need to override the default container name in <a href="#Docker-Options"><code>DOCKER_OPTS</code></a>, e.g.:</p>
+
+<pre><code> $ dstar-gantry.sh -c MYCORPUS -p 8001 run -- -name=MYCORPUS-8001</code></pre>
+
+<p>If you use an alternative container name for a <a href="#MYCORPUS-staging">staging</a> instance with the gantry <a href="#run">&quot;run&quot;</a> action, you will need to adjust the <a href="https://docs.docker.com/engine/reference/commandline/kill/"><code>docker kill</code></a> command accordingly:</p>
+
+<pre><code> $ docker kill MYCORPUS-8001</code></pre>
 
 </dd>
 <dt id="E000013-...-Permission-denied">E000013 ... Permission denied</dt>
