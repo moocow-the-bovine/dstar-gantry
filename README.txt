@@ -49,6 +49,7 @@ SYNOPSIS
        archive-build         # archive CORPUS_ROOT/build/ to ${dstar_archive_dir}
        archive-publish       # archive publishable corpus data to ${dstar_archive_dir}
        install               # install CORPUS_ROOT/build/ to CORPUS_ROOT/{server,web}/
+       uninstall             # recursively delete CORPUS_ROOT/{server,web}/
        publish               # deploy CORPUS_ROOT/build/ to production host(s)
        run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
        shell                 # run a bash shell in the container
@@ -609,7 +610,14 @@ USAGE
     install
         Installs an existing corpus index from "CORPUS_ROOT/build/" to
         "CORPUS_ROOT/{server,web}/" within the running "dstar-buildhost"
-        container.
+        container, usually in preparation for local staging. See also .
+
+    uninstall
+        Recursively removes corpus runtime data directories
+        "CORPUS_ROOT/{server,web}/", recommended after local staging. This
+        action will remove everything under "CORPUS_ROOT/{server,web}/", so
+        if you've stored anything there yourself, you should save it before
+        executing this action.
 
     publish
         Deploy an existing corpus index from "CORPUS_ROOT/build/" to
@@ -621,12 +629,17 @@ USAGE
         specify "-p HTTP_PORT". If specified, this must be the last
         container action executed.
 
+        You can inspect the console log for the embedded container with the
+        "docker logs"
+        <https://docs.docker.com/engine/reference/commandline/logs/>
+        command.
+
     shell
         Runs a "bash" shell as the build user in the embedded container;
         useful for inspection and debugging.
 
     exec CMD
-        Just executs "CMD..." in the embedded container. If specified, this
+        Just executes "CMD..." in the embedded container. If specified, this
         must be the final container action executed. Use with extreme
         caution.
 
@@ -865,7 +878,7 @@ EXAMPLES
         for more details on the build process.
 
     MYCORPUS consistency testing
-         $ dstar-gantry.sh -c MYCORPUS test
+         $ dstar-gantry.sh -RO -c MYCORPUS test
 
         Once a corpus index has been succesfully built, you can run some
         basic consistency checks with the gantry test action; see
@@ -877,10 +890,11 @@ EXAMPLES
         progress information will be printed to the console.
 
     MYCORPUS staging
-         $ dstar-gantry.sh -bg -p 8001 -c MYCORPUS install run
+         $ dstar-gantry.sh -bg -p 8001 -RO -c MYCORPUS install run
          $ sensible-browser http://localhost:8001/dstar/MYCORPUS
          ... do some manual testing ...
          $ docker kill dstar-gantry-MYCORPUS
+         $ dstar-gantry.sh -RO -c MYCORPUS uninstall
 
         Once a corpus index has been succesfully built, you can use
         "dstar-gantry.sh" to install and run a staging" instance of the
@@ -889,16 +903,44 @@ EXAMPLES
         that corpus in the embedded "dstar-buildhost" container, analogous
         to (but independent of) the "Sandbox Testing"
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing>
-        functionality for "bare-metal" dstar corpus builds. Use the gantry
-        -p HTTP_PORT option to specify a host port number to map to the
-        embedded HTTP server, and use the gantry "-bg" or "docker run -d"
-        <https://docs.docker.com/engine/reference/run/#detached--d> option
-        to run the embedded container in the background. When you are done
-        with manual testing, remember to terminate the running container
-        with "docker kill".
+        functionality for "bare-metal" dstar corpus builds. You only need to
+        if you have updated corpus index data in the "CORPUS_ROOT/build/"
+        directory, e.g. via the , , or operations); you can re-stage an
+        existing installation with the gantry action.
+
+        Use the gantry -p HTTP_PORT option to specify a host port number to
+        map to the embedded HTTP server, and use the gantry "-bg" or "docker
+        run -d" <https://docs.docker.com/engine/reference/run/#detached--d>
+        option to run the embedded container in the background. When you are
+        done with manual testing, remember to terminate the running
+        container with "docker kill". It is also good practice to the
+        runtime data when you are done with the staging instance.
+
+        If you are running dstar-gantry on a "GANTRYHOST"
+        <https://kaskade.dwds.de/dstar/doc/README.html#GANTRYHOST> behind a
+        firewall and you wish to call your browser on a different machine
+        (let's call it "WORKSTATION"), you may need to setup an ssh tunnel
+        <https://www.ssh.com/ssh/tunneling/example> to the remote port, and
+        shut it down again when you're finished with the staging instance.
+        This can be accomplished by e.g.:
+
+         GANTRYHOST  $ dstar-gantry.sh -RO -bg -p 8001 -c MYCORPUS install run
+         WORKSTATION $ ssh ssh-tunnel.sh 8002:lal.dwds.de:8001 -N GANTRYHOST & gantry_tunnel_pid=$!
+         WORKSTATION $ sensible-browser http://localhost:8002/dstar/MYCORPUS
+
+         ... do some manual testing & inspection in your browser ...
+
+         WORKSTATION $ kill $gantry_tunnel_pid
+         GANTRYHOST  $ docker kill dstar-gantry-MYCORPUS
+         GANTRYHOST  $ dstar-gantry.sh -RO -c MYCORPUS uninstall
+
+        ... replace 8001 in the above example with an "HTTP_PORT" of your
+        choice to be bound by the container on "GANTRYHOST", and replace
+        8002 with a port number of your choice to be bound by the ssh-tunnel
+        on "WORKSTATION".
 
     MYCORPUS deployment
-         $ dstar-gantry.sh -c MYCORPUS publish
+         $ dstar-gantry.sh -RO -c MYCORPUS publish
 
         If the corpus build is satisfactory, the next step is usually to
         install the newly indexed corpus onto the production "RUNHOST" and
@@ -983,7 +1025,7 @@ EXAMPLES
     "DSTAR_ROOT/corpora/MYCORPUS".
 
     MYCORPUS metadata-update
-         $ dstar-gantry.sh -bg -c MYCORPUS update-meta
+         $ dstar-gantry.sh -RO -bg -c MYCORPUS update-meta
 
         Updating metadata for an existing corpus index after some source
         file(s) have been changed, added, and/or deleted by means of the
@@ -1014,7 +1056,7 @@ EXAMPLES
 
   Example: Corpus Build Archive
     MYCORPUS build archive
-         $ dstar-gantry.sh -c pnn_test archive-build
+         $ dstar-gantry.sh -RO -c pnn_test archive-build
          $ rm -rf ~/dstar/corpora/pnn_test/{build,server,web}
 
         If your "CORPUS_ROOT/build/" directory is taking up too much space
@@ -1043,7 +1085,7 @@ EXAMPLES
 
   Example: Corpus Deployment Archive
     MYCORPUS deployment archive
-         $ dstar-gantry.sh -c pnn_test archive-publish
+         $ dstar-gantry.sh -RO -c pnn_test archive-publish
          $ rm -rf ~/dstar/corpora/pnn_test/{server,web}
 
         You can create a "snapshot" of publishable corpus data from a
@@ -1168,6 +1210,32 @@ KNOWN BUGS AND COMMON ERRORS
         to run "docker login" for the ZDL docker registry. See "registry
         credentials".
 
+    WARNING: neither CORPUS nor CORPUS_ROOT specified
+         dstar-gantry.sh: WARNING: neither CORPUS nor CORPUS_ROOT specified (use the -c or -C options)
+
+        This warning message usually indicates that you forgot to specify
+        either a corpus label with the "-c CORPUS" option or a corpus root
+        directory with the "-C CORPUS_ROOT" option. In this case, any
+        corpus-dependent operation such as , , etc. is likely to fail ...
+        unless you have set appropriate container variables such as
+        "dstar_corpora" with the "-e VAR=VALUE" option and volume mounts
+        with the "-v /PATH:/MOUNT" option. If the requested gantry action is
+        not a corpus-dependent operation (e.g. ), you can ignore this
+        warning.
+
+    WARNING: no CORPUS_SRC directory specified
+         dstar-gantry.sh: WARNING: no CORPUS_SRC directory specified (expect trouble if you're trying to (re-)index a corpus)
+
+        This warning message indicates that "dstar-gantry.sh" could not
+        locate a corpus source directory in any of the default locations,
+        and that you haven't specified one with the "-S CORPUS_SRC" option.
+        Source-dependent operations such as "build", "update", and
+        "update-meta" are likely to fail unless you specify additional
+        container variables and/or volume mounts.
+
+        If the requested gantry action is s source-independent operation
+        such as "install", "publish", or "run", you can ignore this warning.
+
     E000013 ... Permission denied
          CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus MYCORPUS
          svn: E000013: Can't create directory '/home/ddc-dstar/dstar/corpora/MYCORPUS/.svn': Permission denied
@@ -1203,6 +1271,36 @@ KNOWN BUGS AND COMMON ERRORS
         ... see also "Ownership and Permissions" in the dstar-HOWTO
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Ownership-and-Permissi
         ons>.
+
+    AH00526: ... Unknown Authn provider: external
+         INFO spawned: 'apache' with pid 1417
+         apache stderr | AH00526: Syntax error on line 32 of /etc/apache2/sites-enabled/020-dstar-corona.conf: Unknown Authn provider: external
+         INFO exited: apache (exit status 1; not expected)
+         apache stdout | Action '-D FOREGROUND -e notice' failed.
+         The Apache error log may have more information.
+         INFO gave up: apache entered FATAL state, too many start retries too quickly
+
+        This error message is emitted by the apache
+        <https://httpd.apache.org/> HTTP server to the "docker logs"
+        <https://docs.docker.com/engine/reference/commandline/logs/> console
+        of a container "run" action if the corpus configuration
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Corpus-Configuration>
+        set the "WEB_SITE_AUTH_EXTERNAL"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#WEB_SITE_AUTH_E
+        XTERNAL> variable to a non-trivial value (e.g. "auth_dwdsdb"). The
+        "dstar-buildhost" does not currently support the apache external
+        authorization module, so you should specify an override
+        "WEB_SITE_AUTH_EXTERNAL=no"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#WEB_SITE_AUTH_E
+        XTERNAL> with the "-e VAR=VALUE" option. It's probably a good idea
+        to force "WEB_SITE_AUTH_PUBLIC=yes"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#WEB_SITE_AUTH_P
+        UBLIC> in staging containers too:
+
+         $ dstar-gantry.sh -c MYCORPUS -eWEB_SITE_AUTH_EXTERNAL=no -eWEB_SITE_PUBLIC=yes run
+
+        Future versions of gantry may implicitly set these values for
+        staging instances.
 
     other errors
         See "COMMON ERRORS" in the dstar-HOWTO
