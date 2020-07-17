@@ -1322,7 +1322,7 @@ KNOWN BUGS AND COMMON ERRORS
 
     AH00526: ... Unknown Authn provider: external
          INFO spawned: 'apache' with pid 1417
-         apache stderr | AH00526: Syntax error on line 32 of /etc/apache2/sites-enabled/020-dstar-corona.conf: Unknown Authn provider: external
+         apache stderr | AH00526: Syntax error on line 32 of /etc/apache2/sites-enabled/020-dstar-MYCORPUS.conf: Unknown Authn provider: external
          INFO exited: apache (exit status 1; not expected)
          apache stdout | Action '-D FOREGROUND -e notice' failed.
          The Apache error log may have more information.
