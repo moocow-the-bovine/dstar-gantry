@@ -223,7 +223,7 @@ See L<C<dstar/doc/README_ssh.txt>|$doc/README_ssh.html> for more details.
 Checkout the gantry project itself from SVN to your local machine,
 for example to $HOME/dstar-gantry:
 
- $ svn checkout svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
+ $ svn checkout svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
 
 Example output (trimmed):
 
@@ -252,7 +252,7 @@ with the L<C<init>|/init> action:
 Example output (trimmed):
 
  dstar-gantry.sh: INFO: init: (re-)initializing sparse persistent DSTAR_ROOT=/home/USER/dstar
- dstar-gantry.sh: CMD: svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk /home/USER/dstar
+ dstar-gantry.sh: CMD: svn co --depth=files svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk /home/USER/dstar
  A    /home/USER/dstar/.DSTAR_ROOT
  ...
  dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
@@ -1535,7 +1535,7 @@ command accordingly:
 
 =item E000013 ... Permission denied
 
- CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus MYCORPUS
+ CMD /home/ddc-dstar/dstar/bin/dstar-nice.sh svn co --depth=files svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk/corpus MYCORPUS
  svn: E000013: Can't create directory '/home/ddc-dstar/dstar/corpora/MYCORPUS/.svn': Permission denied
 
 "Permission denied" errors from SVN during corpus checkout in the embedded
