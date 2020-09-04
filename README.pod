@@ -189,12 +189,12 @@ with at least one registered identity (public+private key-pair).
 
 In order to avoid password prompts during sparse subversion checkouts on the local host
 (recommended), your ssh identity should be authorized for password-free access to
-C<odo.dwds.de>, as whatever user your L<C<~/.ssh/config>|https://linux.die.net/man/5/ssh_config>
+C<svn.dwds.de>, as whatever user your L<C<~/.ssh/config>|https://linux.die.net/man/5/ssh_config>
 specifies (by default the same username as on your local machine).
 
 In order to avoid password prompts during implicit subversion operations in the
 C<dstar-buildhost> container invoked by gantry (recommended), your ssh identity should be
-authorized for password-free access to C<ddc@odo.dwds.de>.
+authorized for password-free access to C<ddc@svn.dwds.de>.
 
 If you wish to make use of gantry's
 automatic resource synchronization features (default, recommended),
@@ -466,7 +466,7 @@ the command-line:
  $HOME/.dstar-gantry.rc
 
 See the example
-L<C<dstar-gantry.rc> file|http://odo.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Fdocker%2Fgantry%2Ftrunk%2Fdstar-gantry.rc> in the C<dstar-gantry> distribution for a list of available variables.
+L<C<dstar-gantry.rc> file|http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Fdocker%2Fgantry%2Ftrunk%2Fdstar-gantry.rc> in the C<dstar-gantry> distribution for a list of available variables.
 
 =item -i IMAGE
 
@@ -922,7 +922,7 @@ in this case, relays should be defined for each immediate daughter node
 of the metacorpus to be run.
 
 See
-L<C<dstar-buildhost:/dstar/init/etc_default_dstar_relay>|http://odo.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay> for syntax and more details.
+L<C<dstar-buildhost:/dstar/init/etc_default_dstar_relay>|http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay> for syntax and more details.
 
 
 
