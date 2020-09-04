@@ -178,7 +178,7 @@ find_dstar_root() {
 
 ##--------------------------------------------------------------
 [ -z "$gantry_dstar_svnroot" ] \
-    && gantry_dstar_svnroot=svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/trunk
+    && gantry_dstar_svnroot=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk
 act_gantry_init() {
     ##-- initialize: DSTAR_ROOT
     set_dstar_root
