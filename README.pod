@@ -152,9 +152,10 @@ If you are running C<dstar-gantry.sh> on a "semi-production" host
 
 =item debian packages
 
- bash
- openssh-client
- subversion
+C<dstar-gantry.sh> requires the debian packages: C<bash>, C<openssh-client>, and C<subversion>
+to be installed on the host system:
+
+ $ sudo apt-get update && sudo apt-get install bash openssh-client subversion
 
 =item docker
 
@@ -163,6 +164,8 @@ with an appropriate L<docker storage driver|/docker storage drivers>,
 and the requisite L<permissions|https://docs.docker.com/engine/install/linux-postinstall/>
 for your local user account (e.g. membership in the C<docker> group).  C<dstar-gantry> was developed and tested using
 the C<docker-ce> and C<docker-ce-client> packages version 19.03.8.
+See L<"https://docs.docker.com/get-docker/"|https://docs.docker.com/get-docker/> for
+instructions on how to install docker.
 
 =item registry credentials
 
