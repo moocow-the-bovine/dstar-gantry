@@ -1390,6 +1390,109 @@ step in the general HOWTO.
 
 =cut
 
+##--------------------------------------------------------------
+=pod
+
+=head2 Example: Partial Corpus Build
+
+Before attempting to (partially) build a corpus, you should ensure that
+you have fulfilled all the L</Common Prerequisites>.
+
+"Partial" corpus builds are simply gantry corpus L<C<build>|/build> operations
+which invoke only a subset of the full
+L<annotation and indexing|$doc/HOWTO.html#Annotate-and-Build>
+procedure supported by the
+dstar build system, typically by setting
+the L<container environment variable|/-e VAR=VALUE>
+C<STAGES>
+to specify the desired L<build stages|$doc/README_build.html#Stage-Wise-Builds>.
+
+=over 4
+
+=item MYCORPUS partial build: tokenization
+
+ $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=1 build
+
+Executing a partial C<stage1> build
+performs
+TEI-XML source checking (L<C<build/src_catalog/>|$doc/README_build.html#src_catalog>),
+and XML header extractio (L<C<build/xml_header/>|$doc/README_build.html#xml_header>),
+serialization and tokenization (L<C<build/xml_tok/>|$doc/README_build.html#xml_tok>)
+by default.
+
+=item MYCORPUS partial build: annotation
+
+ $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=2 build
+
+Executing a partial C<stage2> build is only possible
+requires prior successful completion of a L<C<stage1> build|/MYCORPUS partial build: tokenization>,
+and performs
+corpus analysis in (L<C<build/cab_corpus/>|$doc/README_build.html#cab_corpus>).
+
+=item MYCORPUS partial build: tokenization and annotation
+
+ $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="1 2" build
+
+You can combine multiple stages in a single partial build:
+the above example performs both a
+L<C<stage1> build|/MYCORPUS partial build: tokenization>
+followed by a
+L<C<stage2> build|/MYCORPUS partial build: annotation>
+in a single call.
+
+=item MYCORPUS partial build: pre-indexing
+
+ $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="1 2 3" STAGE3_DIRS="ddc_xml" build
+
+Partial builds are not restricted to whole stages:
+you can select specific C<MYCORPUS/build/> subdirectories from a stage
+C<I<i>> by setting the C<STAGEI<i>_DIRS> variable.
+The above example performs all corpus build operations up to but not
+including configuration and compilation of the DDC index
+(i.e. full C<stage1> and C<stage2> builds and conversion of annoated documents
+to the legacy L<C<ddc_xml>|$doc/README_build.html#ddc_xml> format suitable for input to a C<ddc_index> process).
+
+=item MYCORPUS partial build: incremental builds
+
+ #-- partial build
+ $ dstar-gantry.sh -fg -c MYCORPUS -eSTAGES="1 2" build
+ 
+ #-- add some new sources
+ $ cp -a ~/new/tei/xml/*.xml ~/dstar/soiurces/MYCORPUS/xml/
+ 
+ #-- update partial build (changes only)
+ $ dstar-gantry.sh -RO -bg -c MYCORPUS -eSTAGES="1 2" build
+
+Since the dstar build system is governed by GNU make, adding new
+sources to an existing partial build and re-invoking the
+partial build action should cause only those source documents which have
+been added or changed to be (re-)analyzed.
+
+Note that changes
+in any shared resources in L<C<RESOURCES_DIR>|/-R RESOURCES_DIR>
+may also cause I<all> documents to be re-analyzed on a second
+build invocation: if you need to ensure stable resources for
+incremental (partial) builds, use a dedicated L<C<RESOURCES_DIR>|/-R RESOURCES_DIR>
+and specify the gantry L<C<-RO>|/-RO> option for all but the initial
+L<build|/build> invocation.
+
+Note also that for incremental (partial) builds,
+a certain amount of computational overhead is required by GNU make to
+determine I<which> sources are new rsp. whether any previously registered
+sources have been updated, which may be a problem for very large corpora with
+many small documents.  If you need perform incremental builds on such a large
+corpus, you will probably need to optimize the frequency of your
+L<build|/build> calls to avoid wasting resources on unnecessary overhead,
+and/or manually partition your sources into disjoint "blocks"
+(treating each block as its own independent "corpus" for purposes of
+incremental partial gantry builds)
+and restricting your updates to a single block at a time (e.g. the
+smallest).
+
+=back
+
+=cut
+
 
 ##======================================================================
 =pod
@@ -1665,6 +1768,39 @@ might be a previous invocation of the same ssh-tunnel
 you have forgotten to kill).  Either kill the obstructing
 process or choose a different local port for your ssh tunnel;
 see also L<https://askubuntu.com/questions/447820/ssh-l-error-bind-address-already-in-use>.
+
+=item svn: E170013: Unable to connect to a repository
+
+ svn: E170013: Unable to connect to a repository at URL 'svn+ssh://svn.dwds.de/home/svn/dev/'
+ svn: E210002: To better debug SSH connection problems, remove the -q option from 'ssh' in the [tunnels] section of your Subversion configuration file.
+ svn: E210002: Network connection closed unexpectedly
+
+This error message is emitted if the dstar SVN repository is inaccessible, e.g.
+because the virtual machine on which it resides has catastrophically failed.
+It may also indicate an error with the gantry host's network connectivity.
+In an emergency situtation if the dstar SVN repository is down when you need to build a new corpus
+(without an existing L<C<CORPUS_ROOT>|/-C CORPUS_ROOT>),
+you can use the C<dstar-buildhost> image to manually create an appropriate
+L<C<CORPUS_ROOT>|/-C CORPUS_ROOT> by calling:
+
+ $ dstar-gantry.sh -c MYCORPUS -- -- env exec dstar-nice.sh cp -naT corpus.template corpora/MYCORPUS
+
+In order to disable implicit SVN update during dstar-gantry operations, you should
+also set the C<dstar_checkout_corpus_opts="-force -dummy">
+L<container environment variable|/-e VAR=VALUE> as long as the SVN repository is inaccessible.
+If you need to L<publish|/publish> corpora
+in the absence of a working dstar SVN repository, you should consider setting
+C<PUBLISH_SVN_CHECK=no>,
+C<SERVER_PUBLISH_CHECKOUT=no>,
+C<WEB_PUBLISH_CHECKOUT=no>,
+and C<PUBLISH_REGISTER=no>,
+in which case you will need to
+manually create appropriate
+L<runtime checkouts|https://kaskade.dwds.de/dstar/doc/HOWTO.html#Runtime-Checkouts>
+on C<RUNHOST> and/or C<WEBHOST>
+(hint: you can use the gantry template for these too).
+Altering these variables from their default values is B<NOT> recommended in general
+and should be considered a B<last resort> for B<emergency use only>.
 
 =item No rule to make target 'init-rml'.  Stop.
 

@@ -1157,6 +1157,90 @@ EXAMPLES
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Freeze-or-remove-build
         -data-optional> step in the general HOWTO.
 
+  Example: Partial Corpus Build
+    Before attempting to (partially) build a corpus, you should ensure that
+    you have fulfilled all the "Common Prerequisites".
+
+    "Partial" corpus builds are simply gantry corpus "build" operations
+    which invoke only a subset of the full annotation and indexing
+    <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Annotate-and-Build>
+    procedure supported by the dstar build system, typically by setting the
+    container environment variable "STAGES" to specify the desired build
+    stages
+    <https://kaskade.dwds.de/dstar/doc/README_build.html#Stage-Wise-Builds>.
+
+    MYCORPUS partial build: tokenization
+         $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=1 build
+
+        Executing a partial "stage1" build performs TEI-XML source checking
+        ("build/src_catalog/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#src_catalog>),
+        and XML header extractio ("build/xml_header/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#xml_header>),
+        serialization and tokenization ("build/xml_tok/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#xml_tok>) by
+        default.
+
+    MYCORPUS partial build: annotation
+         $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=2 build
+
+        Executing a partial "stage2" build is only possible requires prior
+        successful completion of a "stage1" build, and performs corpus
+        analysis in ("build/cab_corpus/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#cab_corpus>).
+
+    MYCORPUS partial build: tokenization and annotation
+         $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="1 2" build
+
+        You can combine multiple stages in a single partial build: the above
+        example performs both a "stage1" build followed by a "stage2" build
+        in a single call.
+
+    MYCORPUS partial build: pre-indexing
+         $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="1 2 3" STAGE3_DIRS="ddc_xml" build
+
+        Partial builds are not restricted to whole stages: you can select
+        specific "MYCORPUS/build/" subdirectories from a stage "*i*" by
+        setting the "STAGE*i*_DIRS" variable. The above example performs all
+        corpus build operations up to but not including configuration and
+        compilation of the DDC index (i.e. full "stage1" and "stage2" builds
+        and conversion of annoated documents to the legacy "ddc_xml"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#ddc_xml> format
+        suitable for input to a "ddc_index" process).
+
+    MYCORPUS partial build: incremental builds
+         #-- partial build
+         $ dstar-gantry.sh -fg -c MYCORPUS -eSTAGES="1 2" build
+ 
+         #-- add some new sources
+         $ cp -a ~/new/tei/xml/*.xml ~/dstar/soiurces/MYCORPUS/xml/
+ 
+         #-- update partial build (changes only)
+         $ dstar-gantry.sh -RO -bg -c MYCORPUS -eSTAGES="1 2" build
+
+        Since the dstar build system is governed by GNU make, adding new
+        sources to an existing partial build and re-invoking the partial
+        build action should cause only those source documents which have
+        been added or changed to be (re-)analyzed.
+
+        Note that changes in any shared resources in "RESOURCES_DIR" may
+        also cause *all* documents to be re-analyzed on a second build
+        invocation: if you need to ensure stable resources for incremental
+        (partial) builds, use a dedicated "RESOURCES_DIR" and specify the
+        gantry "-RO" option for all but the initial build invocation.
+
+        Note also that for incremental (partial) builds, a certain amount of
+        computational overhead is required by GNU make to determine *which*
+        sources are new rsp. whether any previously registered sources have
+        been updated, which may be a problem for very large corpora with
+        many small documents. If you need perform incremental builds on such
+        a large corpus, you will probably need to optimize the frequency of
+        your build calls to avoid wasting resources on unnecessary overhead,
+        and/or manually partition your sources into disjoint "blocks"
+        (treating each block as its own independent "corpus" for purposes of
+        incremental partial gantry builds) and restricting your updates to a
+        single block at a time (e.g. the smallest).
+
 CAVEATS
   docker storage drivers
     Problems with runtime cross-layer copy operations have been observed in
@@ -1385,6 +1469,37 @@ KNOWN BUGS AND COMMON ERRORS
         choose a different local port for your ssh tunnel; see also
         <https://askubuntu.com/questions/447820/ssh-l-error-bind-address-alr
         eady-in-use>.
+
+    svn: E170013: Unable to connect to a repository
+         svn: E170013: Unable to connect to a repository at URL 'svn+ssh://svn.dwds.de/home/svn/dev/'
+         svn: E210002: To better debug SSH connection problems, remove the -q option from 'ssh' in the [tunnels] section of your Subversion configuration file.
+         svn: E210002: Network connection closed unexpectedly
+
+        This error message is emitted if the dstar SVN repository is
+        inaccessible, e.g. because the virtual machine on which it resides
+        has catastrophically failed. It may also indicate an error with the
+        gantry host's network connectivity. In an emergency situtation if
+        the dstar SVN repository is down when you need to build a new corpus
+        (without an existing "CORPUS_ROOT"), you can use the
+        "dstar-buildhost" image to manually create an appropriate
+        "CORPUS_ROOT" by calling:
+
+         $ dstar-gantry.sh -c MYCORPUS -- -- env exec dstar-nice.sh cp -naT corpus.template corpora/MYCORPUS
+
+        In order to disable implicit SVN update during dstar-gantry
+        operations, you should also set the
+        "dstar_checkout_corpus_opts="-force -dummy"" container environment
+        variable as long as the SVN repository is inaccessible. If you need
+        to publish corpora in the absence of a working dstar SVN repository,
+        you should consider setting "PUBLISH_SVN_CHECK=no",
+        "SERVER_PUBLISH_CHECKOUT=no", "WEB_PUBLISH_CHECKOUT=no", and
+        "PUBLISH_REGISTER=no", in which case you will need to manually
+        create appropriate runtime checkouts
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Runtime-Checkouts> on
+        "RUNHOST" and/or "WEBHOST" (hint: you can use the gantry template
+        for these too). Altering these variables from their default values
+        is NOT recommended in general and should be considered a last resort
+        for emergency use only.
 
     No rule to make target 'init-rml'. Stop.
          make: Entering directory '/home/ddc-dstar/dstar/corpora/MYCORPUS/server'
