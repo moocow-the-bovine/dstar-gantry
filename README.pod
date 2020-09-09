@@ -1458,7 +1458,7 @@ to the legacy L<C<ddc_xml>|$doc/README_build.html#ddc_xml> format suitable for i
  $ dstar-gantry.sh -fg -c MYCORPUS -eSTAGES="1 2" build
  
  #-- add some new sources
- $ cp -a ~/new/tei/xml/*.xml ~/dstar/soiurces/MYCORPUS/xml/
+ $ cp -a ~/new/tei/xml/*.xml ~/dstar/sources/MYCORPUS/xml/
  
  #-- update partial build (changes only)
  $ dstar-gantry.sh -RO -bg -c MYCORPUS -eSTAGES="1 2" build
