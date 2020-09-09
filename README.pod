@@ -1416,7 +1416,7 @@ to specify the desired L<build stages|$doc/README_build.html#Stage-Wise-Builds>.
 Executing a partial C<stage1> build
 performs
 TEI-XML source checking (L<C<build/src_catalog/>|$doc/README_build.html#src_catalog>),
-and XML header extractio (L<C<build/xml_header/>|$doc/README_build.html#xml_header>),
+and XML header extraction (L<C<build/xml_header/>|$doc/README_build.html#xml_header>),
 serialization and tokenization (L<C<build/xml_tok/>|$doc/README_build.html#xml_tok>)
 by default.
 
