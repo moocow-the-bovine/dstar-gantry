@@ -1557,12 +1557,11 @@ KNOWN BUGS AND COMMON ERRORS
          ddc_daemon[3101]: (server-main[pid=3101]) > Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': Cannot allocate memory 
          terminate called after throwing an instance of 'std::runtime_error'
 
-        This message indicates can occur if the "ddc_daemon" process for a
-        staging instance in "CORPUS_ROOT/server" is unable to allocate
-        sufficient virtual memory
-        <https://en.wikipedia.org/wiki/Virtual_memory> address space to
-        accomodate its index data, possibly due to a misconfiguration of the
-        dstar make variable "SERVER_ULIMIT_MEM"
+        This message can occur if the "ddc_daemon" process for a staging
+        instance in "CORPUS_ROOT/server" is unable to allocate sufficient
+        virtual memory <https://en.wikipedia.org/wiki/Virtual_memory>
+        address space to accomodate its index data, possibly due to a
+        misconfiguration of the dstar make variable "SERVER_ULIMIT_MEM"
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#RUNHOST-memory>. Try
         raising the value of "SERVER_ULIMIT_MEM" or setting it to the empty
         string: if the error message is no longer raised, report the
