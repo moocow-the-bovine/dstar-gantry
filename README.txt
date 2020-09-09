@@ -1175,7 +1175,7 @@ EXAMPLES
         Executing a partial "stage1" build performs TEI-XML source checking
         ("build/src_catalog/"
         <https://kaskade.dwds.de/dstar/doc/README_build.html#src_catalog>),
-        and XML header extractio ("build/xml_header/"
+        and XML header extraction ("build/xml_header/"
         <https://kaskade.dwds.de/dstar/doc/README_build.html#xml_header>),
         serialization and tokenization ("build/xml_tok/"
         <https://kaskade.dwds.de/dstar/doc/README_build.html#xml_tok>) by
@@ -1213,7 +1213,7 @@ EXAMPLES
          $ dstar-gantry.sh -fg -c MYCORPUS -eSTAGES="1 2" build
  
          #-- add some new sources
-         $ cp -a ~/new/tei/xml/*.xml ~/dstar/soiurces/MYCORPUS/xml/
+         $ cp -a ~/new/tei/xml/*.xml ~/dstar/sources/MYCORPUS/xml/
  
          #-- update partial build (changes only)
          $ dstar-gantry.sh -RO -bg -c MYCORPUS -eSTAGES="1 2" build

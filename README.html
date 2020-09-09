@@ -988,7 +988,7 @@
 
 <pre><code> $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=1 build</code></pre>
 
-<p>Executing a partial <code>stage1</code> build performs TEI-XML source checking (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#src_catalog"><code>build/src_catalog/</code></a>), and XML header extractio (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#xml_header"><code>build/xml_header/</code></a>), serialization and tokenization (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#xml_tok"><code>build/xml_tok/</code></a>) by default.</p>
+<p>Executing a partial <code>stage1</code> build performs TEI-XML source checking (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#src_catalog"><code>build/src_catalog/</code></a>), and XML header extraction (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#xml_header"><code>build/xml_header/</code></a>), serialization and tokenization (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#xml_tok"><code>build/xml_tok/</code></a>) by default.</p>
 
 </dd>
 <dt id="MYCORPUS-partial-build:-annotation">MYCORPUS partial build: annotation</dt>
@@ -1022,7 +1022,7 @@
  $ dstar-gantry.sh -fg -c MYCORPUS -eSTAGES=&quot;1 2&quot; build
  
  #-- add some new sources
- $ cp -a ~/new/tei/xml/*.xml ~/dstar/soiurces/MYCORPUS/xml/
+ $ cp -a ~/new/tei/xml/*.xml ~/dstar/sources/MYCORPUS/xml/
  
  #-- update partial build (changes only)
  $ dstar-gantry.sh -RO -bg -c MYCORPUS -eSTAGES=&quot;1 2&quot; build</code></pre>
