@@ -175,15 +175,15 @@
 <dt id="debian-packages">debian packages</dt>
 <dd>
 
-<pre><code> bash
- openssh-client
- subversion</code></pre>
+<p><code>dstar-gantry.sh</code> requires the debian packages: <code>bash</code>, <code>openssh-client</code>, and <code>subversion</code> to be installed on the host system:</p>
+
+<pre><code> $ sudo apt-get update &amp;&amp; sudo apt-get install bash openssh-client subversion</code></pre>
 
 </dd>
 <dt id="docker">docker</dt>
 <dd>
 
-<p>You will need <a href="https://docs.docker.com/get-docker/">docker</a> installed on your local machine with an appropriate <a href="#docker-storage-drivers">docker storage driver</a>, and the requisite <a href="https://docs.docker.com/engine/install/linux-postinstall/">permissions</a> for your local user account (e.g. membership in the <code>docker</code> group). <code>dstar-gantry</code> was developed and tested using the <code>docker-ce</code> and <code>docker-ce-client</code> packages version 19.03.8.</p>
+<p>You will need <a href="https://docs.docker.com/get-docker/">docker</a> installed on your local machine with an appropriate <a href="#docker-storage-drivers">docker storage driver</a>, and the requisite <a href="https://docs.docker.com/engine/install/linux-postinstall/">permissions</a> for your local user account (e.g. membership in the <code>docker</code> group). <code>dstar-gantry</code> was developed and tested using the <code>docker-ce</code> and <code>docker-ce-client</code> packages version 19.03.8. See <a href="https://docs.docker.com/get-docker/">&quot;https://docs.docker.com/get-docker/&quot;</a> for instructions on how to install docker.</p>
 
 </dd>
 <dt id="registry-credentials">registry credentials</dt>
@@ -824,7 +824,7 @@
 <p>If you are running dstar-gantry on a <a href="https://kaskade.dwds.de/dstar/doc/README.html#GANTRYHOST"><code>GANTRYHOST</code></a> behind a firewall and you wish to call your browser on a different machine (let&#39;s call it <code>WORKSTATION</code>), you may need to setup an <a href="https://www.ssh.com/ssh/tunneling/example">ssh tunnel</a> to the remote port, and shut it down again when you&#39;re finished with the staging instance. This can be accomplished by e.g.:</p>
 
 <pre><code> GANTRYHOST  $ dstar-gantry.sh -RO -bg -p 8001 -c MYCORPUS install run
- WORKSTATION $ ssh ssh-tunnel.sh 8002:lal.dwds.de:8001 -N GANTRYHOST &amp; gantry_tunnel_pid=$!
+ WORKSTATION $ ssh 8002:GANTRYHOST:8001 -N GANTRYHOST &amp; gantry_tunnel_pid=$!
  WORKSTATION $ sensible-browser http://localhost:8002/dstar/MYCORPUS
 
  ... do some manual testing &amp; inspection in your browser ...
@@ -1096,6 +1096,82 @@
 <pre><code> $ dstar-gantry.sh -c MYCORPUS -eWEB_SITE_AUTH_EXTERNAL=no -eWEB_SITE_PUBLIC=yes run</code></pre>
 
 <p>Future versions of gantry may implicitly set these values for staging instances.</p>
+
+</dd>
+<dt id="connection-reset-by-peer">connection reset by peer</dt>
+<dd>
+
+<pre><code> Connection reset by peer.
+ The connection was reset.
+ The connection to the server was reset while the page was loading.</code></pre>
+
+<p>This message may appear (e.g. in your local browser) when attempting to access a <a href="#MYCORPUS-staging">staging instance</a> from your local workstation, in particular if you are using an <a href="https://www.ssh.com/ssh/tunneling/example">ssh tunnel</a> for port-forwarding. Some success has been reported using the <code>-g</code> option to <code>ssh</code> when setting up the tunnel as suggested <a href="https://serverfault.com/questions/427703/ssh-tunnel-doesnt-work">here</a>, i.e.</p>
+
+<pre><code> WORKSTATION $ ssh -g 8002:GANTRYHOST:8001 -N GANTRYHOST &amp; gantry_tunnel_pid=$!</code></pre>
+
+</dd>
+<dt id="bind:-Address-already-in-use">bind: Address already in use</dt>
+<dd>
+
+<pre><code> bind: Address already in use
+ channel_setup_fwd_listener_tcpip: cannot listen to port: 8000
+ Could not request local forwarding.</code></pre>
+
+<p>This error may appear when attempting to set up an an <a href="https://www.ssh.com/ssh/tunneling/example">ssh tunnel</a> for accessing a <a href="#MYCORPUS-staging">staging instance</a> behind a firewall. It indicates that the local port you have chosen for the tunnel is already allocated to another process (which might be a previous invocation of the same ssh-tunnel you have forgotten to kill). Either kill the obstructing process or choose a different local port for your ssh tunnel; see also <a href="https://askubuntu.com/questions/447820/ssh-l-error-bind-address-already-in-use">https://askubuntu.com/questions/447820/ssh-l-error-bind-address-already-in-use</a>.</p>
+
+</dd>
+<dt id="No-rule-to-make-target-init-rml.-Stop">No rule to make target &#39;init-rml&#39;. Stop.</dt>
+<dd>
+
+<pre><code> make: Entering directory &#39;/home/ddc-dstar/dstar/corpora/MYCORPUS/server&#39;
+ make: *** No rule to make target &#39;init-rml&#39;.  Stop.
+ make: Leaving directory &#39;/home/ddc-dstar/dstar/corpora/MYCORPUS/server&#39;
+ build EVAL: echo &#39;/home/ddc-dstar/dstar/corpora/MYCORPUS/server&#39; &gt;&gt;/etc/default/ddc_servers
+ build RUN: dstar-nice.sh make -e -s -C ../corpora/MYCORPUS/web corpus.ttk custom.ttk dstar-rc site-rc
+ make: *** No rule to make target &#39;corpus.ttk&#39;.  Stop.
+ build ERROR: failed to initialize dstar configuration for web directory &#39;../corpora/MYCORPUS/web&#39;</code></pre>
+
+<p>This error has been observed when attempting to <a href="#run">run</a> a <a href="#MYCORPUS-staging">staging instance</a> for a corpus whose <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/server</code></a> directory was missing the requisite shared dstar infrastructure code (in this case, <code>CORPUS_ROOT/server/Makefile</code>) after failure of the infrastructure SVN server. To avoid this error, ensure that your <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> directory is a valid SVN working copy, and resolve any <a href="#SVN-conflicts">conflicts</a> reported by <code>svn status -u CORPUS_ROOT</code> before attempting to <a href="#install">install</a> or <a href="#run">run</a> a staging instance for that corpus.</p>
+
+</dd>
+<dt id="SVN-conflicts">SVN conflicts</dt>
+<dd>
+
+<pre><code> Skipped &#39;corpora/MYCORPUS/...&#39; -- Node remains in conflict
+ ...
+ Summary of conflicts:
+   Skipped paths: N
+   Tree conflicts: N</code></pre>
+
+<p>SVN conflicts can arise when attempting to update a <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT</code></a> (sub)directory which contains inconsistent SVN metadata. SVN conflicts must be resolved manually; see <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a> for details.</p>
+
+</dd>
+<dt id="Warning:-the-RSA-host-key-for-HOST-differs-from-the-key-for-the-IP-address-IPADDR">Warning: the RSA host key for &#39;HOST&#39; differs from the key for the IP address &#39;IPADDR&#39;</dt>
+<dd>
+
+<pre><code> Warning: the RSA host key for &#39;HOST&#39; differs from the key for the IP address &#39;IPADDR&#39;
+ Offending key for IP in /home/dstar-build/.ssh/known_hosts:10
+ Matching host key in /home/dstar-build/.ssh/known_hosts:4</code></pre>
+
+<p>This warning message can arise due to a stale <code>known_hosts</code> file for the ephemeral <code>dstar-build</code> user in the running <a href="#i-IMAGE"><code>dstar-buildhost</code></a> container. It should be non-fatal, but please report it if you encounter it during a <code>dstar-gantry.sh</code> operation.</p>
+
+</dd>
+<dt id="dstar.perl:-could-not-connect-to-DDC-server-localhost-port-PORT:-Connection-refused">dstar.perl: could not connect to DDC server localhost port PORT: Connection refused</dt>
+<dd>
+
+<p>This error can appear in a browser when attempting to access a <a href="#MYCORPUS-staging">staging instance</a> for which the <code>ddc_daemon</code> process in <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/server</code></a> has not (yet) successfully started. Check the <a href="https://docs.docker.com/engine/reference/commandline/logs/"><code>docker logs</code></a> for the staging container and/or its <a href="http://supervisord.org/">supervisord</a> GUI at <code>http://CONTAINER:9001</code> for more details.</p>
+
+</dd>
+<dt id="Cannot-allocate-memory">Cannot allocate memory</dt>
+<dd>
+
+<pre><code> (server-main[pid=3101]) &gt; Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file &#39;index/catch22/catch22._storage_WordSep&#39;: Cannot allocate memory 
+ ddc_daemon[3101]: (server-main[pid=3101]) &gt; Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file &#39;index/catch22/catch22._storage_WordSep&#39;: Cannot allocate memory 
+ terminate called after throwing an instance of &#39;std::runtime_error&#39;</code></pre>
+
+<p>This message indicates can occur if the <code>ddc_daemon</code> process for a <a href="#MYCORPUS-staging">staging instance</a> in <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/server</code></a> is unable to allocate sufficient <a href="https://en.wikipedia.org/wiki/Virtual_memory">virtual memory</a> address space to accomodate its index data, possibly due to a misconfiguration of the dstar make variable <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#RUNHOST-memory"><code>SERVER_ULIMIT_MEM</code></a>. Try raising the value of <code>SERVER_ULIMIT_MEM</code> or setting it to the empty string: if the error message is no longer raised, report the adjustment and/or modify the appropriate configuration file(s) (e.g. <code>CORPUS.mak</code>).</p>
+
+<p>Contemporary 64-bit linux architectures can handle up to 2^48 bytes (= 256 TB) of virtual memory address space on a single machine, regardless of the amount of physical RAM installed, so this error is unlikely to be caused by machine limitations on the gantry host itself.</p>
 
 </dd>
 <dt id="other-errors">other errors</dt>

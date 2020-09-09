@@ -125,9 +125,11 @@ INSTALLATION
 
   Requirements
     debian packages
-         bash
-         openssh-client
-         subversion
+        "dstar-gantry.sh" requires the debian packages: "bash",
+        "openssh-client", and "subversion" to be installed on the host
+        system:
+
+         $ sudo apt-get update && sudo apt-get install bash openssh-client subversion
 
     docker
         You will need docker <https://docs.docker.com/get-docker/> installed
@@ -136,7 +138,10 @@ INSTALLATION
         <https://docs.docker.com/engine/install/linux-postinstall/> for your
         local user account (e.g. membership in the "docker" group).
         "dstar-gantry" was developed and tested using the "docker-ce" and
-        "docker-ce-client" packages version 19.03.8.
+        "docker-ce-client" packages version 19.03.8. See
+        "https://docs.docker.com/get-docker/"
+        <https://docs.docker.com/get-docker/> for instructions on how to
+        install docker.
 
     registry credentials
         If you wish to make use of gantry's "pull" action to acquire the
@@ -931,7 +936,7 @@ EXAMPLES
         This can be accomplished by e.g.:
 
          GANTRYHOST  $ dstar-gantry.sh -RO -bg -p 8001 -c MYCORPUS install run
-         WORKSTATION $ ssh ssh-tunnel.sh 8002:lal.dwds.de:8001 -N GANTRYHOST & gantry_tunnel_pid=$!
+         WORKSTATION $ ssh 8002:GANTRYHOST:8001 -N GANTRYHOST & gantry_tunnel_pid=$!
          WORKSTATION $ sensible-browser http://localhost:8002/dstar/MYCORPUS
 
          ... do some manual testing & inspection in your browser ...
@@ -1349,6 +1354,111 @@ KNOWN BUGS AND COMMON ERRORS
 
         Future versions of gantry may implicitly set these values for
         staging instances.
+
+    connection reset by peer
+         Connection reset by peer.
+         The connection was reset.
+         The connection to the server was reset while the page was loading.
+
+        This message may appear (e.g. in your local browser) when attempting
+        to access a staging instance from your local workstation, in
+        particular if you are using an ssh tunnel
+        <https://www.ssh.com/ssh/tunneling/example> for port-forwarding.
+        Some success has been reported using the "-g" option to "ssh" when
+        setting up the tunnel as suggested here
+        <https://serverfault.com/questions/427703/ssh-tunnel-doesnt-work>,
+        i.e.
+
+         WORKSTATION $ ssh -g 8002:GANTRYHOST:8001 -N GANTRYHOST & gantry_tunnel_pid=$!
+
+    bind: Address already in use
+         bind: Address already in use
+         channel_setup_fwd_listener_tcpip: cannot listen to port: 8000
+         Could not request local forwarding.
+
+        This error may appear when attempting to set up an an ssh tunnel
+        <https://www.ssh.com/ssh/tunneling/example> for accessing a staging
+        instance behind a firewall. It indicates that the local port you
+        have chosen for the tunnel is already allocated to another process
+        (which might be a previous invocation of the same ssh-tunnel you
+        have forgotten to kill). Either kill the obstructing process or
+        choose a different local port for your ssh tunnel; see also
+        <https://askubuntu.com/questions/447820/ssh-l-error-bind-address-alr
+        eady-in-use>.
+
+    No rule to make target 'init-rml'. Stop.
+         make: Entering directory '/home/ddc-dstar/dstar/corpora/MYCORPUS/server'
+         make: *** No rule to make target 'init-rml'.  Stop.
+         make: Leaving directory '/home/ddc-dstar/dstar/corpora/MYCORPUS/server'
+         build EVAL: echo '/home/ddc-dstar/dstar/corpora/MYCORPUS/server' >>/etc/default/ddc_servers
+         build RUN: dstar-nice.sh make -e -s -C ../corpora/MYCORPUS/web corpus.ttk custom.ttk dstar-rc site-rc
+         make: *** No rule to make target 'corpus.ttk'.  Stop.
+         build ERROR: failed to initialize dstar configuration for web directory '../corpora/MYCORPUS/web'
+
+        This error has been observed when attempting to run a staging
+        instance for a corpus whose "CORPUS_ROOT/server" directory was
+        missing the requisite shared dstar infrastructure code (in this
+        case, "CORPUS_ROOT/server/Makefile") after failure of the
+        infrastructure SVN server. To avoid this error, ensure that your
+        "CORPUS_ROOT" directory is a valid SVN working copy, and resolve any
+        conflicts reported by "svn status -u CORPUS_ROOT" before attempting
+        to install or run a staging instance for that corpus.
+
+    SVN conflicts
+         Skipped 'corpora/MYCORPUS/...' -- Node remains in conflict
+         ...
+         Summary of conflicts:
+           Skipped paths: N
+           Tree conflicts: N
+
+        SVN conflicts can arise when attempting to update a "CORPUS_ROOT"
+        (sub)directory which contains inconsistent SVN metadata. SVN
+        conflicts must be resolved manually; see
+        <http://svnbook.red-bean.com/> for details.
+
+    Warning: the RSA host key for 'HOST' differs from the key for the IP
+    address 'IPADDR'
+         Warning: the RSA host key for 'HOST' differs from the key for the IP address 'IPADDR'
+         Offending key for IP in /home/dstar-build/.ssh/known_hosts:10
+         Matching host key in /home/dstar-build/.ssh/known_hosts:4
+
+        This warning message can arise due to a stale "known_hosts" file for
+        the ephemeral "dstar-build" user in the running "dstar-buildhost"
+        container. It should be non-fatal, but please report it if you
+        encounter it during a "dstar-gantry.sh" operation.
+
+    dstar.perl: could not connect to DDC server localhost port PORT:
+    Connection refused
+        This error can appear in a browser when attempting to access a
+        staging instance for which the "ddc_daemon" process in
+        "CORPUS_ROOT/server" has not (yet) successfully started. Check the
+        "docker logs"
+        <https://docs.docker.com/engine/reference/commandline/logs/> for the
+        staging container and/or its supervisord <http://supervisord.org/>
+        GUI at "http://CONTAINER:9001" for more details.
+
+    Cannot allocate memory
+         (server-main[pid=3101]) > Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': Cannot allocate memory 
+         ddc_daemon[3101]: (server-main[pid=3101]) > Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': Cannot allocate memory 
+         terminate called after throwing an instance of 'std::runtime_error'
+
+        This message indicates can occur if the "ddc_daemon" process for a
+        staging instance in "CORPUS_ROOT/server" is unable to allocate
+        sufficient virtual memory
+        <https://en.wikipedia.org/wiki/Virtual_memory> address space to
+        accomodate its index data, possibly due to a misconfiguration of the
+        dstar make variable "SERVER_ULIMIT_MEM"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#RUNHOST-memory>. Try
+        raising the value of "SERVER_ULIMIT_MEM" or setting it to the empty
+        string: if the error message is no longer raised, report the
+        adjustment and/or modify the appropriate configuration file(s) (e.g.
+        "CORPUS.mak").
+
+        Contemporary 64-bit linux architectures can handle up to 2^48 bytes
+        (= 256 TB) of virtual memory address space on a single machine,
+        regardless of the amount of physical RAM installed, so this error is
+        unlikely to be caused by machine limitations on the gantry host
+        itself.
 
     other errors
         See "COMMON ERRORS" in the dstar-HOWTO
