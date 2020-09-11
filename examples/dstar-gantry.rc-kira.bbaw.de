@@ -1,0 +1,127 @@
+##-*- Mode: Shell-Script[bash] -*-
+##
+## File: dstar-gantry.rc
+## Description: Configuration file for dstar-gantry.sh (kira.bbaw.de)
+## Usage:
+##  ... as a machine-global default:
+##    + copy this file to /etc/dstar-gantry.rc
+##    + edit /etc/dstar-gantry.rc to suit your needs
+##  ... as a user default:
+##    + copy this file to $HOME/.dstar-gantry.rc
+##    + edit $HOME/.dstar-gantry.rc to suit your needs
+##  ... as a corpus-specific configuration:
+##    + copy this file to somewhere you'll remember, e.g. $HOME/dstar-gantry-foo.rc
+##    + edit $HOME/dstar-gantry-foo.rc to suit your needs
+##    + call dstar-gantry.sh with the "-f" option:
+##      $ dstar-gantry.sh -f $HOME/dstar-gantry-foo.rc ...
+## Caveats:
+##  The default values shown below may differ from those on your
+##  system and/or environment.
+##
+##======================================================================
+
+##--------------------------------------------------------------
+## gantry globals
+
+## DSTAR_ROOT
+##  + host path of persistent sparse local DSTAR_ROOT checkout
+#DSTAR_ROOT=$HOME/dstar
+DSTAR_ROOT=/home/ddc-dstar/dstar
+
+## gantry_root
+##  + host path to gantry installation root
+##  + should be an svn checkout of svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk
+#gantry_root=$(dirname $(dirname $(readlink -f "$0")))
+
+## gantry_docker_registry_path
+##  + path prefix for $gantry_docker_image on $gantry_docker_registry
+#gantry_docker_registry_path=/dstar
+
+## gantry_gc_filter
+##  + filter conditions for gantry garbage collection
+##  + stale images are those returned by `docker images -qa ${gantry_gc_filter}`
+#gantry_gc_filter="-f dangling=true -f label=de.dwds.project.name=dstar-buildhost"
+ 
+##--------------------------------------------------------------
+## gantry options
+
+## gantry_rm (-rm, -persist)
+##  + bash-array of docker options for auto-magic container removal
+#gantry_rm=(--rm)
+
+## gantry_fg (-fg, -bg)
+##  + bash-array of docker options for foreground/background operation
+#gantry_fg=(-ti)
+
+## gantry_dry_run (-n, -dry-run)
+##  + setting to anything other than the empty string forces dry-run mode
+#gantry_dry_run=""
+
+## gantry_docker_image (-i)
+##  + use docker image IMAGE
+#gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
+
+## gantry_corpus (-c)
+## + dstar corpus label (required for most operations)
+#gantry_corpus=""
+
+## gantry_corpus_root (-C)
+##  + host path for dstar corpus checkout (usually $DSTAR_ROOT/corpora/$gantry_corpus)
+#gantry_corpus_root="$DSTAR_ROOT/corpora/$gantry_corpus"
+
+## gantry_corpus_src (-S)
+##  + host path of dstar corpus sources (usually $DSTAR_ROOT/sources/$gantry_corpus)
+#gantry_corpus_src="$DSTAR_ROOT/sources/$gantry_corpus"
+
+## gantry_cabdir (-R)
+##  + host path for persistent CAB resources (usually $DSTAR_ROOT/resources)
+#gantry_cabdir="$DSTAR_ROOT/resources"
+
+## gantry_cabdir_ro (-RO)
+##  + set this to ":ro" to mount $gantry_cabdir read-only
+##  + enabling this suppresses resource synchronization by the embedded container by default
+##  + REQUIRED on kira (master CABRC_BUILDHOST)
+gantry_cabdir_ro=":ro"
+
+## gantry_cabrun (-x)
+##  + select cabx server(s) for container 'run' action
+#gantry_cabrun="dstar-http-9096"
+
+## gantry_http_post (-p)
+##  + map container port 80 to host $gantry_http_port for 'run' action (only if non-empty)
+#gantry_http_port=""
+
+## gantry_user
+##  + build user or UID (usually "ddc-admin" or current user)
+gantry_user=ddc-admin
+
+## gantry_group
+##  + build user or UID (usually "ddc-admin" or current group)
+gantry_group=ddc-admin
+
+##--------------------------------------------------------------
+## docker options
+
+## gantry_docker_opts
+##  + bash-array of initial options to `docker run`
+##  + use this to set additional default volumes, environment overrides, etc.
+#gantry_docker_opts=()
+gantry_docker_opts=(
+   "-edstar_checkout_corpus_opts=-force"    #-- don't use -local-config
+   #"-v${DSTAR_ROOT}/config:/dstar/config"  #-- NO: problems with 'publish-svn-check'   
+   "-v${DSTAR_ROOT}:/dstar.mnt:ro"          #-- mount host $DSTAR_ROOT as container /dstar.mnt (read-only)
+   ##-- BEGIN simulate kira partition topology (for symlink resolution)
+   "-v/local/home.local/ddc-dstar:/local/home.local/ddc-dstar:ro"
+   "-v/local2/home/ddc-dstar.local2/dstar.local2:/local2/home/ddc-dstar.local2/dstar.local2:ro"
+   "-v/home/ddc-dstar:/dstar.host:ro"
+   ##-- END simulate kira patition topology
+   "-eDSTAR_CONFIG=/dstar.host/dstar/config" #-- always use host $DSTAR_ROOT/config
+   )
+ 
+##--------------------------------------------------------------
+## build args
+
+## gantry_build_args
+##  + bash-array of initial arguments to container `/dstar/docker/build` script
+##  + probably not very useful to set here
+#gantry_build_args=()
