@@ -1424,7 +1424,7 @@ by default.
 
  $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=2 build
 
-Executing a partial C<stage2> build is only possible
+Executing a partial C<stage2> build
 requires prior successful completion of a L<C<stage1> build|/MYCORPUS partial build: tokenization>,
 and performs
 corpus analysis in (L<C<build/cab_corpus/>|$doc/README_build.html#cab_corpus>).
@@ -1434,7 +1434,7 @@ corpus analysis in (L<C<build/cab_corpus/>|$doc/README_build.html#cab_corpus>).
  $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="1 2" build
 
 You can combine multiple stages in a single partial build:
-the above example performs both a
+the above example performs a
 L<C<stage1> build|/MYCORPUS partial build: tokenization>
 followed by a
 L<C<stage2> build|/MYCORPUS partial build: annotation>
@@ -1487,7 +1487,10 @@ and/or manually partition your sources into disjoint "blocks"
 (treating each block as its own independent "corpus" for purposes of
 incremental partial gantry builds)
 and restricting your updates to a single block at a time (e.g. the
-smallest).
+smallest),
+or explicitly setting the L<C<XML_SRC_DIRS>|$doc/README_build.html#XML_SRC_DIRS>
+and/or L<C<XML_SRC_FIND>|$doc/README_build.html#XML_SRC_FIND> make variables
+to select only a particular subset (e.g. newly added files) of the available sources.
 
 =back
 
