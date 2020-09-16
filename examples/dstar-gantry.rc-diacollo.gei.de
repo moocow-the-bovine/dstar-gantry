@@ -112,9 +112,10 @@ gantry_group=diacollo
 #gantry_docker_opts=()
 gantry_docker_opts=(
    #"-edstar_checkout_corpus_opts=-force"      #-- don't use -local-config
-   "-edstar_checkout_corpus_opts=-force -dummy" #-- don't use -local-config or svn
-   "-v${DSTAR_ROOT}:/dstar.mnt:ro"          #-- mount host $DSTAR_ROOT as container /dstar.mnt (read-only)
-   "-eDSTAR_CONFIG=/dstar.mnt/config"       #-- always use host $DSTAR_ROOT/config
+    #"-edstar_checkout_corpus_opts=-force -dummy" #-- don't use -local-config or svn
+   "-edstar_checkout_corpus_opts=-force -local-config -dummy" #-- use -local-config but not svn (does this even make sense?)
+   #"-v${DSTAR_ROOT}:/dstar.mnt:ro"          #-- mount host $DSTAR_ROOT as container /dstar.mnt (read-only)
+   #"-eDSTAR_CONFIG=/dstar.mnt/config"       #-- always use host $DSTAR_ROOT/config
    )
  
 ##--------------------------------------------------------------
