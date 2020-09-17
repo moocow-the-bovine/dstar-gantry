@@ -14,7 +14,7 @@ prog=$(basename "$0")
 dstar_root_default=~/dstar
 gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
-gantry_version="0.0.1"
+gantry_version="0.0.2"
 gantry_svnid='
   $HeadURL$
   $Id$
@@ -41,8 +41,9 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    -h  , -help           # this help message
    -V  , -version        # show program version and exit
    -n  , -dry-run        # just print what we would do
-   -fg , -bg             # run container in foreground (default) or background
+   -fg , -bg , -batch    # run container in foreground (default), background, or non-interactively
    -rm , -persist        # remove container on termination (default) or don't
+   -a  , -no-agent       # run without an ssh-agent connection (not recommended)
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$dstar_root_default)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
@@ -87,7 +88,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    exec CMD...           # just execute CMD... in container
 
  Host Environment Variables:
-   SSH_AUTH_SOCK         # (required) ssh-agent(1) socket
+   SSH_AUTH_SOCK         # (usually required) ssh-agent(1) socket
 
  Container Environment Variables:
    See \`$prog help\`
@@ -327,8 +328,10 @@ while [ $# -gt 0 ] ; do
 	-n|-no-act|--no-act|-dry-run|--dry-run) gantry_dry_run=y;;
 	-fg|--fg|-foreground|--foreground) gantry_fg=(-ti);;
 	-bg|--bg|-background|--background) gantry_fg=(-d);;
+	-batch) gantry_fg=();;
 	-rm|--rm|-nopersist|--nopersist) gantry_rm=(--rm);;
 	-persist|--persist) gantry_rm=(--rm=false);;
+	-a|-no-agent|--no-agent|-no-ssh-agent|--no-ssh_agent) gantry_ssh_agent="no" ;;
 	-c) gantry_corpus="$1"; shift;;
 	-c*) gantry_corpus="${arg#-c}";;
 	-d) DSTAR_ROOT="$1"; shift;;
@@ -477,10 +480,17 @@ if [ -e "$gantry_corpus_root" ] ; then
 	warn "CORPUS_ROOT=$gantry_corpus_root is not owned by group gantry_gid=$gantry_gid"
     fi
 fi
-[ -n "$SSH_AUTH_SOCK" ] \
-    || die "SSH_AUTH_SOCK variable is unset (is your ssh-agent running?)"
-[ -e "$SSH_AUTH_SOCK" ] \
-    || die "SSH_AUTH_SOCK=$SSH_AUTH_SOCK is missing (is your ssh-agent still running?)"
+
+if [ "${gantry_ssh_agent:-yes}" = "no" ] ; then
+    ##-- force disable ssh-agent forwarding to container
+    vinfo "ssh-agent forwarding to container disabled by user"
+    unset SSH_AUTH_SOCK
+else
+    [ -n "$SSH_AUTH_SOCK" ] \
+	|| die "SSH_AUTH_SOCK variable is unset (is your ssh-agent running?)"
+    [ -e "$SSH_AUTH_SOCK" ] \
+	|| die "SSH_AUTH_SOCK=$SSH_AUTH_SOCK is missing (is your ssh-agent still running?)"
+fi
 
 ##-- absolute paths
 [ -z "$gantry_corpus_root" ] || gantry_corpus_root=$(readlink -m "$gantry_corpus_root")
@@ -495,8 +505,10 @@ gantry_docker_opts[${#gantry_docker_opts[@]}]="--name=dstar-gantry-${gantry_corp
     || gantry_docker_opts[${#gantry_docker_opts[@]}]=-p"$gantry_http_port:80"
 
 ##-- gantry docker opts: volumes
-gantry_docker_opts[${#gantry_docker_opts[@]}]="-v$SSH_AUTH_SOCK:/tmp/ssh-auth-gantry.sock"
-gantry_docker_opts[${#gantry_docker_opts[@]}]="-eSSH_AUTH_SOCK=/tmp/ssh-auth-gantry.sock"
+if [ -n "$SSH_AUTH_SOCK" ] ; then
+    gantry_docker_opts[${#gantry_docker_opts[@]}]="-v$SSH_AUTH_SOCK:/tmp/ssh-auth-gantry.sock"
+    gantry_docker_opts[${#gantry_docker_opts[@]}]="-eSSH_AUTH_SOCK=/tmp/ssh-auth-gantry.sock"
+fi
 
 [ -z "$gantry_cabdir" ] \
     || gantry_docker_opts[${#gantry_docker_opts[@]}]=-v"${gantry_cabdir}:/dstar/resources${gantry_cabdir_ro}"

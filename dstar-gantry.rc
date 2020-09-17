@@ -96,7 +96,11 @@
 ## gantry_group
 ##  + build user or UID (usually "ddc-admin" or current group)
 #gantry_group=ddc-admin
- 
+
+## gantry_ssh_agent
+##  + set this to "no" to disable/bypass ssh-agent
+#gantry_ssh_agent=yes
+
 ##--------------------------------------------------------------
 ## docker options
 
