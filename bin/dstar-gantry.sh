@@ -41,7 +41,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    -h  , -help           # this help message
    -V  , -version        # show program version and exit
    -n  , -dry-run        # just print what we would do
-   -fg , -bg , -batch    # run container in foreground (default), background, or non-interactively
+   -fg , -batch, -bg     # run container in foreground (default), non-interactively, or background
    -rm , -persist        # remove container on termination (default) or don't
    -a  , -no-agent       # run without an ssh-agent connection (not recommended)
    -c CORPUS             # dstar corpus label (required for most operations)

@@ -17,8 +17,9 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
    -h  , -help           # this help message
    -V  , -version        # show program version and exit
    -n  , -dry-run        # just print what we would do
-   -fg , -bg             # run container in foreground (default) or background
+   -fg , -batch , -bg    # run container in foreground (default), background, or non-interactively
    -rm , -persist        # remove container on termination (default) or don't
+   -a  , -no-agent       # run without an ssh-agent connection (not recommended)
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
@@ -375,14 +376,15 @@ Display the version information for C<dstar-gantry> itself.
 
 If specified, just prints what would have been done, but doesn't perform any destructive actions.
 
-=item -fg, -bg
+=item -fg, -batch, -bg
 
 Specifies whether to run the embedded
-C<dstar-buildhost> container interactively in the foreground (C<-fg>, default)
-or detached in the background (C<-bg>).
+C<dstar-buildhost> container interactively in the foreground (C<-fg>, default),
+non-interactively (C<-batch>), or detached in the background (C<-bg>).
 Foreground (C<-fg>) operation is equivalent to the
-C<docker-run> C<--tty=true> and  C<--interactive=true>
-options
+C<docker-run> C<--tty=true> and  C<--interactive=true> options,
+batch (C<-batch>) operation is equivalent to the
+C<docker-run> C<--tty=false> and  C<--interactive=false> options,
 and background (C<-bg>) operation is equivalent to the
 C<docker-run> C<--detached=true> option.
 See L<docker-run(1)|https://docs.docker.com/engine/reference/run/#options> for details.
@@ -405,6 +407,19 @@ see L<docker-run(1)|https://docs.docker.com/engine/reference/run/#options> for d
 If you request container persistence with the C<-persist> option
 (or the lower-level L<docker option|/DOCKER_OPTS> C<--rm=false>), you will have to remove
 it yourself with the L<C<docker rm>|https://docs.docker.com/engine/reference/commandline/rm/> command.
+
+=item -a, -no-agent
+
+Specifying this option will allow C<dstar-gantry.sh> to invoke a subordinate
+C<dstar-buildhost> container even if it does not detect a running
+L<C<ssh-agent>|/SSH_AUTH_SOCK>, and will bypass any running agent by
+unsetting the L<C<SSH_AUTH_SOCK>|/SSH_AUTH_SOCK> environment variable
+for the host C<dstar-gantry.sh> process itself.  This can be useful if you're
+performing only container-local operations which don't require external authentication
+(e.g. L<C<run>|/run> with L<C<dstar_checkout_corpus_opts=-dummy>|/dstar_checkout_corpus_opts>).
+Without this option, C<dstar-gantry.sh> will issue an error message and exit
+with abnormal status unless it detects a running C<ssh-agent> with at least
+one registered identity, which is usually The Right Thing To Do (TM).
 
 =item -c CORPUS
 
@@ -803,6 +818,8 @@ take care of wrapping that socket
 as C</tmp/ssh-agent-wrap.sock>, to ensure appropriate permissions
 for the build L<USER|/-u USER> and L<GROUP|/-g GROUP> within
 the container itself.
+See the L<C<-no-agent>|/-a, -no-agent> if you really need to run
+gantry without an accessible ssh-agent.
 
 =item dstar_init_hooks
 
@@ -1098,7 +1115,7 @@ gantry L</run> action.
 
 Use the gantry L<-p HTTP_PORT|/-p HTTP_PORT> option to specify a host
 port number to map to the embedded HTTP server, and use the
-gantry L<C<-bg>|/-fg, -bg> or L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
+gantry L<C<-bg>|/-fg, -batch, -bg> or L<C<docker run -d>|https://docs.docker.com/engine/reference/run/#detached--d> option
 to run the embedded container in the background.  When you are done with manual
 testing, remember to terminate the running container with L<C<docker kill>|https://docs.docker.com/engine/reference/commandline/kill/>
 It is also good practice to L</uninstall> the runtime data when
