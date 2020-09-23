@@ -1954,4 +1954,13 @@ for details on docker options.
 Bryan Jurish E<lt>jurish@bbaw.deE<gt> created the ddc-dstar corpus administration system
 and the C<dstar-gantry> wrappers.
 
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2020 by Bryan Jurish
+
+This package is free software; you can redistribute it and/or modify
+it under the terms of the European Union Public Licence.  See the
+file F<LICENSE> in the root directory of the source distribution
+for details.
+
 =cut

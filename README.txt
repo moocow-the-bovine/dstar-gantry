@@ -9,8 +9,9 @@ SYNOPSIS
        -h  , -help           # this help message
        -V  , -version        # show program version and exit
        -n  , -dry-run        # just print what we would do
-       -fg , -bg             # run container in foreground (default) or background
+       -fg , -batch , -bg    # run container in foreground (default), background, or non-interactively
        -rm , -persist        # remove container on termination (default) or don't
+       -a  , -no-agent       # run without an ssh-agent connection (not recommended)
        -c CORPUS             # dstar corpus label (required for most operations)
        -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
        -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
@@ -318,13 +319,16 @@ USAGE
         If specified, just prints what would have been done, but doesn't
         perform any destructive actions.
 
-    -fg, -bg
+    -fg, -batch, -bg
         Specifies whether to run the embedded "dstar-buildhost" container
-        interactively in the foreground ("-fg", default) or detached in the
-        background ("-bg"). Foreground ("-fg") operation is equivalent to
-        the "docker-run" "--tty=true" and "--interactive=true" options and
-        background ("-bg") operation is equivalent to the "docker-run"
-        "--detached=true" option. See docker-run(1)
+        interactively in the foreground ("-fg", default), non-interactively
+        ("-batch"), or detached in the background ("-bg"). Foreground
+        ("-fg") operation is equivalent to the "docker-run" "--tty=true" and
+        "--interactive=true" options, batch ("-batch") operation is
+        equivalent to the "docker-run" "--tty=false" and
+        "--interactive=false" options, and background ("-bg") operation is
+        equivalent to the "docker-run" "--detached=true" option. See
+        docker-run(1)
         <https://docs.docker.com/engine/reference/run/#options> for details.
 
         If you choose to run the container in the background (e.g. for
@@ -344,6 +348,19 @@ USAGE
         the lower-level docker option "--rm=false"), you will have to remove
         it yourself with the "docker rm"
         <https://docs.docker.com/engine/reference/commandline/rm/> command.
+
+    -a, -no-agent
+        Specifying this option will allow "dstar-gantry.sh" to invoke a
+        subordinate "dstar-buildhost" container even if it does not detect a
+        running "ssh-agent", and will bypass any running agent by unsetting
+        the "SSH_AUTH_SOCK" environment variable for the host
+        "dstar-gantry.sh" process itself. This can be useful if you're
+        performing only container-local operations which don't require
+        external authentication (e.g. "run" with
+        "dstar_checkout_corpus_opts=-dummy"). Without this option,
+        "dstar-gantry.sh" will issue an error message and exit with abnormal
+        status unless it detects a running "ssh-agent" with at least one
+        registered identity, which is usually The Right Thing To Do (TM).
 
     -c CORPUS
         Specifies the dstar corpus label ("collection label") for the
@@ -661,7 +678,8 @@ USAGE
         embedded "/dstar/docker/build" script will typically take care of
         wrapping that socket as "/tmp/ssh-agent-wrap.sock", to ensure
         appropriate permissions for the build USER and GROUP within the
-        container itself.
+        container itself. See the "-no-agent" if you really need to run
+        gantry without an accessible ssh-agent.
 
     dstar_init_hooks
         Default initialization hook directory for the embedded
@@ -1184,17 +1202,17 @@ EXAMPLES
     MYCORPUS partial build: annotation
          $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=2 build
 
-        Executing a partial "stage2" build is only possible requires prior
-        successful completion of a "stage1" build, and performs corpus
-        analysis in ("build/cab_corpus/"
+        Executing a partial "stage2" build requires prior successful
+        completion of a "stage1" build, and performs corpus analysis in
+        ("build/cab_corpus/"
         <https://kaskade.dwds.de/dstar/doc/README_build.html#cab_corpus>).
 
     MYCORPUS partial build: tokenization and annotation
          $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="1 2" build
 
         You can combine multiple stages in a single partial build: the above
-        example performs both a "stage1" build followed by a "stage2" build
-        in a single call.
+        example performs a "stage1" build followed by a "stage2" build in a
+        single call.
 
     MYCORPUS partial build: pre-indexing
          $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="1 2 3" STAGE3_DIRS="ddc_xml" build
@@ -1239,7 +1257,13 @@ EXAMPLES
         and/or manually partition your sources into disjoint "blocks"
         (treating each block as its own independent "corpus" for purposes of
         incremental partial gantry builds) and restricting your updates to a
-        single block at a time (e.g. the smallest).
+        single block at a time (e.g. the smallest), or explicitly setting
+        the "XML_SRC_DIRS"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#XML_SRC_DIRS>
+        and/or "XML_SRC_FIND"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#XML_SRC_FIND>
+        make variables to select only a particular subset (e.g. newly added
+        files) of the available sources.
 
 CAVEATS
   docker storage drivers
@@ -1611,4 +1635,11 @@ SEE ALSO
 AUTHOR
     Bryan Jurish <jurish@bbaw.de> created the ddc-dstar corpus
     administration system and the "dstar-gantry" wrappers.
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2020 by Bryan Jurish
+
+    This package is free software; you can redistribute it and/or modify it
+    under the terms of the European Union Public Licence. See the file
+    LICENSE in the root directory of the source distribution for details.
 

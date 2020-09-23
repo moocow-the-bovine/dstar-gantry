@@ -63,6 +63,7 @@
   <li><a href="#KNOWN-BUGS-AND-COMMON-ERRORS">KNOWN BUGS AND COMMON ERRORS</a></li>
   <li><a href="#SEE-ALSO">SEE ALSO</a></li>
   <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
 </ul>
 
 <h1 id="NAME">NAME</h1>
@@ -77,8 +78,9 @@
    -h  , -help           # this help message
    -V  , -version        # show program version and exit
    -n  , -dry-run        # just print what we would do
-   -fg , -bg             # run container in foreground (default) or background
+   -fg , -batch , -bg    # run container in foreground (default), background, or non-interactively
    -rm , -persist        # remove container on termination (default) or don&#39;t
+   -a  , -no-agent       # run without an ssh-agent connection (not recommended)
    -c CORPUS             # dstar corpus label (required for most operations)
    -d DSTAR_ROOT         # host path for sparse persistent dstar superstructure (default=$HOME/dstar)
    -C CORPUS_ROOT        # host path for dstar corpus checkout (default=DSTAR_ROOT/corpora/CORPUS)
@@ -374,10 +376,10 @@
 <p>If specified, just prints what would have been done, but doesn&#39;t perform any destructive actions.</p>
 
 </dd>
-<dt id="fg--bg">-fg, -bg</dt>
+<dt id="fg--batch--bg">-fg, -batch, -bg</dt>
 <dd>
 
-<p>Specifies whether to run the embedded <code>dstar-buildhost</code> container interactively in the foreground (<code>-fg</code>, default) or detached in the background (<code>-bg</code>). Foreground (<code>-fg</code>) operation is equivalent to the <code>docker-run</code> <code>--tty=true</code> and <code>--interactive=true</code> options and background (<code>-bg</code>) operation is equivalent to the <code>docker-run</code> <code>--detached=true</code> option. See <a href="https://docs.docker.com/engine/reference/run/#options">docker-run(1)</a> for details.</p>
+<p>Specifies whether to run the embedded <code>dstar-buildhost</code> container interactively in the foreground (<code>-fg</code>, default), non-interactively (<code>-batch</code>), or detached in the background (<code>-bg</code>). Foreground (<code>-fg</code>) operation is equivalent to the <code>docker-run</code> <code>--tty=true</code> and <code>--interactive=true</code> options, batch (<code>-batch</code>) operation is equivalent to the <code>docker-run</code> <code>--tty=false</code> and <code>--interactive=false</code> options, and background (<code>-bg</code>) operation is equivalent to the <code>docker-run</code> <code>--detached=true</code> option. See <a href="https://docs.docker.com/engine/reference/run/#options">docker-run(1)</a> for details.</p>
 
 <p>If you choose to run the container in the background (e.g. for <a href="#build">&quot;build&quot;</a> operations on large corpora), you can still view the default console ouptut with the <a href="https://docs.docker.com/engine/reference/commandline/logs/"><code>docker logs</code></a> command, or inspect the build logs in <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/log/</code> directly.</p>
 
@@ -386,6 +388,12 @@
 <dd>
 
 <p>Specifies whether (<code>-rm</code>) or not (<code>-persist</code>) to remove the embedded <code>dstar-buildhost</code> container when the requested <a href="#BUILD_ARGS">build operation(s)</a> have completed. This behavior is implemented in terms of the <code>docker-run</code> <code>--rm</code> option; see <a href="https://docs.docker.com/engine/reference/run/#options">docker-run(1)</a> for details. If you request container persistence with the <code>-persist</code> option (or the lower-level <a href="#DOCKER_OPTS">docker option</a> <code>--rm=false</code>), you will have to remove it yourself with the <a href="https://docs.docker.com/engine/reference/commandline/rm/"><code>docker rm</code></a> command.</p>
+
+</dd>
+<dt id="a--no-agent">-a, -no-agent</dt>
+<dd>
+
+<p>Specifying this option will allow <code>dstar-gantry.sh</code> to invoke a subordinate <code>dstar-buildhost</code> container even if it does not detect a running <a href="#SSH_AUTH_SOCK"><code>ssh-agent</code></a>, and will bypass any running agent by unsetting the <a href="#SSH_AUTH_SOCK"><code>SSH_AUTH_SOCK</code></a> environment variable for the host <code>dstar-gantry.sh</code> process itself. This can be useful if you&#39;re performing only container-local operations which don&#39;t require external authentication (e.g. <a href="#run"><code>run</code></a> with <a href="#dstar_checkout_corpus_opts"><code>dstar_checkout_corpus_opts=-dummy</code></a>). Without this option, <code>dstar-gantry.sh</code> will issue an error message and exit with abnormal status unless it detects a running <code>ssh-agent</code> with at least one registered identity, which is usually The Right Thing To Do (TM).</p>
 
 </dd>
 <dt id="c-CORPUS">-c CORPUS</dt>
@@ -637,7 +645,7 @@
 <dt id="SSH_AUTH_SOCK">SSH_AUTH_SOCK</dt>
 <dd>
 
-<p>The communication socket for <a href="#ssh-agent">ssh-agent</a> on the docker host will be bind-mounted into the container as <code>/tmp/ssh-auth-gantry.sock</code>. The embedded <code>/dstar/docker/build</code> script will typically take care of wrapping that socket as <code>/tmp/ssh-agent-wrap.sock</code>, to ensure appropriate permissions for the build <a href="#u-USER">USER</a> and <a href="#g-GROUP">GROUP</a> within the container itself.</p>
+<p>The communication socket for <a href="#ssh-agent">ssh-agent</a> on the docker host will be bind-mounted into the container as <code>/tmp/ssh-auth-gantry.sock</code>. The embedded <code>/dstar/docker/build</code> script will typically take care of wrapping that socket as <code>/tmp/ssh-agent-wrap.sock</code>, to ensure appropriate permissions for the build <a href="#u-USER">USER</a> and <a href="#g-GROUP">GROUP</a> within the container itself. See the <a href="#a--no-agent"><code>-no-agent</code></a> if you really need to run gantry without an accessible ssh-agent.</p>
 
 </dd>
 <dt id="dstar_init_hooks">dstar_init_hooks</dt>
@@ -820,7 +828,7 @@
 
 <p>Once a corpus index has been succesfully <a href="#build">built</a>, you can use <code>dstar-gantry.sh</code> to <a href="#install">install</a> and <a href="#run">run</a> a staging&quot; instance of the dstar <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and <code>WEBHOST</code> roles</a> for that corpus in the embedded <code>dstar-buildhost</code> container, analogous to (but independent of) the <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#Sandbox-Testing">&quot;Sandbox Testing&quot;</a> functionality for &quot;bare-metal&quot; dstar corpus builds. You only need to <a href="#install">&quot;install&quot;</a> if you have updated corpus index data in the <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> directory, e.g. via the <a href="#build">&quot;build&quot;</a>, <a href="#update">&quot;update&quot;</a>, or <a href="#update-meta">&quot;update-meta&quot;</a> operations); you can re-stage an existing <a href="#install">installation</a> with the gantry <a href="#run">&quot;run&quot;</a> action.</p>
 
-<p>Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the gantry <a href="#fg--bg"><code>-bg</code></a> or <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <a href="https://docs.docker.com/engine/reference/commandline/kill/"><code>docker kill</code></a> It is also good practice to <a href="#uninstall">&quot;uninstall&quot;</a> the runtime data when you are done with the staging instance.</p>
+<p>Use the gantry <a href="#p-HTTP_PORT">-p HTTP_PORT</a> option to specify a host port number to map to the embedded HTTP server, and use the gantry <a href="#fg--batch--bg"><code>-bg</code></a> or <a href="https://docs.docker.com/engine/reference/run/#detached--d"><code>docker run -d</code></a> option to run the embedded container in the background. When you are done with manual testing, remember to terminate the running container with <a href="https://docs.docker.com/engine/reference/commandline/kill/"><code>docker kill</code></a> It is also good practice to <a href="#uninstall">&quot;uninstall&quot;</a> the runtime data when you are done with the staging instance.</p>
 
 <p>If you are running dstar-gantry on a <a href="https://kaskade.dwds.de/dstar/doc/README.html#GANTRYHOST"><code>GANTRYHOST</code></a> behind a firewall and you wish to call your browser on a different machine (let&#39;s call it <code>WORKSTATION</code>), you may need to setup an <a href="https://www.ssh.com/ssh/tunneling/example">ssh tunnel</a> to the remote port, and shut it down again when you&#39;re finished with the staging instance. This can be accomplished by e.g.:</p>
 
@@ -996,7 +1004,7 @@
 
 <pre><code> $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=2 build</code></pre>
 
-<p>Executing a partial <code>stage2</code> build is only possible requires prior successful completion of a <a href="#MYCORPUS-partial-build:-tokenization"><code>stage1</code> build</a>, and performs corpus analysis in (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#cab_corpus"><code>build/cab_corpus/</code></a>).</p>
+<p>Executing a partial <code>stage2</code> build requires prior successful completion of a <a href="#MYCORPUS-partial-build:-tokenization"><code>stage1</code> build</a>, and performs corpus analysis in (<a href="https://kaskade.dwds.de/dstar/doc/README_build.html#cab_corpus"><code>build/cab_corpus/</code></a>).</p>
 
 </dd>
 <dt id="MYCORPUS-partial-build:-tokenization-and-annotation">MYCORPUS partial build: tokenization and annotation</dt>
@@ -1004,7 +1012,7 @@
 
 <pre><code> $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=&quot;1 2&quot; build</code></pre>
 
-<p>You can combine multiple stages in a single partial build: the above example performs both a <a href="#MYCORPUS-partial-build:-tokenization"><code>stage1</code> build</a> followed by a <a href="#MYCORPUS-partial-build:-annotation"><code>stage2</code> build</a> in a single call.</p>
+<p>You can combine multiple stages in a single partial build: the above example performs a <a href="#MYCORPUS-partial-build:-tokenization"><code>stage1</code> build</a> followed by a <a href="#MYCORPUS-partial-build:-annotation"><code>stage2</code> build</a> in a single call.</p>
 
 </dd>
 <dt id="MYCORPUS-partial-build:-pre-indexing">MYCORPUS partial build: pre-indexing</dt>
@@ -1031,7 +1039,7 @@
 
 <p>Note that changes in any shared resources in <a href="#R-RESOURCES_DIR"><code>RESOURCES_DIR</code></a> may also cause <i>all</i> documents to be re-analyzed on a second build invocation: if you need to ensure stable resources for incremental (partial) builds, use a dedicated <a href="#R-RESOURCES_DIR"><code>RESOURCES_DIR</code></a> and specify the gantry <a href="#RO"><code>-RO</code></a> option for all but the initial <a href="#build">build</a> invocation.</p>
 
-<p>Note also that for incremental (partial) builds, a certain amount of computational overhead is required by GNU make to determine <i>which</i> sources are new rsp. whether any previously registered sources have been updated, which may be a problem for very large corpora with many small documents. If you need perform incremental builds on such a large corpus, you will probably need to optimize the frequency of your <a href="#build">build</a> calls to avoid wasting resources on unnecessary overhead, and/or manually partition your sources into disjoint &quot;blocks&quot; (treating each block as its own independent &quot;corpus&quot; for purposes of incremental partial gantry builds) and restricting your updates to a single block at a time (e.g. the smallest).</p>
+<p>Note also that for incremental (partial) builds, a certain amount of computational overhead is required by GNU make to determine <i>which</i> sources are new rsp. whether any previously registered sources have been updated, which may be a problem for very large corpora with many small documents. If you need perform incremental builds on such a large corpus, you will probably need to optimize the frequency of your <a href="#build">build</a> calls to avoid wasting resources on unnecessary overhead, and/or manually partition your sources into disjoint &quot;blocks&quot; (treating each block as its own independent &quot;corpus&quot; for purposes of incremental partial gantry builds) and restricting your updates to a single block at a time (e.g. the smallest), or explicitly setting the <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#XML_SRC_DIRS"><code>XML_SRC_DIRS</code></a> and/or <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#XML_SRC_FIND"><code>XML_SRC_FIND</code></a> make variables to select only a particular subset (e.g. newly added files) of the available sources.</p>
 
 </dd>
 </dl>
@@ -1282,6 +1290,12 @@
 <h1 id="AUTHOR">AUTHOR</h1>
 
 <p>Bryan Jurish &lt;jurish@bbaw.de&gt; created the ddc-dstar corpus administration system and the <code>dstar-gantry</code> wrappers.</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (C) 2020 by Bryan Jurish</p>
+
+<p>This package is free software; you can redistribute it and/or modify it under the terms of the European Union Public Licence. See the file <i>LICENSE</i> in the root directory of the source distribution for details.</p>
 
 
 </body>
