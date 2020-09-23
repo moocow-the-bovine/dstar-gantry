@@ -1466,7 +1466,7 @@ you can select specific C<MYCORPUS/build/> subdirectories from a stage
 C<I<i>> by setting the C<STAGEI<i>_DIRS> variable.
 The above example performs all corpus build operations up to but not
 including configuration and compilation of the DDC index
-(i.e. full C<stage1> and C<stage2> builds and conversion of annoated documents
+(i.e. full C<stage1> and C<stage2> builds and conversion of annotated documents
 to the legacy L<C<ddc_xml>|$doc/README_build.html#ddc_xml> format suitable for input to a C<ddc_index> process).
 
 =item MYCORPUS partial build: incremental builds
@@ -1508,6 +1508,37 @@ smallest),
 or explicitly setting the L<C<XML_SRC_DIRS>|$doc/README_build.html#XML_SRC_DIRS>
 and/or L<C<XML_SRC_FIND>|$doc/README_build.html#XML_SRC_FIND> make variables
 to select only a particular subset (e.g. newly added files) of the available sources.
+
+=item MYCORPUS partial build: re-indexing
+
+ $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="3 4" build
+
+Partial builds can begin anywhere in the build process: you can skip
+whatever stages or build subdirectories you want to, as long as you
+ensure that all C<make> prerequisites of the partial build you're executing
+actually exist.  See
+L<C<HOWTO: Dataflow>|$doc/README_build.html#Dataflow> for an approximate
+overview of the dependencies between the various build directories,
+and see the individual C<Makefile>s for a formal specification of
+the file-level dependencies.  When in doubt, try it out: if C<make>
+complains about missing prerequisites, you probably need to figure
+out a way to create or simulate them.
+
+If -- as in this example -- you're just interested in (re-)creating
+corpus index data after successfully completing at least C<stage1> and C<stage2>
+and then manually modifying (but not adding or deleting)
+intermediate files under (for example)
+L<C<xml_header/>|$doc/README_build.html#xml_header>,
+L<C<cab_corpus/>|$doc/README_build.html#cab_corpus>,
+or even
+L<C<ddc_xml/>|$doc/README_build.html#ddc_xml>,
+you should be able to safely re-engage the build process
+starting from L<C<stage3>|$doc/README_build.html#Stage-Wise-Builds>.
+
+If you haven't actually populated the C<stage1> and C<stage2> build
+subdirectories and wish to begin the indexing process from C<stage3>,
+your best option is probably a
+L<legacy DDC-XML import|$doc/README_build.html#Importing-legacy-DDC-XML-files>.
 
 =back
 
