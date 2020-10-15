@@ -1914,17 +1914,8 @@ for more details.
 This message can occur if the C<ddc_daemon> process for a
 L<staging instance|/MYCORPUS staging> in L<C<CORPUS_ROOT/server>|/-C CORPUS_ROOT>
 is unable to allocate sufficient L<virtual memory|https://en.wikipedia.org/wiki/Virtual_memory> address space
-to accomodate its index data, possibly due to a misconfiguration of the dstar
-make variable L<C<SERVER_ULIMIT_MEM>|$doc/HOWTO.html#RUNHOST-memory>.  Try raising
-the value of C<SERVER_ULIMIT_MEM> or setting it to the empty string: if the error message is
-no longer raised, report the adjustment and/or modify the appropriate configuration file(s)
-(e.g. C<CORPUS.mak>).
-
-Contemporary 64-bit linux architectures
-can handle up to 2^48 bytes (= 256 TB) of virtual memory address space on a single machine, regardless
-of the amount of physical RAM installed, so this error is unlikely to be caused by machine limitations
-on the gantry host itself.
-
+to accomodate its index data.
+See L<"Cannot allocate memory" in the HOWTO|/$doc/HOWTO.html#Cannot-allocate-memory>
 
 =item other errors
 
