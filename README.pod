@@ -1907,15 +1907,14 @@ for more details.
 
 =item Cannot allocate memory
 
- (server-main[pid=3101]) > Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': Cannot allocate memory 
- ddc_daemon[3101]: (server-main[pid=3101]) > Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': Cannot allocate memory 
+ ddc_daemon[3101]: (server-main[pid=3101]) \
+   > Error! Cannot load project index/catch22/catch22.con: \
+   cannot load index of project index/catch22/catch22.con: \
+   ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': \
+   Cannot allocate memory 
  terminate called after throwing an instance of 'std::runtime_error'
 
-This message can occur if the C<ddc_daemon> process for a
-L<staging instance|/MYCORPUS staging> in L<C<CORPUS_ROOT/server>|/-C CORPUS_ROOT>
-is unable to allocate sufficient L<virtual memory|https://en.wikipedia.org/wiki/Virtual_memory> address space
-to accomodate its index data.
-See L<"Cannot allocate memory" in the HOWTO|/$doc/HOWTO.html#Cannot-allocate-memory>
+See L<"Cannot allocate memory" in the HOWTO|/$doc/HOWTO.html#Cannot-allocate-memory>.
 
 =item other errors
 
