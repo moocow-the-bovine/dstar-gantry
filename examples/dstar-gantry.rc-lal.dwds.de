@@ -1,7 +1,7 @@
 ##-*- Mode: Shell-Script[bash] -*-
 ##
 ## File: dstar-gantry.rc
-## Description: Configuration file for dstar-gantry.sh (lal.dwds.de)
+## Description: Example configuration file for dstar-gantry.sh
 ## Usage:
 ##  ... as a machine-global default:
 ##    + copy this file to /etc/dstar-gantry.rc
@@ -106,6 +106,7 @@ gantry_group=ddc-admin
 ##  + use this to set additional default volumes, environment overrides, etc.
 #gantry_docker_opts=()
 gantry_docker_opts=(
+   "-edstar_build_timezone=`cat /etc/timezone`" ##-- inherit host timezone
    "-edstar_checkout_corpus_opts=-force"    #-- don't use -local-config
    "-eWEB_SITE_AUTH_EXTERNAL=no"            #-- don't use external authentication
    #"-v${DSTAR_ROOT}/config:/dstar/config"  #-- NO: problems with 'publish-svn-check'   
