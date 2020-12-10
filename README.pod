@@ -857,6 +857,16 @@ itself as C<002>, which creates new files with the group-writable flag set.
 If you're feeling paranoid, you can set this to C<022> or even C<077>,
 but that may cause L<problems down the line|/E000013 ... Permission denied>.
 
+=item dstar_build_timezone
+
+Timezone to use within the container. If unset (default), the default container
+timezone will be used (usually C<UTC>).  This is mostly useful for
+formatting timestamps in log-files produced by L<C<cronit.perl>|$doc/HOWTO.html#cronit.perl>.
+A useful idiom to set the container timezone to that of the (debian) gantry host
+is:
+
+ -e dstar_build_timezone=`cat /etc/timezone`
+
 =item dstar_corpora
 
 Specifies the corpus or corpora to operate on

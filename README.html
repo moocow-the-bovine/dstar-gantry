@@ -675,6 +675,14 @@
 <p>Specifies the permissions umask for the build process. The default is typically specified in the <code>dstar-buildhost</code> docker image itself as <code>002</code>, which creates new files with the group-writable flag set. If you&#39;re feeling paranoid, you can set this to <code>022</code> or even <code>077</code>, but that may cause <a href="#E000013-...-Permission-denied">problems down the line</a>.</p>
 
 </dd>
+<dt id="dstar_build_timezone">dstar_build_timezone</dt>
+<dd>
+
+<p>Timezone to use within the container. If unset (default), the default container timezone will be used (usually <code>UTC</code>). This is mostly useful for formatting timestamps in log-files produced by <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl"><code>cronit.perl</code></a>. A useful idiom to set the container timezone to that of the (debian) gantry host is:</p>
+
+<pre><code> -e dstar_build_timezone=`cat /etc/timezone`</code></pre>
+
+</dd>
 <dt id="dstar_corpora">dstar_corpora</dt>
 <dd>
 

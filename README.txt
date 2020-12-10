@@ -714,6 +714,17 @@ USAGE
         you're feeling paranoid, you can set this to 022 or even 077, but
         that may cause problems down the line.
 
+    dstar_build_timezone
+        Timezone to use within the container. If unset (default), the
+        default container timezone will be used (usually "UTC"). This is
+        mostly useful for formatting timestamps in log-files produced by
+        "cronit.perl"
+        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#cronit.perl>. A useful
+        idiom to set the container timezone to that of the (debian) gantry
+        host is:
+
+         -e dstar_build_timezone=`cat /etc/timezone`
+
     dstar_corpora
         Specifies the corpus or corpora to operate on as a
         whitespace-separated list. Typcically set by "dstar-gantry.sh"
