@@ -111,6 +111,7 @@ gantry_group=diacollo
 ##  + use this to set additional default volumes, environment overrides, etc.
 #gantry_docker_opts=()
 gantry_docker_opts=(
+   "-edstar_build_timezone=`cat /etc/timezone`" ##-- inherit host timezone
    #"-edstar_checkout_corpus_opts=-force"      #-- don't use -local-config
     #"-edstar_checkout_corpus_opts=-force -dummy" #-- don't use -local-config or svn
    "-edstar_checkout_corpus_opts=-force -local-config -dummy" #-- use -local-config but not svn (does this even make sense?)

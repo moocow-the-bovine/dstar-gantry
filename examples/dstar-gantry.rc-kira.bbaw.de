@@ -107,6 +107,7 @@ gantry_group=ddc-admin
 ##  + use this to set additional default volumes, environment overrides, etc.
 #gantry_docker_opts=()
 gantry_docker_opts=(
+   "-edstar_build_timezone=`cat /etc/timezone`" ##-- inherit host timezone
    "-edstar_checkout_corpus_opts=-force"    #-- don't use -local-config
    #"-v${DSTAR_ROOT}/config:/dstar/config"  #-- NO: problems with 'publish-svn-check'   
    "-v${DSTAR_ROOT}:/dstar.mnt:ro"          #-- mount host $DSTAR_ROOT as container /dstar.mnt (read-only)
