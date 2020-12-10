@@ -593,7 +593,7 @@
 
 <p>Archives publishable corpus data from the corpus build directory <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> to the directory <a href="#dstar_archive_dir"><code>${dstar_archive_dir}</code></a> if set, otherwise to the (corpus-specific) directory specified by the <code>ARC_PUBLISH_DIR</code> dstar make variable; usually <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/archive/</code>. The publish-archive will be created as a gzipped tar archive <code><a href="#c-CORPUS">CORPUS</a>.publish-<i>DATETIME</i>.tar.gz</code> where <i>DATETIME</i> is a timestamp in <i>YYYY-MM-DD.HHMMSS</i> format, and should contain all the index data required for a production runtime corpus instance on <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles"><code>RUNHOST</code> and/or <code>WEBHOST</code></a>). Future versions of this software may support additional operations on such archives.</p>
 
-<p>Note that archives created with the <code>archive-publish</code> action only include that subset of the data from local corpus build directory <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> which would be deployed by a <a href="#publish">&quot;publish&quot;</a> operation, and <b>not</b> the actual published index data from remote runtime &quot;production&quot; host(s) as specified by the <code>PUBLISH_DEST</code> and/or <code>WEB_PUBLISH_DEST</code> dstar make variables. Archives created with the <code>archive-publish</code> action will also <b>not</b> include any intermediate build files, so it should be much smaller in size than those created by the <a href="#archive-build">&quot;archive-build&quot;</a> action. Unlike an <a href="#archive-build">&quot;archive-build&quot;</a> archive however, an <code>archive-publish</code> archive cannot be used as the basis for subsequent subsequent <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">incremental corpus updates</a> or infrastructure maintainence; please <a href="#build-responsibly">act responsibly</a>.</p>
+<p>Note that archives created with the <code>archive-publish</code> action only include that subset of the data from local corpus build directory <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> which would be deployed by a <a href="#publish">&quot;publish&quot;</a> operation, and <b>not</b> the actual published index data from remote runtime &quot;production&quot; host(s) as specified by the <code>PUBLISH_DEST</code> and/or <code>WEB_PUBLISH_DEST</code> dstar make variables. Archives created with the <code>archive-publish</code> action will also <b>not</b> include any intermediate build files, so it should be much smaller in size than those created by the <a href="#archive-build">&quot;archive-build&quot;</a> action. Unlike an <a href="#archive-build">&quot;archive-build&quot;</a> archive however, an <code>archive-publish</code> archive cannot be used as the basis for subsequent <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Update">incremental corpus updates</a> or infrastructure maintainence; please <a href="#build-responsibly">act responsibly</a>.</p>
 
 </dd>
 <dt id="install">install</dt>
@@ -1020,7 +1020,7 @@
 
 <pre><code> $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=&quot;1 2 3&quot; STAGE3_DIRS=&quot;ddc_xml&quot; build</code></pre>
 
-<p>Partial builds are not restricted to whole stages: you can select specific <code>MYCORPUS/build/</code> subdirectories from a stage <code><i>i</i></code> by setting the <code>STAGE<i>i</i>_DIRS</code> variable. The above example performs all corpus build operations up to but not including configuration and compilation of the DDC index (i.e. full <code>stage1</code> and <code>stage2</code> builds and conversion of annoated documents to the legacy <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#ddc_xml"><code>ddc_xml</code></a> format suitable for input to a <code>ddc_index</code> process).</p>
+<p>Partial builds are not restricted to whole stages: you can select specific <code>MYCORPUS/build/</code> subdirectories from a stage <code><i>i</i></code> by setting the <code>STAGE<i>i</i>_DIRS</code> variable. The above example performs all corpus build operations up to but not including configuration and compilation of the DDC index (i.e. full <code>stage1</code> and <code>stage2</code> builds and conversion of annotated documents to the legacy <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#ddc_xml"><code>ddc_xml</code></a> format suitable for input to a <code>ddc_index</code> process).</p>
 
 </dd>
 <dt id="MYCORPUS-partial-build:-incremental-builds">MYCORPUS partial build: incremental builds</dt>
@@ -1040,6 +1040,18 @@
 <p>Note that changes in any shared resources in <a href="#R-RESOURCES_DIR"><code>RESOURCES_DIR</code></a> may also cause <i>all</i> documents to be re-analyzed on a second build invocation: if you need to ensure stable resources for incremental (partial) builds, use a dedicated <a href="#R-RESOURCES_DIR"><code>RESOURCES_DIR</code></a> and specify the gantry <a href="#RO"><code>-RO</code></a> option for all but the initial <a href="#build">build</a> invocation.</p>
 
 <p>Note also that for incremental (partial) builds, a certain amount of computational overhead is required by GNU make to determine <i>which</i> sources are new rsp. whether any previously registered sources have been updated, which may be a problem for very large corpora with many small documents. If you need perform incremental builds on such a large corpus, you will probably need to optimize the frequency of your <a href="#build">build</a> calls to avoid wasting resources on unnecessary overhead, and/or manually partition your sources into disjoint &quot;blocks&quot; (treating each block as its own independent &quot;corpus&quot; for purposes of incremental partial gantry builds) and restricting your updates to a single block at a time (e.g. the smallest), or explicitly setting the <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#XML_SRC_DIRS"><code>XML_SRC_DIRS</code></a> and/or <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#XML_SRC_FIND"><code>XML_SRC_FIND</code></a> make variables to select only a particular subset (e.g. newly added files) of the available sources.</p>
+
+</dd>
+<dt id="MYCORPUS-partial-build:-re-indexing">MYCORPUS partial build: re-indexing</dt>
+<dd>
+
+<pre><code> $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES=&quot;3 4&quot; build</code></pre>
+
+<p>Partial builds can begin anywhere in the build process: you can skip whatever stages or build subdirectories you want to, as long as you ensure that all <code>make</code> prerequisites of the partial build you&#39;re executing actually exist. See <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Dataflow"><code>HOWTO: Dataflow</code></a> for an approximate overview of the dependencies between the various build directories, and see the individual <code>Makefile</code>s for a formal specification of the file-level dependencies. When in doubt, try it out: if <code>make</code> complains about missing prerequisites, you probably need to figure out a way to create or simulate them.</p>
+
+<p>If -- as in this example -- you&#39;re just interested in (re-)creating corpus index data after successfully completing at least <code>stage1</code> and <code>stage2</code> and then manually modifying (but not adding or deleting) intermediate files under (for example) <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#xml_header"><code>xml_header/</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#cab_corpus"><code>cab_corpus/</code></a>, or even <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#ddc_xml"><code>ddc_xml/</code></a>, you should be able to safely re-engage the build process starting from <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Stage-Wise-Builds"><code>stage3</code></a>.</p>
+
+<p>If you haven&#39;t actually populated the <code>stage1</code> and <code>stage2</code> build subdirectories and wish to begin the indexing process from <code>stage3</code>, your best option is probably a <a href="https://kaskade.dwds.de/dstar/doc/README_build.html#Importing-legacy-DDC-XML-files">legacy DDC-XML import</a>.</p>
 
 </dd>
 </dl>
@@ -1249,13 +1261,14 @@
 <dt id="Cannot-allocate-memory">Cannot allocate memory</dt>
 <dd>
 
-<pre><code> (server-main[pid=3101]) &gt; Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file &#39;index/catch22/catch22._storage_WordSep&#39;: Cannot allocate memory 
- ddc_daemon[3101]: (server-main[pid=3101]) &gt; Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file &#39;index/catch22/catch22._storage_WordSep&#39;: Cannot allocate memory 
+<pre><code> ddc_daemon[3101]: (server-main[pid=3101]) \
+   &gt; Error! Cannot load project index/catch22/catch22.con: \
+   cannot load index of project index/catch22/catch22.con: \
+   ddcMMap::open(): mmap() failed for file &#39;index/catch22/catch22._storage_WordSep&#39;: \
+   Cannot allocate memory 
  terminate called after throwing an instance of &#39;std::runtime_error&#39;</code></pre>
 
-<p>This message can occur if the <code>ddc_daemon</code> process for a <a href="#MYCORPUS-staging">staging instance</a> in <a href="#C-CORPUS_ROOT"><code>CORPUS_ROOT/server</code></a> is unable to allocate sufficient <a href="https://en.wikipedia.org/wiki/Virtual_memory">virtual memory</a> address space to accomodate its index data, possibly due to a misconfiguration of the dstar make variable <a href="https://kaskade.dwds.de/dstar/doc/HOWTO.html#RUNHOST-memory"><code>SERVER_ULIMIT_MEM</code></a>. Try raising the value of <code>SERVER_ULIMIT_MEM</code> or setting it to the empty string: if the error message is no longer raised, report the adjustment and/or modify the appropriate configuration file(s) (e.g. <code>CORPUS.mak</code>).</p>
-
-<p>Contemporary 64-bit linux architectures can handle up to 2^48 bytes (= 256 TB) of virtual memory address space on a single machine, regardless of the amount of physical RAM installed, so this error is unlikely to be caused by machine limitations on the gantry host itself.</p>
+<p>See <a href="#https:-kaskade.dwds.de-dstar-doc-HOWTO.html-Cannot-allocate-memory">&quot;Cannot allocate memory&quot; in the HOWTO</a>.</p>
 
 </dd>
 <dt id="other-errors">other errors</dt>

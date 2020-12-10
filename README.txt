@@ -625,8 +625,7 @@ USAGE
         intermediate build files, so it should be much smaller in size than
         those created by the "archive-build" action. Unlike an
         "archive-build" archive however, an "archive-publish" archive cannot
-        be used as the basis for subsequent subsequent incremental corpus
-        updates
+        be used as the basis for subsequent incremental corpus updates
         <https://kaskade.dwds.de/dstar/doc/README_build.html#Incremental-Upd
         ate> or infrastructure maintainence; please act responsibly.
 
@@ -1222,7 +1221,7 @@ EXAMPLES
         setting the "STAGE*i*_DIRS" variable. The above example performs all
         corpus build operations up to but not including configuration and
         compilation of the DDC index (i.e. full "stage1" and "stage2" builds
-        and conversion of annoated documents to the legacy "ddc_xml"
+        and conversion of annotated documents to the legacy "ddc_xml"
         <https://kaskade.dwds.de/dstar/doc/README_build.html#ddc_xml> format
         suitable for input to a "ddc_index" process).
 
@@ -1264,6 +1263,40 @@ EXAMPLES
         <https://kaskade.dwds.de/dstar/doc/README_build.html#XML_SRC_FIND>
         make variables to select only a particular subset (e.g. newly added
         files) of the available sources.
+
+    MYCORPUS partial build: re-indexing
+         $ dstar-gantry.sh -bg -c MYCORPUS -eSTAGES="3 4" build
+
+        Partial builds can begin anywhere in the build process: you can skip
+        whatever stages or build subdirectories you want to, as long as you
+        ensure that all "make" prerequisites of the partial build you're
+        executing actually exist. See "HOWTO: Dataflow"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Dataflow> for
+        an approximate overview of the dependencies between the various
+        build directories, and see the individual "Makefile"s for a formal
+        specification of the file-level dependencies. When in doubt, try it
+        out: if "make" complains about missing prerequisites, you probably
+        need to figure out a way to create or simulate them.
+
+        If -- as in this example -- you're just interested in (re-)creating
+        corpus index data after successfully completing at least "stage1"
+        and "stage2" and then manually modifying (but not adding or
+        deleting) intermediate files under (for example) "xml_header/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#xml_header>,
+        "cab_corpus/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#cab_corpus>, or
+        even "ddc_xml/"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#ddc_xml>, you
+        should be able to safely re-engage the build process starting from
+        "stage3"
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Stage-Wise-Buil
+        ds>.
+
+        If you haven't actually populated the "stage1" and "stage2" build
+        subdirectories and wish to begin the indexing process from "stage3",
+        your best option is probably a legacy DDC-XML import
+        <https://kaskade.dwds.de/dstar/doc/README_build.html#Importing-legac
+        y-DDC-XML-files>.
 
 CAVEATS
   docker storage drivers
@@ -1577,26 +1610,14 @@ KNOWN BUGS AND COMMON ERRORS
         GUI at "http://CONTAINER:9001" for more details.
 
     Cannot allocate memory
-         (server-main[pid=3101]) > Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': Cannot allocate memory 
-         ddc_daemon[3101]: (server-main[pid=3101]) > Error! Cannot load project index/catch22/catch22.con: cannot load index of project index/catch22/catch22.con: ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': Cannot allocate memory 
+         ddc_daemon[3101]: (server-main[pid=3101]) \
+           > Error! Cannot load project index/catch22/catch22.con: \
+           cannot load index of project index/catch22/catch22.con: \
+           ddcMMap::open(): mmap() failed for file 'index/catch22/catch22._storage_WordSep': \
+           Cannot allocate memory 
          terminate called after throwing an instance of 'std::runtime_error'
 
-        This message can occur if the "ddc_daemon" process for a staging
-        instance in "CORPUS_ROOT/server" is unable to allocate sufficient
-        virtual memory <https://en.wikipedia.org/wiki/Virtual_memory>
-        address space to accomodate its index data, possibly due to a
-        misconfiguration of the dstar make variable "SERVER_ULIMIT_MEM"
-        <https://kaskade.dwds.de/dstar/doc/HOWTO.html#RUNHOST-memory>. Try
-        raising the value of "SERVER_ULIMIT_MEM" or setting it to the empty
-        string: if the error message is no longer raised, report the
-        adjustment and/or modify the appropriate configuration file(s) (e.g.
-        "CORPUS.mak").
-
-        Contemporary 64-bit linux architectures can handle up to 2^48 bytes
-        (= 256 TB) of virtual memory address space on a single machine,
-        regardless of the amount of physical RAM installed, so this error is
-        unlikely to be caused by machine limitations on the gantry host
-        itself.
+        See "Cannot allocate memory" in the HOWTO.
 
     other errors
         See "COMMON ERRORS" in the dstar-HOWTO

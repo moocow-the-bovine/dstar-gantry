@@ -731,7 +731,7 @@ so it should be much smaller
 in size than those created by the L</archive-build> action.
 Unlike an L</archive-build> archive however, an
 C<archive-publish> archive cannot be used as the basis for subsequent
-subsequent L<incremental corpus updates|$doc/README_build.html#Incremental-Update>
+L<incremental corpus updates|$doc/README_build.html#Incremental-Update>
 or infrastructure maintainence; please L<act responsibly|/build responsibly>.
 
 
