@@ -484,7 +484,7 @@ the command-line:
  $HOME/.dstar-gantry.rc
 
 See the example
-L<C<dstar-gantry.rc> file|http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Fdocker%2Fgantry%2Ftrunk%2Fdstar-gantry.rc> in the C<dstar-gantry> distribution for a list of available variables.
+L<C<dstar-gantry.rc> file|https://git.zdl.org/svn-mirror/dstar-gantry/src/branch/master/dstar-gantry.rc> in the C<dstar-gantry> distribution for a list of available variables.
 
 =item -i IMAGE
 
@@ -952,7 +952,7 @@ in this case, relays should be defined for each immediate daughter node
 of the metacorpus to be run.
 
 See
-L<C<dstar-buildhost:/dstar/init/etc_default_dstar_relay>|http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay> for syntax and more details.
+L<C<dstar-buildhost:/dstar/init/etc_default_dstar_relay>|https://git.zdl.org/svn-mirror/ddc-dstar/src/branch/master/init/etc_default_dstar_relay> for syntax and more details.
 
 
 
