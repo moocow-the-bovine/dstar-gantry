@@ -459,7 +459,7 @@ fi
 
 ##-- defaults: user+group
 [[ "$gantry_user"  == *[^0-9]* ]] && gantry_uid=$(id -u "$gantry_user")  || gantry_uid="$gantry_user"
-[[ "$gantry_group" == *[^0-9]* ]] && gantry_gid=$(id -g "$gantry_group") || gantry_gid="$gantry_group"
+[[ "$gantry_group" == *[^0-9]* ]] && gantry_gid=$(getent group "$gantry_group" | cut -d: -f3) || gantry_gid="$gantry_group"
 [ -n "$gantry_uid" ] || die "unknown host user '$gantry_user'"
 [ -n "$gantry_gid" ] || die "unknown host group '$gantry_group'"
 
