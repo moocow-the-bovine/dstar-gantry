@@ -85,7 +85,7 @@
 ##  + select cabx server(s) for container 'run' action
 #gantry_cabrun="dstar-http-9096"
 
-## gantry_http_post (-p)
+## gantry_http_port (-p)
 ##  + map container port 80 to host $gantry_http_port for 'run' action (only if non-empty)
 #gantry_http_port=""
 

@@ -14,7 +14,7 @@ prog=$(basename "$0")
 dstar_root_default=~/dstar
 gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
-gantry_version="0.0.2"
+gantry_version="0.0.3"
 gantry_svnid='
   $HeadURL$
   $Id$
@@ -114,7 +114,7 @@ vinfo() {
 
 ##--------------------------------------------------------------
 runcmd() {
-    echo "$prog: CMD: $*" >&2
+    echo "$prog: CMD:" "${@@Q}" >&2
     [ -n "$gantry_dry_run" ] && return 0
     "$@"
 }
