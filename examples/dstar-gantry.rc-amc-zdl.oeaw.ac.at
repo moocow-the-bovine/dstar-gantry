@@ -39,7 +39,7 @@ gantry_cabdir_ro=":ro"
 
 ## gantry_ssh_agent
 ##  + set this to "no" to disable/bypass ssh-agent (e.g. due to lack of BBAW credentials)
-gantry_ssh_agent=no
+[ -n "$gantry_ssh_agent" ] || gantry_ssh_agent=no
 
 ## gantry_user
 ##  + build user or UID (usually "ddc-admin" or current user)
