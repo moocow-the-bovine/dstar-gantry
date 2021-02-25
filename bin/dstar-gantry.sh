@@ -482,8 +482,8 @@ if [ -e "$gantry_corpus_root" ] ; then
 fi
 
 if [ "${gantry_ssh_agent:-yes}" = "no" ] ; then
-    ##-- force disable ssh-agent forwarding to container
-    vinfo "ssh-agent forwarding to container disabled by user"
+    ##-- force disable ssh-agent forwarding from container
+    vinfo "ssh-agent forwarding from container disabled by user"
     unset SSH_AUTH_SOCK
 else
     [ -n "$SSH_AUTH_SOCK" ] \
