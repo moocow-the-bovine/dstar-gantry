@@ -1,0 +1,109 @@
+##-*- Mode: Shell-Script -*-
+##
+## File: dstar-gantry.rc
+## Description: Example configuration file for dstar-gantry.sh (apa)
+##    + including tweaks for apa corpus at ÖAW
+## Usage:
+##  ... as a machine-global default:
+##    + copy this file to /etc/dstar-gantry.rc
+##    + edit /etc/dstar-gantry.rc to suit your needs
+##  ... as a user default:
+##    + copy this file to $HOME/.dstar-gantry.rc
+##    + edit $HOME/.dstar-gantry.rc to suit your needs
+##  ... as a corpus-specific configuration:
+##    + copy this file to somewhere you'll remember, e.g. $HOME/dstar-gantry-foo.rc
+##    + edit $HOME/dstar-gantry-foo.rc to suit your needs
+##    + call dstar-gantry.sh with the "-f" option:
+##      $ dstar-gantry.sh -f $HOME/dstar-gantry-foo.rc ...
+## Caveats:
+##  The default values shown below may differ from those on your
+##  system and/or environment.
+##
+##======================================================================
+
+##--------------------------------------------------------------
+## apa tweaks
+
+## AMC_ZDL_DSTAR
+##  + root directory of ddc-dstar instance on gantry host, e.g.
+##    export AMC_ZDL_DSTAR="$HOME/amc-zdl"
+##  + default: `pwd`/dstar
+[ -n "$AMC_ZDL_DSTAR" ] \
+    || AMC_ZDL_DSTAR="$(pwd)/dstar"
+
+##-- sanity checks
+[ -n "$AMC_ZDL_DSTAR" ] \
+    || die "${BASH_SOURCE[0]}: could not determine AMC_ZDL_DSTAR for DSTAR_ROOT"
+[ -d "$AMC_ZDL_DSTAR" ] \
+    || die "${BASH_SOURCE[0]}: AMC_ZDL_DSTAR=$AMC_ZDL_DSTAR appears to be missing"
+[ -d "$AMC_ZDL_DSTAR/makeTEI" ] \
+    || warn "${BASH_SOURCE[0]}: makeTEI checkout at $AMC_ZDL_DSTAR/makeTEI appears to be missing"
+
+
+##--------------------------------------------------------------
+## gantry globals
+
+## DSTAR_ROOT
+##  + host path of persistent sparse local DSTAR_ROOT checkout
+DSTAR_ROOT="$AMC_ZDL_DSTAR"
+
+##--------------------------------------------------------------
+## gantry options
+
+## gantry_cabdir_ro (-RO)
+##  + set this to ":ro" to mount $gantry_cabdir read-only
+##  + enabling this suppresses resource synchronization by the embedded container by default
+gantry_cabdir_ro=":ro"
+
+## gantry_cabrun (-x)
+##  + select cabx server(s) for container 'run' action
+#gantry_cabrun="dstar-http-9096"
+gantry_cabrun="dstar-http-de-zmorge-9095.rc"
+
+## gantry_user/gantry_group
+##  + build user/group or UID/GID (usually "ddc-admin" or current user/group)
+##  + special handling here for BBAW simulations
+#gantry_user=ddc-admin
+if [[ "$(hostname -f)" == *.@(dwds|bbaw).de ]] ; then
+  gantry_user=ddc-admin
+  gantry_group=ddc-admin
+else
+  gantry_user=$(id -un)
+  gantry_group=$(id -gn)
+fi
+
+## gantry_http_port (-p)
+##  + map container port 80 to host $gantry_http_port for 'run' action (only if non-empty)
+gantry_http_port=8001
+
+## gantry_ssh_agent
+##  + set this to "no" to disable/bypass ssh-agent
+gantry_ssh_agent=no
+
+##--------------------------------------------------------------
+## docker options
+
+## gantry_docker_opts
+##  + bash-array of initial options to `docker run`
+##  + use this to set additional default volumes, environment overrides, etc.
+gantry_docker_opts=(
+    #-- force container timezone
+    -e"dstar_build_timezone=Europe/Berlin"
+
+    #-- no SVN access
+    -e"dstar_checkout_corpus_opts=-force -dummy"
+
+    #-- relays (for CAB-expansion via de-zmorge (free) on default port 9096)
+    -e"dstar_relay_conf=/dstar/corpora/apa/contrib/etc/dstar-relay.conf"
+
+    #-- forward ports (for testing)
+    #-p9001:9001
+    #-p9096:9096
+    -p42000:42000
+
+    #-- /dstar/makeTEI : symlink targets from /dstar/sources/apa
+    -v"$(readlink -f $AMC_ZDL_DSTAR/makeTEI):/dstar/makeTEI:ro"
+
+    #-- additional init hooks (container startup scripts)
+    -v"$AMC_ZDL_DSTAR/corpora/apa/contrib/hooks/init:/opt/dstar-build-apa-init:ro"
+)
