@@ -27,7 +27,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
    -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
    -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
    -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
-   -i IMAGE              # use docker image IMAGE (default=lex.dwds.de:443/dstar/dstar-buildhost:latest)
+   -i IMAGE              # use docker image IMAGE (default=docker.zdl.org/dstar/dstar-buildhost:latest)
    -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
    -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
    -v /PATH:/MOUNT       # volume options are are passed to docker-run(1) -v
@@ -106,7 +106,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
 The C<dstar-gantry> project provides a thin top-level wrapper script
 (C<dstar-gantry.sh>) for
 D* corpus operations using the latest C<dstar-buildhost> docker image
-pulled from the ZDL docker registry at C<https://lex.dwds.de:443>.
+pulled from the ZDL docker registry at C<https://docker.zdl.org>.
 The C<dstar-buildhost> docker container invoked
 by C<dstar-gantry.sh> can simulate any of the
 L<C<BUILDHOST>|$doc/README.html#BUILDHOST>,
@@ -176,10 +176,15 @@ need credentials (username and password) for the ZDL docker registry,
 and will need to manually log into the registry
 using L<C<docker login>|https://docs.docker.com/engine/reference/commandline/login/>:
 
- $ docker login https://lex.dwds.de:443
+ $ docker login https://docker.zdl.org
  Username: ZDL_DOCKER_REGISTRY_USERNAME
  Password: ZDL_DOCKER_REGISTRY_PASSWORD
  Login Succeeded
+
+Due to updates of the underlying ZDL docker repository, the default repository
+URL has changed from C<lex.dwds.de:443> to C<docker.zdl.org> in C<dstar-gantry.sh> v0.0.4 (2021-04-21),
+which will require users to (re-)execute a C<docker login> for the new
+repository, C<docker.zdl.org>.
 
 Contact the C<dstar-gantry> maintainer or the ZDL docker registry maintainer
 (currently Gregor Middell) if you do not have credentials for the
@@ -280,12 +285,12 @@ with the L<C<pull>|/pull> action:
 
 Example output (trimmed):
 
- dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
+ dstar-gantry.sh: CMD: docker pull docker.zdl.org/dstar/dstar-buildhost:latest
  latest: Pulling from dstar/dstar-buildhost
  
  Digest: sha256:e5b47f225619e6b433df0dbcdcdfdfdb93e703893ceb6ed9f78f338e77358a77
- Status: Downloaded newer image for lex.dwds.de:443/dstar/dstar-buildhost:latest
- lex.dwds.de:443/dstar/dstar-buildhost:latest
+ Status: Downloaded newer image for docker.zdl.org/dstar/dstar-buildhost:latest
+ docker.zdl.org/dstar/dstar-buildhost:latest
  dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
 
 =item run self-test
@@ -490,7 +495,7 @@ L<C<dstar-gantry.rc> file|https://git.zdl.org/svn-mirror/dstar-gantry/src/branch
 
 Specifies the docker image to be L<pulled|/pull> and/or invoked via
 L<C<docker run>|https://docs.docker.com/engine/reference/run/>.
-Default is C<lex.dwds.de:443/dstar/dstar-buildhost:latest>.
+Default is C<docker.zdl.org/dstar/dstar-buildhost:latest>.
 
 =item -e VAR=VALUE
 
@@ -1621,12 +1626,15 @@ checking the final configuration into version control.
 
 =item Error response from daemon: ... no basic auth credentials
 
- dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
- Error response from daemon: Get https://lex.dwds.de:443/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
- dstar-gantry.sh: ERROR: command `docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest` exited abnormally with status 1
+ dstar-gantry.sh: CMD: docker pull docker.zdl.org/dstar/dstar-buildhost:latest
+ Error response from daemon: Get https://docker.zdl.org/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
+ dstar-gantry.sh: ERROR: command `docker pull docker.zdl.org/dstar/dstar-buildhost:latest` exited abnormally with status 1
 
 This error can occur when executing a L<C<gantry pull>|/pull> if you neglected to
-run C<docker login> for the ZDL docker registry.
+run C<docker login> for the ZDL docker registry.  It may also be caused by a change to the
+registry URL in the default L<IMAGE|/-i IMAGE> in C<dstar-gantry.sh> v0.0.4 (2021-04-21)
+reflecting an upstream change in the underlying ZDL docker repository URL
+(from `lex.dwds.de:443` to `docker.zdl.org`).
 See L</registry credentials>.
 
 =item WARNING: neither CORPUS nor CORPUS_ROOT specified

@@ -19,7 +19,7 @@ SYNOPSIS
        -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
        -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
        -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
-       -i IMAGE              # use docker image IMAGE (default=lex.dwds.de:443/dstar/dstar-buildhost:latest)
+       -i IMAGE              # use docker image IMAGE (default=docker.zdl.org/dstar/dstar-buildhost:latest)
        -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
        -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
        -v /PATH:/MOUNT       # volume options are are passed to docker-run(1) -v
@@ -92,8 +92,8 @@ DESCRIPTION
     The "dstar-gantry" project provides a thin top-level wrapper script
     ("dstar-gantry.sh") for D* corpus operations using the latest
     "dstar-buildhost" docker image pulled from the ZDL docker registry at
-    "https://lex.dwds.de:443". The "dstar-buildhost" docker container
-    invoked by "dstar-gantry.sh" can simulate any of the "BUILDHOST"
+    "https://docker.zdl.org". The "dstar-buildhost" docker container invoked
+    by "dstar-gantry.sh" can simulate any of the "BUILDHOST"
     <https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST>, "RUNHOST"
     <https://kaskade.dwds.de/dstar/doc/README.html#RUNHOST>, and/or
     "WEBHOST" <https://kaskade.dwds.de/dstar/doc/README.html#WEBHOST> D*
@@ -151,10 +151,16 @@ INSTALLATION
         will need to manually log into the registry using "docker login"
         <https://docs.docker.com/engine/reference/commandline/login/>:
 
-         $ docker login https://lex.dwds.de:443
+         $ docker login https://docker.zdl.org
          Username: ZDL_DOCKER_REGISTRY_USERNAME
          Password: ZDL_DOCKER_REGISTRY_PASSWORD
          Login Succeeded
+
+        Due to updates of the underlying ZDL docker repository, the default
+        repository URL has changed from "lex.dwds.de:443" to
+        "docker.zdl.org" in "dstar-gantry.sh" v0.0.4 (2021-04-21), which
+        will require users to (re-)execute a "docker login" for the new
+        repository, "docker.zdl.org".
 
         Contact the "dstar-gantry" maintainer or the ZDL docker registry
         maintainer (currently Gregor Middell) if you do not have credentials
@@ -249,12 +255,12 @@ INSTALLATION
 
         Example output (trimmed):
 
-         dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
+         dstar-gantry.sh: CMD: docker pull docker.zdl.org/dstar/dstar-buildhost:latest
          latest: Pulling from dstar/dstar-buildhost
  
          Digest: sha256:e5b47f225619e6b433df0dbcdcdfdfdb93e703893ceb6ed9f78f338e77358a77
-         Status: Downloaded newer image for lex.dwds.de:443/dstar/dstar-buildhost:latest
-         lex.dwds.de:443/dstar/dstar-buildhost:latest
+         Status: Downloaded newer image for docker.zdl.org/dstar/dstar-buildhost:latest
+         docker.zdl.org/dstar/dstar-buildhost:latest
          dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
 
     run self-test
@@ -422,15 +428,14 @@ USAGE
          $HOME/.dstar-gantry.rc
 
         See the example "dstar-gantry.rc" file
-        <http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repos
-        itory&path=%2Fddc-dstar%2Fdocker%2Fgantry%2Ftrunk%2Fdstar-gantry.rc>
-        in the "dstar-gantry" distribution for a list of available
-        variables.
+        <https://git.zdl.org/svn-mirror/dstar-gantry/src/branch/master/dstar
+        -gantry.rc> in the "dstar-gantry" distribution for a list of
+        available variables.
 
     -i IMAGE
         Specifies the docker image to be pulled and/or invoked via "docker
         run" <https://docs.docker.com/engine/reference/run/>. Default is
-        "lex.dwds.de:443/dstar/dstar-buildhost:latest".
+        "docker.zdl.org/dstar/dstar-buildhost:latest".
 
     -e VAR=VALUE
         Specify an environment variable override for the container via
@@ -790,9 +795,8 @@ USAGE
         immediate daughter node of the metacorpus to be run.
 
         See "dstar-buildhost:/dstar/init/etc_default_dstar_relay"
-        <http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repos
-        itory&path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay>
-        for syntax and more details.
+        <https://git.zdl.org/svn-mirror/ddc-dstar/src/branch/master/init/etc
+        _default_dstar_relay> for syntax and more details.
 
     VAR All environment variables are passed down to child processes (e.g.
         "dstar-nice.sh"
@@ -1365,13 +1369,16 @@ CAVEATS
 
 KNOWN BUGS AND COMMON ERRORS
     Error response from daemon: ... no basic auth credentials
-         dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
-         Error response from daemon: Get https://lex.dwds.de:443/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
-         dstar-gantry.sh: ERROR: command `docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest` exited abnormally with status 1
+         dstar-gantry.sh: CMD: docker pull docker.zdl.org/dstar/dstar-buildhost:latest
+         Error response from daemon: Get https://docker.zdl.org/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
+         dstar-gantry.sh: ERROR: command `docker pull docker.zdl.org/dstar/dstar-buildhost:latest` exited abnormally with status 1
 
         This error can occur when executing a "gantry pull" if you neglected
-        to run "docker login" for the ZDL docker registry. See "registry
-        credentials".
+        to run "docker login" for the ZDL docker registry. It may also be
+        caused by a change to the registry URL in the default IMAGE in
+        "dstar-gantry.sh" v0.0.4 (2021-04-21) reflecting an upstream change
+        in the underlying ZDL docker repository URL (from `lex.dwds.de:443`
+        to `docker.zdl.org`). See "registry credentials".
 
     WARNING: neither CORPUS nor CORPUS_ROOT specified
          dstar-gantry.sh: WARNING: neither CORPUS nor CORPUS_ROOT specified (use the -c or -C options)

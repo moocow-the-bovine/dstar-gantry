@@ -88,7 +88,7 @@
    -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
    -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
    -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
-   -i IMAGE              # use docker image IMAGE (default=lex.dwds.de:443/dstar/dstar-buildhost:latest)
+   -i IMAGE              # use docker image IMAGE (default=docker.zdl.org/dstar/dstar-buildhost:latest)
    -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
    -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
    -v /PATH:/MOUNT       # volume options are are passed to docker-run(1) -v
@@ -159,7 +159,7 @@
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<p>The <code>dstar-gantry</code> project provides a thin top-level wrapper script (<code>dstar-gantry.sh</code>) for D* corpus operations using the latest <code>dstar-buildhost</code> docker image pulled from the ZDL docker registry at <code>https://lex.dwds.de:443</code>. The <code>dstar-buildhost</code> docker container invoked by <code>dstar-gantry.sh</code> can simulate any of the <a href="https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST"><code>BUILDHOST</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README.html#RUNHOST"><code>RUNHOST</code></a>, and/or <a href="https://kaskade.dwds.de/dstar/doc/README.html#WEBHOST"><code>WEBHOST</code></a> D* <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles">host roles</a>, but is mostly intended to act as a (virtual) <a href="https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST"><code>BUILDHOST</code></a>.</p>
+<p>The <code>dstar-gantry</code> project provides a thin top-level wrapper script (<code>dstar-gantry.sh</code>) for D* corpus operations using the latest <code>dstar-buildhost</code> docker image pulled from the ZDL docker registry at <code>https://docker.zdl.org</code>. The <code>dstar-buildhost</code> docker container invoked by <code>dstar-gantry.sh</code> can simulate any of the <a href="https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST"><code>BUILDHOST</code></a>, <a href="https://kaskade.dwds.de/dstar/doc/README.html#RUNHOST"><code>RUNHOST</code></a>, and/or <a href="https://kaskade.dwds.de/dstar/doc/README.html#WEBHOST"><code>WEBHOST</code></a> D* <a href="https://kaskade.dwds.de/dstar/doc/README.html#Hosts-and-Roles">host roles</a>, but is mostly intended to act as a (virtual) <a href="https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST"><code>BUILDHOST</code></a>.</p>
 
 <p>The remainder of this document describes the <code>dstar-gantry.sh</code> wrapper script in more detail; it does <b>not</b> constitute exhaustive documentation for the dstar corpus management framework or its features and functionality, not even of that subset of the dstar functionality which can be invoked through <code>dstar-gantry.sh</code>. Please consult the relevant <a href="https://kaskade.dwds.de/dstar/doc/">dstar documentation</a> if you have questions which aren&#39;t addressed by this document.</p>
 
@@ -194,10 +194,12 @@
 
 <p>If you wish to make use of gantry&#39;s <code>pull</code> action to acquire the latest <code>dstar-buildhost</code> docker image (recommended), you will need credentials (username and password) for the ZDL docker registry, and will need to manually log into the registry using <a href="https://docs.docker.com/engine/reference/commandline/login/"><code>docker login</code></a>:</p>
 
-<pre><code> $ docker login https://lex.dwds.de:443
+<pre><code> $ docker login https://docker.zdl.org
  Username: ZDL_DOCKER_REGISTRY_USERNAME
  Password: ZDL_DOCKER_REGISTRY_PASSWORD
  Login Succeeded</code></pre>
+
+<p>Due to updates of the underlying ZDL docker repository, the default repository URL has changed from <code>lex.dwds.de:443</code> to <code>docker.zdl.org</code> in <code>dstar-gantry.sh</code> v0.0.4 (2021-04-21), which will require users to (re-)execute a <code>docker login</code> for the new repository, <code>docker.zdl.org</code>.</p>
 
 <p>Contact the <code>dstar-gantry</code> maintainer or the ZDL docker registry maintainer (currently Gregor Middell) if you do not have credentials for the ZDL docker registry.</p>
 
@@ -280,12 +282,12 @@
 
 <p>Example output (trimmed):</p>
 
-<pre><code> dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
+<pre><code> dstar-gantry.sh: CMD: docker pull docker.zdl.org/dstar/dstar-buildhost:latest
  latest: Pulling from dstar/dstar-buildhost
  
  Digest: sha256:e5b47f225619e6b433df0dbcdcdfdfdb93e703893ceb6ed9f78f338e77358a77
- Status: Downloaded newer image for lex.dwds.de:443/dstar/dstar-buildhost:latest
- lex.dwds.de:443/dstar/dstar-buildhost:latest
+ Status: Downloaded newer image for docker.zdl.org/dstar/dstar-buildhost:latest
+ docker.zdl.org/dstar/dstar-buildhost:latest
  dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.</code></pre>
 
 </dd>
@@ -442,13 +444,13 @@
 <pre><code> /etc/dstar-gantry.rc
  $HOME/.dstar-gantry.rc</code></pre>
 
-<p>See the example <a href="http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&amp;path=%2Fddc-dstar%2Fdocker%2Fgantry%2Ftrunk%2Fdstar-gantry.rc"><code>dstar-gantry.rc</code> file</a> in the <code>dstar-gantry</code> distribution for a list of available variables.</p>
+<p>See the example <a href="https://git.zdl.org/svn-mirror/dstar-gantry/src/branch/master/dstar-gantry.rc"><code>dstar-gantry.rc</code> file</a> in the <code>dstar-gantry</code> distribution for a list of available variables.</p>
 
 </dd>
 <dt id="i-IMAGE">-i IMAGE</dt>
 <dd>
 
-<p>Specifies the docker image to be <a href="#pull">pulled</a> and/or invoked via <a href="https://docs.docker.com/engine/reference/run/"><code>docker run</code></a>. Default is <code>lex.dwds.de:443/dstar/dstar-buildhost:latest</code>.</p>
+<p>Specifies the docker image to be <a href="#pull">pulled</a> and/or invoked via <a href="https://docs.docker.com/engine/reference/run/"><code>docker run</code></a>. Default is <code>docker.zdl.org/dstar/dstar-buildhost:latest</code>.</p>
 
 </dd>
 <dt id="e-VAR-VALUE">-e VAR=VALUE</dt>
@@ -742,7 +744,7 @@
 
 <p>Specifies container path containing <a href="https://linux.die.net/man/1/socat"><code>socat</code></a> relay configuration for <code>/dstar/init/dstar-relay.sh</code>. Empty by default, which starts no relays. This option is useful for workstations with insufficient resources to run embedded <a href="#dstar_cabx_run">CAB expansion servers</a> locally, or in situations where <a href="#R-RESOURCES_DIR"><code>RESOURCES_DIR</code></a> is not fully populated in order to bind &quot;virtual&quot; local ports which forward all requests to a remote server daemon (e.g. <code>data.dwds.de:9096</code> for the CAB expansion server <code>dstar-http-9096</code>). It can also be useful for testing &quot;metacorpora&quot; in a container without having to run all daughter corpora in the container as well; in this case, relays should be defined for each immediate daughter node of the metacorpus to be run.</p>
 
-<p>See <a href="http://svn.dwds.de/websvn/filedetails.php?repname=D%2A%3A+Dev-Repository&amp;path=%2Fddc-dstar%2Ftrunk%2Finit%2Fetc_default_dstar_relay"><code>dstar-buildhost:/dstar/init/etc_default_dstar_relay</code></a> for syntax and more details.</p>
+<p>See <a href="https://git.zdl.org/svn-mirror/ddc-dstar/src/branch/master/init/etc_default_dstar_relay"><code>dstar-buildhost:/dstar/init/etc_default_dstar_relay</code></a> for syntax and more details.</p>
 
 </dd>
 <dt id="VAR">VAR</dt>
@@ -1097,11 +1099,11 @@
 <dt id="Error-response-from-daemon:-...-no-basic-auth-credentials">Error response from daemon: ... no basic auth credentials</dt>
 <dd>
 
-<pre><code> dstar-gantry.sh: CMD: docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest
- Error response from daemon: Get https://lex.dwds.de:443/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
- dstar-gantry.sh: ERROR: command `docker pull lex.dwds.de:443/dstar/dstar-buildhost:latest` exited abnormally with status 1</code></pre>
+<pre><code> dstar-gantry.sh: CMD: docker pull docker.zdl.org/dstar/dstar-buildhost:latest
+ Error response from daemon: Get https://docker.zdl.org/v2/dstar/dstar-buildhost/manifests/latest: no basic auth credentials
+ dstar-gantry.sh: ERROR: command `docker pull docker.zdl.org/dstar/dstar-buildhost:latest` exited abnormally with status 1</code></pre>
 
-<p>This error can occur when executing a <a href="#pull"><code>gantry pull</code></a> if you neglected to run <code>docker login</code> for the ZDL docker registry. See <a href="#registry-credentials">&quot;registry credentials&quot;</a>.</p>
+<p>This error can occur when executing a <a href="#pull"><code>gantry pull</code></a> if you neglected to run <code>docker login</code> for the ZDL docker registry. It may also be caused by a change to the registry URL in the default <a href="#i-IMAGE">IMAGE</a> in <code>dstar-gantry.sh</code> v0.0.4 (2021-04-21) reflecting an upstream change in the underlying ZDL docker repository URL (from `lex.dwds.de:443` to `docker.zdl.org`). See <a href="#registry-credentials">&quot;registry credentials&quot;</a>.</p>
 
 </dd>
 <dt id="WARNING:-neither-CORPUS-nor-CORPUS_ROOT-specified">WARNING: neither CORPUS nor CORPUS_ROOT specified</dt>

@@ -58,6 +58,7 @@
 
 ## gantry_docker_image (-i)
 ##  + use docker image IMAGE
+##  + 2021-04-21: moved to new registry; old default="lex.dwds.de:443/dstar/dstar-buildhost:latest"
 #gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
 
 ## gantry_corpus (-c)
