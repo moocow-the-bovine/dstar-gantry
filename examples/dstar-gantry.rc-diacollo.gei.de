@@ -59,7 +59,8 @@ DSTAR_ROOT=/data/gei-diacollo/dstar
 
 ## gantry_docker_image (-i)
 ##  + use docker image IMAGE
-#gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
+##  + default prior to 2021-04-11 was: lex.dwds.de:443/dstar/dstar-buildhost:latest
+#gantry_docker_image="docker.zdl.org/dstar/dstar-buildhost:latest"
 
 ## gantry_corpus (-c)
 ## + dstar corpus label (required for most operations)
