@@ -14,7 +14,7 @@ prog=$(basename "$0")
 dstar_root_default=~/dstar
 gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
-gantry_version="0.0.3"
+gantry_version="0.0.4"
 gantry_svnid='
   $HeadURL$
   $Id$
@@ -292,7 +292,8 @@ gantry_build_args=()
 ##--------------------------------------------------------------
 ## gantry options
 gantry_dry_run=""
-gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
+#gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
+gantry_docker_image="docker.zdl.org/dstar/dstar-buildhost:latest"
 gantry_corpus=""
 gantry_corpus_root="" #$DSTAR_ROOT/corpora/$gantry_corpus
 gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus
