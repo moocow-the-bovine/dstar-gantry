@@ -457,6 +457,10 @@ if [ -z "$gantry_cabdir" -a "${DSTAR_ROOT:-no}" != "no" -a -e "$DSTAR_ROOT/resou
     gantry_cabdir="${DSTAR_ROOT}/resources"
     vinfo "setting RESOURCE_DIR=$gantry_cabdir"
 fi
+if [ "${gantry_cabdir:-no}" = "no" ] ; then
+    vinfo "disabling RESOURCE_DIR volume"
+    gantry_cabdir=""
+fi
 
 ##-- defaults: user+group
 [[ "$gantry_user"  == *[^0-9]* ]] && gantry_uid=$(id -u "$gantry_user")  || gantry_uid="$gantry_user"
