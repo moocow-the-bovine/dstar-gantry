@@ -14,7 +14,7 @@ prog=$(basename "$0")
 dstar_root_default=~/dstar
 gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
-gantry_version="0.0.4"
+gantry_version="0.0.5"
 gantry_svnid='
   $HeadURL$
   $Id$
@@ -85,6 +85,8 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    uninstall             # remove CORPUS_ROOT/{server,web}/
    publish               # deploy CORPUS_ROOT/build/ to production host(s)
    run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
+   freeze                # freeze CORPUS_ROOT/build/ subdirectory (tar cz)
+   thaw                  # thaw CORPUS_ROOT/build/ subdirectory (tar xz)
    exec CMD...           # just execute CMD... in container
 
  Host Environment Variables:
