@@ -53,6 +53,8 @@ SYNOPSIS
        uninstall             # recursively delete CORPUS_ROOT/{server,web}/
        publish               # deploy CORPUS_ROOT/build/ to production host(s)
        run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
+       freeze                # freeze CORPUS_ROOT/build/ subdirectory (tar cz)
+       thaw                  # thaw CORPUS_ROOT/build/ subdirectory (tar xz)
        shell                 # run a bash shell in the container
        exec CMD...           # execute an arbitrary CMD... in container
 
@@ -661,6 +663,21 @@ USAGE
         "docker logs"
         <https://docs.docker.com/engine/reference/commandline/logs/>
         command.
+
+    freeze
+        Archives the "CORPUS_ROOT/build/" subdirectory to
+        "CORPUS_ROOT/build-freeze.tar.gz" and removes the original "build/"
+        subdirectory on success. Can be used together with the "thaw" action
+        to reduce long-term storage space requirements for infrequently
+        updated corpora.
+
+    thaw
+        Unpacks "CORPUS_ROOT/build-freeze.tar.gz" archive(s) as created by
+        the "freeze" action to "CORPUS_ROOT/build/" and removes the original
+        "build-freeze.tar.gz" archive on success. If you "freeze" your
+        "build/" subdirectory, it will need to be "thaw"ed before you can
+        perform any build-time container operations (e.g. "build", "update",
+        "update-meta", "test", "install", or "publish").
 
     shell
         Runs a "bash" shell as the build user in the embedded container;

@@ -122,6 +122,8 @@
    uninstall             # recursively delete CORPUS_ROOT/{server,web}/
    publish               # deploy CORPUS_ROOT/build/ to production host(s)
    run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
+   freeze                # freeze CORPUS_ROOT/build/ subdirectory (tar cz)
+   thaw                  # thaw CORPUS_ROOT/build/ subdirectory (tar xz)
    shell                 # run a bash shell in the container
    exec CMD...           # execute an arbitrary CMD... in container
 
@@ -622,6 +624,18 @@
 <p>Runs a <a href="#c-CORPUS"><code>CORPUS</code></a> instance from <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/{server,web}/</code> in the temporary container. For this action, you will probably also want to specify <a href="#p-HTTP_PORT"><code>-p HTTP_PORT</code></a>. If specified, this must be the last container action executed.</p>
 
 <p>You can inspect the console log for the embedded container with the <a href="https://docs.docker.com/engine/reference/commandline/logs/"><code>docker logs</code></a> command.</p>
+
+</dd>
+<dt id="freeze">freeze</dt>
+<dd>
+
+<p>Archives the <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> subdirectory to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build-freeze.tar.gz</code> and removes the original <code>build/</code> subdirectory on success. Can be used together with the <code><a href="#thaw">thaw</a></code> action to reduce long-term storage space requirements for infrequently updated corpora.</p>
+
+</dd>
+<dt id="thaw">thaw</dt>
+<dd>
+
+<p>Unpacks <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build-freeze.tar.gz</code> archive(s) as created by the <code><a href="#freeze">freeze</a></code> action to <code><a href="#C-CORPUS_ROOT">CORPUS_ROOT</a>/build/</code> and removes the original <code>build-freeze.tar.gz</code> archive on success. If you <code><a href="#freeze">freeze</a></code> your <code>build/</code> subdirectory, it will need to be <code><a href="#thaw">thaw</a></code>ed before you can perform any build-time container operations (e.g. <code>build</code>, <code>update</code>, <code>update-meta</code>, <code>test</code>, <code>install</code>, or <code>publish</code>).</p>
 
 </dd>
 <dt id="shell">shell</dt>

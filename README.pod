@@ -61,6 +61,8 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
    uninstall             # recursively delete CORPUS_ROOT/{server,web}/
    publish               # deploy CORPUS_ROOT/build/ to production host(s)
    run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
+   freeze                # freeze CORPUS_ROOT/build/ subdirectory (tar cz)
+   thaw                  # thaw CORPUS_ROOT/build/ subdirectory (tar xz)
    shell                 # run a bash shell in the container
    exec CMD...           # execute an arbitrary CMD... in container
 
@@ -784,6 +786,30 @@ If specified, this must be the last container action executed.
 
 You can inspect the console log for the embedded container with the
 L<C<docker logs>|https://docs.docker.com/engine/reference/commandline/logs/> command.
+
+=item freeze
+
+Archives the C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/> subdirectory to
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build-freeze.tar.gz> and removes the
+original C<build/> subdirectory on success.  Can be used together with the C<L<thaw|/thaw>> action
+to reduce long-term storage space
+requirements for infrequently updated corpora.
+
+=item thaw
+
+Unpacks C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build-freeze.tar.gz> archive(s)
+as created by the C<L<freeze|/freeze>> action to
+C<L<CORPUS_ROOT|/-C CORPUS_ROOT>/build/> and removes the original
+C<build-freeze.tar.gz> archive on success.
+If you C<L<freeze|/freeze>> your C<build/> subdirectory, it will
+need to be C<L<thaw|/thaw>>ed before you can perform any
+build-time container operations (e.g.
+C<build>,
+C<update>,
+C<update-meta>,
+C<test>,
+C<install>,
+or C<publish>).
 
 =item shell
 

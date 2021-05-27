@@ -87,6 +87,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
    run                   # run CORPUS_ROOT/{server,web}/ corpus instance in container
    freeze                # freeze CORPUS_ROOT/build/ subdirectory (tar cz)
    thaw                  # thaw CORPUS_ROOT/build/ subdirectory (tar xz)
+   shell                 # run a bash shell in the container
    exec CMD...           # just execute CMD... in container
 
  Host Environment Variables:

@@ -1,0 +1,2 @@
+svntags=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/tags
+tagprefix=dstar-gantry
