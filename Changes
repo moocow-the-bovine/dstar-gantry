@@ -1,0 +1,66 @@
+##-*- Mode: Change-Log; coding: utf-8; -*-
+##
+## Change log for dstar-gantry
+
+v0.0.5 2021-05-27  moocow
+	* updated README
+	* dstar-gantry.sh : added help message for new freeze/thaw actions
+	* allow disabling of resource volume-mount by specifying -R no
+
+v0.0.4 2021-04-21  moocow
+	* typo fix
+	* change default docker registry from lex.dwds.de:443 to docker.zdl.org (README, examples, defaults)
+
+v0.0.3 2021-04-15  moocow
+	* updated dstar-gantry.rc-apa.oeaw.ac.at from https://git.zdl.org/jurish/dstar.amc_zdl/src/branch/master/etc/dstar-gantry.rc
+	* examples/dstar-gantry.rc-amc-zdl.oeaw.ac.at : allow gantry_ssh_agent override for BBAW testing
+	* info message preposition swap (ssh forwarding to->from container)
+	* added amc-zdl example configuration
+	* improved gantry debugging output (auto-quote)
+	* group lookup fix (id doesn't work; need getent)
+
+v0.0.2 2021-02-18  moocow
+	* link updates (odo->kaskade)/~moocow
+	* dstar-gantry.rc examples: inherit host timezone
+	* dstar-gantry.rc-lal.dwds.de : inherit host timezone
+	* added docs for dstar_build_timezone container environment variable
+	* readme fix
+	* documented SERVER_ULIMIT_MEM
+	* documented SERVER_ULIMIT_MEM
+	* README_gantry: partial build: re-indexing
+	* added LICENSE
+	* fixed some gantry_group -> gantry_gid bugs
+	* documented new gantry options
+	* added dstar-gantry.sh -a (-no-ssh-agent) option (for expert use only)
+
+v0.0.1 2020-09-16  moocow
+	* use -local-config for diacollo.gei.de
+	* added dstar-gantry.rc-diacollo.gei.de
+	* stale checkins from carrot
+	* added gantry config for kira.bbaw.de
+	* gantry README: partial build examples
+	* more errors and stuff in gantry README
+	* updated odo.dwds.de references to new DNS alias svn.dwds.de
+	* more documentation
+	* document docker --name errors
+	* added lal dstar-gantry.rc
+	* fixed CORPUS_SRC preference list in docs
+	* prefer DSTAR_ROOT/sources/COPRUS to DSTAR_ROOT/corpus/src symlink for default $gantry_corpus_src
+	* doc tweaks and typo fixes
+	* gantry foreground/bacckground options
+	* gantry rc caveats
+	* added example dstar-gantry.rc
+	* user/group sanity check fixes
+	* CORPUS_ROOT ownership warnings
+	* auto-create CORPUS_ROOT for build actions
+	* gc check for empty image list
+	* better defaults for gantry_root
+	* more gantry docs
+	* added sync-self action
+	* gantry version stuff
+
+v0.0.0 2020-07-07  moocow
+	* basic documentation
+	* dstar-gantry.sh : self-tests via container
+	* bells & whistles: user config-file, init (persistent sparse checkout), pull (docker image)
+	* initial creation: host-side wrapper script for use with dstar-buildhost docker image
