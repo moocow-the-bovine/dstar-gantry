@@ -1116,7 +1116,7 @@
 <p>See <a href="https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/master/src/README.md"><code>dstar-resources-build/src/README.md</code></a> for more details.</p>
 
 </dd>
-<dt id="Build-resources">Build resources</dt>
+<dt id="Build-default-resources">Build default resources</dt>
 <dd>
 
 <pre><code> HOST$ dstar-gantry.sh \
@@ -1159,7 +1159,7 @@
 
 <pre><code> HOST$ docker run --rm dstar-rcbuildhost tar cC /dstar resources | tar x</code></pre>
 
-<p>This should create a <code>resources/</code> directory with an appropriate <code>resources/build</code> subdirectory for use by the image.</p>
+<p>This should create a <code>resources/</code> directory on the host with a <code>resources/build</code> subdirectory suitable for use by the <code>dstar-rcbuildhost</code> image.</p>
 
 </dd>
 <dt id="Inject-non-SVN-resource-build-sources">Inject non-SVN resource-build sources</dt>
@@ -1170,7 +1170,7 @@
 <p>See <a href="https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/master/src/README.md"><code>dstar-resources-build/src/README.md</code></a> for more details.</p>
 
 </dd>
-<dt id="Re--Build-resources">(Re-)Build resources</dt>
+<dt id="Build-default-resources-and-intermediate-data">Build default resources and intermediate data</dt>
 <dd>
 
 <pre><code> HOST$ dstar-gantry.sh \

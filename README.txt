@@ -1364,7 +1364,7 @@ EXAMPLES
         <https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/mas
         ter/src/README.md> for more details.
 
-    Build resources
+    Build default resources
          HOST$ dstar-gantry.sh \
             -i docker.zdl.org/dstar/dstar-rcbuildhost \
             -R no \
@@ -1397,8 +1397,9 @@ EXAMPLES
     Export "/dstar/resources" subtree from the image
          HOST$ docker run --rm dstar-rcbuildhost tar cC /dstar resources | tar x
 
-        This should create a "resources/" directory with an appropriate
-        "resources/build" subdirectory for use by the image.
+        This should create a "resources/" directory on the host with a
+        "resources/build" subdirectory suitable for use by the
+        "dstar-rcbuildhost" image.
 
     Inject non-SVN resource-build sources
          HOST$ rsync -vau kira.bbaw.de:/home/ddc-dstar/arc/resources/src/ resources/build/src/
@@ -1407,7 +1408,7 @@ EXAMPLES
         <https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/mas
         ter/src/README.md> for more details.
 
-    (Re-)Build resources
+    Build default resources and intermediate data
          HOST$ dstar-gantry.sh \
             -i docker.zdl.org/dstar/dstar-rcbuildhost \
             -R $PWD/resources \
