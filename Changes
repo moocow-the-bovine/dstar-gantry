@@ -2,6 +2,9 @@
 ##
 ## Change log for dstar-gantry
 
+v0.0.6 2021-08-03  moocow
+	* updated README with rcbuildhost examples
+
 v0.0.5 2021-05-27  moocow
 	* updated README
 	* dstar-gantry.sh : added help message for new freeze/thaw actions

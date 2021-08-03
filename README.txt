@@ -1330,6 +1330,104 @@ EXAMPLES
         <https://kaskade.dwds.de/dstar/doc/README_build.html#Importing-legac
         y-DDC-XML-files>.
 
+  Example: Building Language Resources
+    It is possible to use "dstar-gantry.sh" together with a specialized
+    "dstar-rcbuildhost"
+    <https://git.zdl.org/svn-mirror/dstar-docker/src/branch/master/build/dst
+    ar-rcbuildhost> docker image (via the "-i" option) and appropriate
+    sources
+    <https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/master/
+    src> to compile CAB language resources
+    <https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/master/
+    README.txt> to a host directory suitable for use with the "-R" option.
+
+    Retrieve the "dstar-rcbuildhost" image
+         HOST$ docker pull docker.zdl.org/dstar/dstar-rcbuildhost
+
+         Using default tag: latest
+         45a55f753283: Pull complete 
+         Digest: sha256:8af79141d7d8f7f95cec0ca52d06c3e56722e3c53323d8b9caab5263f6ea1b12
+         Status: Downloaded newer image for docker.zdl.org/dstar/dstar-rcbuildhost:latest
+         docker.zdl.org/dstar/dstar-rcbuildhost:latest
+
+    Checkout resource-build output directory
+         HOST$ svn checkout svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk/resources resources
+
+        This directory will contain the built resources; it should also
+        contain some configuration files which live in SVN, so it's easiest
+        to checkout the SVN project first and build into that.
+
+    Setup non-SVN resource-build sources
+         HOST$ rsync -vau kira.bbaw.de:/home/ddc-dstar/arc/resources/src/ resources-src
+
+        See "dstar-resources-build/src/README.md"
+        <https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/mas
+        ter/src/README.md> for more details.
+
+    Build resources
+         HOST$ dstar-gantry.sh \
+            -i docker.zdl.org/dstar/dstar-rcbuildhost \
+            -R no \
+            -e dstar_sync_resources=no \
+            -v "$PWD/resources:/dstar/resources/install" \
+            -v "$PWD/resources-src:/dstar/resources/build/src:ro" \
+            -- -- \
+            env init exec make -C /dstar/resources/build all install
+
+    Build specific resources
+        Alternatively, you can choose to (re-)build resources for only a
+        single "language", e.g. "en_wsj", "de_dta", or "de_dstar" by calling
+
+         HOST$ dstar-gantry.sh ... \
+           -- -- env init exec make -C /dstar/resources/build all-de_dta install-de_dta
+
+    On completion, the resources you have (re-)built should be available
+    under your "resources/" checkout.
+
+  Example: Persistent Language Resource Builds
+    In "Example: Building Language Resources", intermediate resource build
+    files are not saved. This can be irritating and time-consuming if you
+    need to do it often. In that case, it's probably best to export the
+    whole "/dstar/resources" subtree from the container and just bind-mount
+    that in.
+
+    Preliminaries
+        See "Retrieve the "dstar-rcbuildhost" image".
+
+    Export "/dstar/resources" subtree from the image
+         HOST$ docker run --rm dstar-rcbuildhost tar cC /dstar resources | tar x
+
+        This should create a "resources/" directory with an appropriate
+        "resources/build" subdirectory for use by the image.
+
+    Inject non-SVN resource-build sources
+         HOST$ rsync -vau kira.bbaw.de:/home/ddc-dstar/arc/resources/src/ resources/build/src/
+
+        See "dstar-resources-build/src/README.md"
+        <https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/mas
+        ter/src/README.md> for more details.
+
+    (Re-)Build resources
+         HOST$ dstar-gantry.sh \
+            -i docker.zdl.org/dstar/dstar-rcbuildhost \
+            -R $PWD/resources \
+            -e dstar_sync_resources=no \
+            -e CABRC_INSTALL_ROOT=/dstar/resources \
+            -- -- \
+            env init exec make -C /dstar/resources/build all install
+
+        Analogous to "Build specific resources", but leaves intermediate
+        build files in place under "resources/build", which can be re-used
+        by subsequent resource builds.
+
+    If you use this method, you probably don't want to distribute the whole
+    "resources" directory including sources and intermediate files: leave
+    out at least the "src/" and "build/" subdirectories, or use the
+    "publish" target of "resources/Makefile" to publish resources; see
+    "resources/README.txt"
+    <https://git.zdl.org/svn-mirror/ddc-dstar/src/branch/master/resources/RE
+    ADME.txt> for details.
+
 CAVEATS
   docker storage drivers
     Problems with runtime cross-layer copy operations have been observed in
@@ -1693,7 +1791,7 @@ AUTHOR
     administration system and the "dstar-gantry" wrappers.
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2020 by Bryan Jurish
+    Copyright (C) 2020-2021 by Bryan Jurish
 
     This package is free software; you can redistribute it and/or modify it
     under the terms of the European Union Public Licence. See the file
