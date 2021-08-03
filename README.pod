@@ -1690,8 +1690,9 @@ for more details.
     -- -- \
     env init exec make -C /dstar/resources/build all install
 
-Analogous to L<Build specific resources>, but leaves intermediate build
+Analogous to L<Build default resources>, but leaves intermediate build
 files in place under C<resources/build>, which can be re-used by subsequent resource builds.
+You can of course L<Build specific resources> using this method too.
 
 =back
 
