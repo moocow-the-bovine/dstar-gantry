@@ -31,7 +31,7 @@ SYNOPSIS
      dstar-gantry.sh Actions (GANTRY_ACTION(s)):
        init                  # (re-)initialize persistent sparse local DSTAR_ROOT checkout
        sync-host             # syncronize local DSTAR_ROOT checkout via `svn update`
-       sync-self             # syncronize local DSTAR_ROOT checkout via `svn update`
+       sync-self             # syncronize local DSTAR_ROOT checkout via `git pull` or `svn update`
        sync                  # alias for 'sync-host' and 'sync-self'
        pull                  # retrieve selected IMAGE from docker registry (may require `docker login`)
        gc                    # clean up stale local dstar-buildhost docker images
@@ -168,6 +168,11 @@ INSTALLATION
         maintainer (currently Gregor Middell) if you do not have credentials
         for the ZDL docker registry.
 
+        If you have no ZDL docker credentials, you can use the public docker
+        images (e.g. "cudmuncher/dstar-buildhost:latest") available on
+        dockerhub, but be aware that the dockerhub images may not be
+        up-to-date with those from the ZDL registry.
+
     ssh-agent
         You will need an accessible ssh-agent
         <https://en.wikipedia.org/wiki/Ssh-agent> for your local user
@@ -203,8 +208,14 @@ INSTALLATION
 
   Installation Procedure
     download gantry
-        Checkout the gantry project itself from SVN to your local machine,
-        for example to $HOME/dstar-gantry:
+        Checkout the gantry project itself from git or SVN to your local
+        machine, for example to $HOME/dstar-gantry:
+
+         # Checkout via github (public)
+         $ git clone git@github.com:moocow-the-bovine/dstar-gantry ~/dstar-gantry
+
+        If you have DWDS SVN credentials, you can also use the original SVN
+        repository (which is no longer maintained by the original author):
 
          $ svn checkout svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
 
@@ -264,6 +275,11 @@ INSTALLATION
          Status: Downloaded newer image for docker.zdl.org/dstar/dstar-buildhost:latest
          docker.zdl.org/dstar/dstar-buildhost:latest
          dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
+
+        If you don't have ZDL docker registry credentials, use the public
+        images from dockerhub:
+
+         $ dstar-gantry.sh -i cudmuncher/dstar-buildhost:latest pull
 
     run self-test
         Run rudimentary self-tests with the gantry "self-test" action:
@@ -437,7 +453,9 @@ USAGE
     -i IMAGE
         Specifies the docker image to be pulled and/or invoked via "docker
         run" <https://docs.docker.com/engine/reference/run/>. Default is
-        "docker.zdl.org/dstar/dstar-buildhost:latest".
+        "docker.zdl.org/dstar/dstar-buildhost:latest". If you don't have
+        either a local image or ZDL docker registry credentials, you should
+        probably set this to "cudmuncher.de/dstar-buildhost:latest".
 
     -e VAR=VALUE
         Specify an environment variable override for the container via
@@ -495,12 +513,12 @@ USAGE
     ensure that your "DSTAR_ROOT" checkout is up-to-date.
 
    sync-self
-    Attempts to synchronize the local "dstar-gantry" checkout via "svn
-    update". If the "dstar-gantry.sh" script (or symlink) does not resolve
-    to an SVN working copy on your system, this won't work, and you will
-    need to perform any updates manually. You should typically call this
-    before each "dstar-gantry.sh" operation, in order to ensure that your
-    "dstar-gantry.sh" itself is up-to-date.
+    Attempts to synchronize the local "dstar-gantry" checkout via "git pull"
+    or "svn update". If the "dstar-gantry.sh" script (or symlink) does not
+    resolve to a git or SVN working copy on your system, this won't work,
+    and you will need to perform any updates manually. You should typically
+    call this before each "dstar-gantry.sh" operation, in order to ensure
+    that your "dstar-gantry.sh" itself is up-to-date.
 
    sync
     Convenience alias for the "sync-host" and "sync-self" actions.
@@ -1417,9 +1435,10 @@ EXAMPLES
             -- -- \
             env init exec make -C /dstar/resources/build all install
 
-        Analogous to "Build specific resources", but leaves intermediate
+        Analogous to "Build default resources", but leaves intermediate
         build files in place under "resources/build", which can be re-used
-        by subsequent resource builds.
+        by subsequent resource builds. You can of course "Build specific
+        resources" using this method too.
 
     If you use this method, you probably don't want to distribute the whole
     "resources" directory including sources and intermediate files: leave

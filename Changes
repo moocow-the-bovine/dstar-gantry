@@ -2,6 +2,11 @@
 ##
 ## Change log for dstar-gantry
 
+v0.0.7 2021-08-31 moocow
+	* migrated dstar-gantry itself to github
+	* added public dstar-gantry github URL to README
+	* added public docker-hub cudmuncher/dstar-buildhost image notes to README
+
 v0.0.6 2021-08-03  moocow
 	* updated README with rcbuildhost examples
 

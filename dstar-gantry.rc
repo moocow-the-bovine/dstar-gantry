@@ -29,7 +29,8 @@
 
 ## gantry_root
 ##  + host path to gantry installation root
-##  + should be an svn checkout of svn+ssh://odo.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk
+##  + should be a git clone of git@github.com:moocow-the-bovine/dstar-gantry
+##    OR an (backwards-compatible) svn checkout of svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk
 #gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 
 ## gantry_docker_registry_path

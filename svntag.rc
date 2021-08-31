@@ -1,3 +1,5 @@
-svntags=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/tags
+scm=git
+#svntags=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/tags
+
 tagprefix=dstar-gantry
 [ -n "$tagversion" ] || tagversion=$(grep -P '^gantry_version=' bin/dstar-gantry.sh | cut -d= -f2 | perl -pe 's/"//g;')

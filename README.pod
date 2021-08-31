@@ -39,7 +39,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
  dstar-gantry.sh Actions (GANTRY_ACTION(s)):
    init                  # (re-)initialize persistent sparse local DSTAR_ROOT checkout
    sync-host             # syncronize local DSTAR_ROOT checkout via `svn update`
-   sync-self             # syncronize local DSTAR_ROOT checkout via `svn update`
+   sync-self             # syncronize local DSTAR_ROOT checkout via `git pull` or `svn update`
    sync                  # alias for 'sync-host' and 'sync-self'
    pull                  # retrieve selected IMAGE from docker registry (may require `docker login`)
    gc                    # clean up stale local dstar-buildhost docker images
@@ -192,6 +192,9 @@ Contact the C<dstar-gantry> maintainer or the ZDL docker registry maintainer
 (currently Gregor Middell) if you do not have credentials for the
 ZDL docker registry.
 
+If you have no ZDL docker credentials, you can use the public docker images (e.g. C<cudmuncher/dstar-buildhost:latest>)
+available on dockerhub, but be aware that the dockerhub images may not be up-to-date with those from the ZDL registry.
+
 =item ssh-agent
 
 You will need an accessible L<ssh-agent|https://en.wikipedia.org/wiki/Ssh-agent>
@@ -231,8 +234,14 @@ See L<C<dstar/doc/README_ssh.txt>|$doc/README_ssh.html> for more details.
 
 =item download gantry
 
-Checkout the gantry project itself from SVN to your local machine,
+Checkout the gantry project itself from git or SVN to your local machine,
 for example to $HOME/dstar-gantry:
+
+ # Checkout via github (public)
+ $ git clone git@github.com:moocow-the-bovine/dstar-gantry ~/dstar-gantry
+
+If you have DWDS SVN credentials, you can also use the original SVN repository
+(which is no longer maintained by the original author):
 
  $ svn checkout svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
 
@@ -294,6 +303,10 @@ Example output (trimmed):
  Status: Downloaded newer image for docker.zdl.org/dstar/dstar-buildhost:latest
  docker.zdl.org/dstar/dstar-buildhost:latest
  dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
+
+If you don't have ZDL docker registry credentials, use the public images from dockerhub:
+
+ $ dstar-gantry.sh -i cudmuncher/dstar-buildhost:latest pull
 
 =item run self-test
 
@@ -498,6 +511,8 @@ L<C<dstar-gantry.rc> file|https://git.zdl.org/svn-mirror/dstar-gantry/src/branch
 Specifies the docker image to be L<pulled|/pull> and/or invoked via
 L<C<docker run>|https://docs.docker.com/engine/reference/run/>.
 Default is C<docker.zdl.org/dstar/dstar-buildhost:latest>.
+If you don't have either a local image or ZDL docker registry credentials,
+you should probably set this to C<cudmuncher.de/dstar-buildhost:latest>.
 
 =item -e VAR=VALUE
 
@@ -566,8 +581,8 @@ C<L<DSTAR_ROOT|/-d DSTAR_ROOT>> checkout is up-to-date.
 
 =head3 sync-self
 
-Attempts to synchronize the local C<dstar-gantry> checkout via C<svn update>.
-If the C<dstar-gantry.sh> script (or symlink) does not resolve to an SVN working copy
+Attempts to synchronize the local C<dstar-gantry> checkout via C<git pull> or C<svn update>.
+If the C<dstar-gantry.sh> script (or symlink) does not resolve to a git or SVN working copy
 on your system, this won't work, and you will need to perform any updates manually.
 You should typically
 call this before each C<dstar-gantry.sh> operation, in order to ensure that your

@@ -14,7 +14,7 @@ prog=$(basename "$0")
 dstar_root_default=~/dstar
 gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
-gantry_version="0.0.6"
+gantry_version="0.0.7"
 gantry_svnid='
   $HeadURL$
   $Id$
@@ -63,7 +63,7 @@ Usage: $prog [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]
  $prog Actions (GANTRY_ACTION(s)):
    init                  # (re-)initialize persistent sparse local DSTAR_ROOT checkout
    sync-host             # syncronize local DSTAR_ROOT checkout via \`svn update\`
-   sync-self             # syncronize local dstar-gantry checkout via \`svn update\`
+   sync-self             # syncronize local dstar-gantry checkout via \`git pull\` or \`svn update\`
    sync                  # alise for 'sync-host' and 'sync-self'
    pull                  # retrieve selected IMAGE from docker registry (may require \`docker login\`)
    gc                    # clean up stale local dstar-buildhost docker images
@@ -227,14 +227,29 @@ svn_wc_url() {
 act_gantry_sync_self() {
     ##-- sync: self
     local uppath=$(readlink -f "$gantry_root")
-    local upurl=$(svn_wc_url "$uppath")
-    if [ -z "$upurl" ] ; then
-	warn "gantry path path '$uppath' does not appear to be a working copy - cannot self-synchronize"
-	return 1
+    local upscm=""
+    local upurl=""
+
+    ##-- upstream SCM & URL
+    if [ -d "$uppath/.git" ] ; then
+	upscm=git
+	upurl=$(git -C "$uppath" config --get remote.origin.url)
+    else
+	upscm=svn
+	upurl=$(svn_wc_url "$uppath")
     fi
 
-    vinfo "updating gantry SVN checkout at \`$uppath' from \`$upurl'"
-    runcmd svn update "$uppath"
+    ##-- actual sync
+    if [ "$upscm" = "git" ] ; then
+	vinfo "updating gantry git clone at \`$uppath' from \`$upurl'"
+	runcmd git -C "$uppath" pull
+    elif [ "upscm" = "svn" ] ; then
+	vinfo "updating gantry SVN checkout at \`$uppath' from \`$upurl'"
+	runcmd svn update "$uppath"
+    else
+	warn "gantry path path '$uppath' does not appear to be a git or SVN working copy - cannot self-synchronize"
+	return 1
+    fi
 }
 
 ##--------------------------------------------------------------
