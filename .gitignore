@@ -1,0 +1,9 @@
+*~
+.*~
+*.d
+
+pnn_test*
+/rcbuild
+/gantry-cudmuncher.rc
+/bin/gantry.rc
+
