@@ -33,15 +33,11 @@
 ##    OR an (backwards-compatible) svn checkout of svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk
 #gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 
-## gantry_docker_registry_path
-##  + path prefix for $gantry_docker_image on $gantry_docker_registry
-#gantry_docker_registry_path=/dstar
-
 ## gantry_gc_filter
 ##  + filter conditions for gantry garbage collection
 ##  + stale images are those returned by `docker images -qa ${gantry_gc_filter}`
 #gantry_gc_filter="-f dangling=true -f label=de.dwds.project.name=dstar-buildhost"
- 
+
 ##--------------------------------------------------------------
 ## gantry options
 
@@ -61,6 +57,14 @@
 ##  + use docker image IMAGE
 ##  + 2021-04-21: moved to new registry; old default="lex.dwds.de:443/dstar/dstar-buildhost:latest"
 #gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
+#gantry_docker_image="docker.zdl.org/dstar/dstar-buildhost:latest"
+#gantry_docker_image="cudmuncher/dstar-buildhost:latest"
+
+## gantry_dstar_svnroot
+##  + root of dstar SVN repo used for various operations
+##  + if you have no such repo, consider including `-e dstar_checkout_corpus_opts="-dummy"` in gantry_docker_opts
+#gantry_dstar_svnroot=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk
+#gantry_dstar_svnroot=svn+ssh://cudmuncher.de/home/svn/dev/ddc-dstar/trunk
 
 ## gantry_corpus (-c)
 ## + dstar corpus label (required for most operations)
@@ -109,8 +113,11 @@
 ## gantry_docker_opts
 ##  + bash-array of initial options to `docker run`
 ##  + use this to set additional default volumes, environment overrides, etc.
-#gantry_docker_opts=()
- 
+gantry_docker_opts=(
+    #-e DSTAR_SVN_HOST=cudmuncher.de
+    #-e dstar_checkout_corpus_opts="-dummy -force -all"
+)
+
 ##--------------------------------------------------------------
 ## build args
 

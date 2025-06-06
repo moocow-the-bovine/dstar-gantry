@@ -181,8 +181,6 @@ find_dstar_root() {
 
 
 ##--------------------------------------------------------------
-[ -z "$gantry_dstar_svnroot" ] \
-    && gantry_dstar_svnroot=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk
 act_gantry_init() {
     ##-- initialize: DSTAR_ROOT
     set_dstar_root
@@ -253,8 +251,6 @@ act_gantry_sync_self() {
 }
 
 ##--------------------------------------------------------------
-[ -z "$gantry_docker_registry_path" ] \
-    && gantry_docker_registry_path=/dstar
 act_gantry_sync_host() {
     ##-- sync: DSTAR_ROOT
     set_dstar_root
@@ -313,6 +309,8 @@ gantry_dry_run=""
 #gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
 #gantry_docker_image="docker.zdl.org/dstar/dstar-buildhost:latest"
 gantry_docker_image="cudmuncher/dstar/dstar-buildhost:latest"
+#gantry_dstar_svnroot="svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk"
+gantry_dstar_svnroot="svn+ssh://cudmuncher.de/home/svn/dev/ddc-dstar/trunk"
 gantry_corpus=""
 gantry_corpus_root="" #$DSTAR_ROOT/corpora/$gantry_corpus
 gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus

@@ -2,6 +2,9 @@
 ##
 ## Change log for dstar-gantry
 
+(WIP) 2025-06-06 moocow
+	* changed default svnroot and docker image to cudmuncher URLs
+
 v0.0.7 2021-08-31 moocow
 	* migrated dstar-gantry itself to github
 	* added public dstar-gantry github URL to README

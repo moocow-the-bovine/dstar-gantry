@@ -27,7 +27,7 @@ dstar-gantry - convenience wrapper for container-based dstar corpus operations
    -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
    -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
    -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
-   -i IMAGE              # use docker image IMAGE (default=docker.zdl.org/dstar/dstar-buildhost:latest)
+   -i IMAGE              # use docker image IMAGE (default=cudmuncher/dstar-buildhost:latest)
    -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
    -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
    -v /PATH:/MOUNT       # volume options are are passed to docker-run(1) -v
@@ -512,7 +512,7 @@ Specifies the docker image to be L<pulled|/pull> and/or invoked via
 L<C<docker run>|https://docs.docker.com/engine/reference/run/>.
 Default is C<docker.zdl.org/dstar/dstar-buildhost:latest>.
 If you don't have either a local image or ZDL docker registry credentials,
-you should probably set this to C<cudmuncher.de/dstar-buildhost:latest>.
+you should probably set this to C<cudmuncher/dstar-buildhost:latest>.
 
 =item -e VAR=VALUE
 
