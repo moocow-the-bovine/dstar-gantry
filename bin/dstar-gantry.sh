@@ -16,8 +16,8 @@ gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
 gantry_version="0.0.7"
 gantry_svnid='
-  $HeadURL$
-  $Id$
+  §HeadURL: https://github.com/moocow-the-bovine/dstar-gantry/blob/master/bin/dstar-gantry.sh $
+  $Id: dstar-gantry.sh $
 '
 
 ##======================================================================
@@ -158,8 +158,8 @@ read_rcfile() {
 ##--------------------------------------------------------------
 set_dstar_root() {
     if [ -z "$DSTAR_ROOT" ] ; then
-	DSTAR_ROOT=$(readlink -m $dstar_root_default)
-	warn "implicitly setting default DSTAR_ROOT=$DSTAR_ROOT"
+	    DSTAR_ROOT=$(readlink -m $dstar_root_default)
+	    warn "implicitly setting default DSTAR_ROOT=$DSTAR_ROOT"
     fi
     DSTAR_ROOT=$(readlink -m "$DSTAR_ROOT")
     export DSTAR_ROOT
@@ -168,13 +168,13 @@ set_dstar_root() {
 ##--------------------------------------------------------------
 find_dstar_root() {
     if [ "${DSTAR_ROOT:-no}" = "no" -a -e $dstar_root_default ] ; then
-	DSTAR_ROOT=$(readlink -m $dstar_root_default)
-	vinfo "using default DSTAR_ROOT=$DSTAR_ROOT" # (set DSTAR_ROOT=no to disable)
+	    DSTAR_ROOT=$(readlink -m $dstar_root_default)
+	    vinfo "using default DSTAR_ROOT=$DSTAR_ROOT" # (set DSTAR_ROOT=no to disable)
     elif [ "${DSTAR_ROOT:-no}" = "no" ] ; then
-	warn "DSTAR_ROOT not set and and default $dstar_root_default/ (did you forget to run \`$prog init\`?)"
+	    warn "DSTAR_ROOT not set and and default $dstar_root_default/ (did you forget to run \`$prog init\`?)"
     else
-	vinfo "using DSTAR_ROOT=$DSTAR_ROOT"
-	DSTAR_ROOT=$(readlink -m "$DSTAR_ROOT")
+	    vinfo "using DSTAR_ROOT=$DSTAR_ROOT"
+	    DSTAR_ROOT=$(readlink -m "$DSTAR_ROOT")
     fi
     export DSTAR_ROOT
 }
@@ -188,27 +188,27 @@ act_gantry_init() {
     set_dstar_root
     vinfo "init: (re-)initializing sparse persistent DSTAR_ROOT=$DSTAR_ROOT"
     [ -e "$DSTAR_ROOT/.svn" ] \
-	|| runordie svn co --depth=files "$gantry_dstar_svnroot" "$DSTAR_ROOT"
+	    || runordie svn co --depth=files "$gantry_dstar_svnroot" "$DSTAR_ROOT"
 
     local dir depth
     for dir in resources ; do
-	[ -d "$DSTAR_ROOT/$dir" ] && depth="" || depth="--set-depth=infinity"
-	runordie svn up $depth "$DSTAR_ROOT/$dir"
+	    [ -d "$DSTAR_ROOT/$dir" ] && depth="" || depth="--set-depth=infinity"
+	    runordie svn up $depth "$DSTAR_ROOT/$dir"
     done
 
     for dir in corpora sources doc ; do
-	[ -d "$DSTAR_ROOT/$dir" ] && depth="" || depth="--set-depth=files"
-	runordie svn up $depth "$DSTAR_ROOT/$dir"
+	    [ -d "$DSTAR_ROOT/$dir" ] && depth="" || depth="--set-depth=files"
+	    runordie svn up $depth "$DSTAR_ROOT/$dir"
     done
 
     ##-- initialize: permissions
     if [ -n "$gantry_user" -a "$(id -u "$gantry_user")" != "$(id -u)" ] ; then
-	for dir in resources corpora ; do
-	    [ -d "$DSTAR_ROOT/$dir" ] || continue
-	    vinfo "init: enabling write-permission on $DSTAR_ROOT/$dir for group '$gantry_group'"
-	    runordie chgrp -R "$gantry_group" "$DSTAR_ROOT/$dir"
-	    runordie chmod -R g+w "$DSTAR_ROOT/$dir"
-	done
+	    for dir in resources corpora ; do
+	        [ -d "$DSTAR_ROOT/$dir" ] || continue
+	        vinfo "init: enabling write-permission on $DSTAR_ROOT/$dir for group '$gantry_group'"
+	        runordie chgrp -R "$gantry_group" "$DSTAR_ROOT/$dir"
+	        runordie chmod -R g+w "$DSTAR_ROOT/$dir"
+	    done
     fi
 
     ##-- initialize: docker login
@@ -232,23 +232,23 @@ act_gantry_sync_self() {
 
     ##-- upstream SCM & URL
     if [ -d "$uppath/.git" ] ; then
-	upscm=git
-	upurl=$(git -C "$uppath" config --get remote.origin.url)
+	    upscm=git
+	    upurl=$(git -C "$uppath" config --get remote.origin.url)
     else
-	upscm=svn
-	upurl=$(svn_wc_url "$uppath")
+	    upscm=svn
+	    upurl=$(svn_wc_url "$uppath")
     fi
 
     ##-- actual sync
     if [ "$upscm" = "git" ] ; then
-	vinfo "updating gantry git clone at \`$uppath' from \`$upurl'"
-	runcmd git -C "$uppath" pull
+	    vinfo "updating gantry git clone at \`$uppath' from \`$upurl'"
+	    runcmd git -C "$uppath" pull
     elif [ "upscm" = "svn" ] ; then
-	vinfo "updating gantry SVN checkout at \`$uppath' from \`$upurl'"
-	runcmd svn update "$uppath"
+	    vinfo "updating gantry SVN checkout at \`$uppath' from \`$upurl'"
+	    runcmd svn update "$uppath"
     else
-	warn "gantry path path '$uppath' does not appear to be a git or SVN working copy - cannot self-synchronize"
-	return 1
+	    warn "gantry path path '$uppath' does not appear to be a git or SVN working copy - cannot self-synchronize"
+	    return 1
     fi
 }
 
@@ -259,7 +259,7 @@ act_gantry_sync_host() {
     ##-- sync: DSTAR_ROOT
     set_dstar_root
     [ -d "$DSTAR_ROOT" ] \
-	|| die "sync: missing DSTAR_ROOT=$DSTAR_ROOT (did you forget to run \`$prog init\`?)"
+	    || die "sync: missing DSTAR_ROOT=$DSTAR_ROOT (did you forget to run \`$prog init\`?)"
     vinfo "synchronizing host DSTAR_ROOT=$DSTAR_ROOT"
     runordie svn up "$DSTAR_ROOT"
 }
@@ -275,8 +275,8 @@ act_gantry_pull() {
     ##-- sanity check(s)
     local regurl="${gantry_docker_image%%/*}"
     if [ "$regurl" = "$gantry_docker_image" ] ; then
-	warn "pull: image '$gantry_docker_image' appears to be a local image - NOT pulling from registry"
-	return 0
+	    warn "pull: image '$gantry_docker_image' appears to be a local image - NOT pulling from registry"
+	    return 0
     fi
 
     ##-- pull: guts (may fail without prior 'docker login')
@@ -294,8 +294,8 @@ act_gantry_gc() {
     vinfo "gc: pruning stale docker images ($gantry_gc_filter)"
     local iids=($(runordie_ro docker images -qa $gantry_gc_filter))
     if [ ${#iids[@]} -eq 0 ] ; then
-	vinfo "gc: no stale docker images found: nothing to remove"
-	return 0
+	    vinfo "gc: no stale docker images found: nothing to remove"
+	    return 0
     fi
     runordie docker rmi "${iids[@]}"
 }
@@ -311,7 +311,8 @@ gantry_build_args=()
 ## gantry options
 gantry_dry_run=""
 #gantry_docker_image="lex.dwds.de:443/dstar/dstar-buildhost:latest"
-gantry_docker_image="docker.zdl.org/dstar/dstar-buildhost:latest"
+#gantry_docker_image="docker.zdl.org/dstar/dstar-buildhost:latest"
+gantry_docker_image="cudmuncher/dstar/dstar-buildhost:latest"
 gantry_corpus=""
 gantry_corpus_root="" #$DSTAR_ROOT/corpora/$gantry_corpus
 gantry_corpus_src=""  #$DSTAR_ROOT/sources/$gantry_corpus
@@ -334,66 +335,66 @@ fi
 ##-- default rcfile(s)
 for rcfile in "${gantry_rcfiles[@]}"; do
     [ \! -e "$rcfile" ] \
-	|| read_rcfile "$rcfile"
+	    || read_rcfile "$rcfile"
 done
 
 while [ $# -gt 0 ] ; do
     arg="$1"
     shift
     case "$arg" in
-	##-- options
-	-h|-help|--help) show_usage; exit 1;;
-	-V|-version|--version) show_version; exit 0;;
-	-n|-no-act|--no-act|-dry-run|--dry-run) gantry_dry_run=y;;
-	-fg|--fg|-foreground|--foreground) gantry_fg=(-ti);;
-	-bg|--bg|-background|--background) gantry_fg=(-d);;
-	-batch) gantry_fg=();;
-	-rm|--rm|-nopersist|--nopersist) gantry_rm=(--rm);;
-	-persist|--persist) gantry_rm=(--rm=false);;
-	-a|-no-agent|--no-agent|-no-ssh-agent|--no-ssh_agent) gantry_ssh_agent="no" ;;
-	-c) gantry_corpus="$1"; shift;;
-	-c*) gantry_corpus="${arg#-c}";;
-	-d) DSTAR_ROOT="$1"; shift;;
-	-d*) DSTAR_ROOT="${arg#-d}";;
-	-C) gantry_corpus_root="$1"; shift;;
-	-C*) gantry_corpus_root="${arg#-c}";;
-	-S) gantry_corpus_src="$1"; shift;;
-	-S*) gantry_corpus_src="${arg#-s}";;
-	-RO) gantry_cabdir_ro=":ro";;
-	-R) gantry_cabdir="$1"; shift;;
-	-R*) gantry_cabdir="${arg#-R}";;
-	-f) read_rcfile "$1"; shift;;
-	-f*) read_rcfile "${arg#-f}";;
-	-i) gantry_docker_image="$1"; shift;;
-	-i*) gantry_docker_image="${arg#-i}";;
-	-e) gantry_docker_opts[${#gantry_docker_opts[@]}]="-e$1"; shift;;
-	-e*) gantry_docker_opts[${#gantry_docker_opts[@]}]="$arg" ;;
-	-E) gantry_docker_opts=("${gantry_docker_opts[@]}" --env-file="$1"); shift;;
-	-E*) gantry_docker_opts=("${gantry_docker_opts[@]}" --env-file="${arg#-E}");;
-	-v) gantry_docker_opts[${#gantry_docker_opts[@]}]="-v$1"; shift;;
-	-v*) gantry_docker_opts[${#gantry_docker_opts[@]}]="$arg" ;;
-	-x) gantry_cabrun="$1"; shift;;
-	-x*) gantry_cabrun="${arg#-x}" ;;
-	-p) gantry_http_port="$1"; shift;;
-	-p*) gantry_http_port="${arg#-p}";;
-	-u) gantry_user="$1"; shift;;
-	-u*) gantry_user="${arg#-u}";;
-	-g) gantry_group="$1"; shift;;
-	-g*) gantry_group="${arg#-g}";;
-	##
-	##-- gantry actions
-	gantry-init|host-init|init) gantry_actions[${#gantry_actions[@]}]=act_gantry_init;;
-	gantry-sync|sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync;;
-	gantry-sync-host|sync-host|host-sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync_host;;
-	gantry-sync-self|sync-self|self-sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync_self;;
-	gantry-pull|docker-pull|pull) gantry_actions[${#gantry_actions[@]}]=act_gantry_pull;;
-	gantry-gc|docker-gc|gc) gantry_actions[${#gantry_actions[@]}]=act_gantry_gc;;
-	##
-	##-- end-of-options
-	--) break ;;
-	##
-	##-- default (-> gantry_build_args)
-	*) gantry_build_args[${#gantry_build_args[@]}]="$arg" ;;
+	    ##-- options
+	    -h|-help|--help) show_usage; exit 1;;
+	    -V|-version|--version) show_version; exit 0;;
+	    -n|-no-act|--no-act|-dry-run|--dry-run) gantry_dry_run=y;;
+	    -fg|--fg|-foreground|--foreground) gantry_fg=(-ti);;
+	    -bg|--bg|-background|--background) gantry_fg=(-d);;
+	    -batch) gantry_fg=();;
+	    -rm|--rm|-nopersist|--nopersist) gantry_rm=(--rm);;
+	    -persist|--persist) gantry_rm=(--rm=false);;
+	    -a|-no-agent|--no-agent|-no-ssh-agent|--no-ssh_agent) gantry_ssh_agent="no" ;;
+	    -c) gantry_corpus="$1"; shift;;
+	    -c*) gantry_corpus="${arg#-c}";;
+	    -d) DSTAR_ROOT="$1"; shift;;
+	    -d*) DSTAR_ROOT="${arg#-d}";;
+	    -C) gantry_corpus_root="$1"; shift;;
+	    -C*) gantry_corpus_root="${arg#-c}";;
+	    -S) gantry_corpus_src="$1"; shift;;
+	    -S*) gantry_corpus_src="${arg#-s}";;
+	    -RO) gantry_cabdir_ro=":ro";;
+	    -R) gantry_cabdir="$1"; shift;;
+	    -R*) gantry_cabdir="${arg#-R}";;
+	    -f) read_rcfile "$1"; shift;;
+	    -f*) read_rcfile "${arg#-f}";;
+	    -i) gantry_docker_image="$1"; shift;;
+	    -i*) gantry_docker_image="${arg#-i}";;
+	    -e) gantry_docker_opts[${#gantry_docker_opts[@]}]="-e$1"; shift;;
+	    -e*) gantry_docker_opts[${#gantry_docker_opts[@]}]="$arg" ;;
+	    -E) gantry_docker_opts=("${gantry_docker_opts[@]}" --env-file="$1"); shift;;
+	    -E*) gantry_docker_opts=("${gantry_docker_opts[@]}" --env-file="${arg#-E}");;
+	    -v) gantry_docker_opts[${#gantry_docker_opts[@]}]="-v$1"; shift;;
+	    -v*) gantry_docker_opts[${#gantry_docker_opts[@]}]="$arg" ;;
+	    -x) gantry_cabrun="$1"; shift;;
+	    -x*) gantry_cabrun="${arg#-x}" ;;
+	    -p) gantry_http_port="$1"; shift;;
+	    -p*) gantry_http_port="${arg#-p}";;
+	    -u) gantry_user="$1"; shift;;
+	    -u*) gantry_user="${arg#-u}";;
+	    -g) gantry_group="$1"; shift;;
+	    -g*) gantry_group="${arg#-g}";;
+	    ##
+	    ##-- gantry actions
+	    gantry-init|host-init|init) gantry_actions[${#gantry_actions[@]}]=act_gantry_init;;
+	    gantry-sync|sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync;;
+	    gantry-sync-host|sync-host|host-sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync_host;;
+	    gantry-sync-self|sync-self|self-sync) gantry_actions[${#gantry_actions[@]}]=act_gantry_sync_self;;
+	    gantry-pull|docker-pull|pull) gantry_actions[${#gantry_actions[@]}]=act_gantry_pull;;
+	    gantry-gc|docker-gc|gc) gantry_actions[${#gantry_actions[@]}]=act_gantry_gc;;
+	    ##
+	    ##-- end-of-options
+	    --) break ;;
+	    ##
+	    ##-- default (-> gantry_build_args)
+	    *) gantry_build_args[${#gantry_build_args[@]}]="$arg" ;;
     esac
 done
 [ -z "$gantry_dry_run" ] || prog="${prog} (DRY-RUN)"
@@ -411,8 +412,8 @@ while [ $# -gt 0 ] ; do
     arg="$1"
     shift
     case "$arg" in
-	--) break ;;
-	*) gantry_extra_docker_opts[${#gantry_extra_docker_opts[@]}]="$arg" ;;
+	    --) break ;;
+	    *) gantry_extra_docker_opts[${#gantry_extra_docker_opts[@]}]="$arg" ;;
     esac
 done
 
@@ -436,11 +437,11 @@ if [ -z "$gantry_corpus_root" -a -z "$gantry_corpus" ] ; then
     warn "neither CORPUS nor CORPUS_ROOT specified (use the -c or -C options)"
 elif [ -z "$gantry_corpus_root" -a -n "$gantry_corpus" ] ; then
     if [ "${DSTAR_ROOT:-no}" = "no" ] ; then
-	##-- gantry_corpus_root: no persistent DSTAR_ROOT: create in CWD
-	gantry_corpus_root="./$gantry_corpus"
+	    ##-- gantry_corpus_root: no persistent DSTAR_ROOT: create in CWD
+	    gantry_corpus_root="./$gantry_corpus"
     else
-	##-- gantry_corpus_root: use persistent DSTAR_ROOT/corpora/
-	gantry_corpus_root="$DSTAR_ROOT/corpora/$gantry_corpus"
+	    ##-- gantry_corpus_root: use persistent DSTAR_ROOT/corpora/
+	    gantry_corpus_root="$DSTAR_ROOT/corpora/$gantry_corpus"
     fi
     vinfo "setting CORPUS_ROOT=$gantry_corpus_root"
 elif [ -n "$gantry_corpus_root" -a -z "$gantry_corpus" ] ; then
@@ -451,22 +452,22 @@ fi
 ##-- defaults: gantry_corpus_src
 if [ -z "$gantry_corpus_src" ] ; then
     if [ "${DSTAR_ROOT:-no}" != "no" -a -n "$gantry_corpus" -a -e "$DSTAR_ROOT/sources/$gantry_corpus" ] ; then
-	##-- gantry_corpus_src: perfer use persistent DSTAR_ROOT/sources/CORPUS
-	##  + 2020-07-16: prefer persistent sources to attempted resolution of CORPUS_ROOT/src symlinks
-	##                (because things break if they're both present)
-	gantry_corpus_src="$DSTAR_ROOT/sources/$gantry_corpus"
-	## ... and honor sources/CORPUS/current/ convention
-	## NO: this breaks relative src/ symlinks
-	#[ \! -e "$gantry_corpus_src/curent" ] \
-	    #    || gantry_corpus_src="$gantry_corpus_src/current"
+	    ##-- gantry_corpus_src: perfer use persistent DSTAR_ROOT/sources/CORPUS
+	    ##  + 2020-07-16: prefer persistent sources to attempted resolution of CORPUS_ROOT/src symlinks
+	    ##                (because things break if they're both present)
+	    gantry_corpus_src="$DSTAR_ROOT/sources/$gantry_corpus"
+	    ## ... and honor sources/CORPUS/current/ convention
+	    ## NO: this breaks relative src/ symlinks
+	    #[ \! -e "$gantry_corpus_src/curent" ] \
+	        #    || gantry_corpus_src="$gantry_corpus_src/current"
     elif [ -h "$gantry_corpus_root/src" ] ; then
-	##-- gantry_corpus_src: use CORPUS_ROOT/src symlink (only if no persistent sources are present)
-	gantry_corpus_src=$(readlink -f "$gantry_corpus_root/src")
+	    ##-- gantry_corpus_src: use CORPUS_ROOT/src symlink (only if no persistent sources are present)
+	    gantry_corpus_src=$(readlink -f "$gantry_corpus_root/src")
     fi
     if [ -n "$gantry_corpus_src" ] ; then
-	vinfo "setting CORPUS_SRC=$gantry_corpus_src"
+	    vinfo "setting CORPUS_SRC=$gantry_corpus_src"
     else
-	vwarn "no CORPUS_SRC directory specified (expect trouble if you're trying to (re-)index a corpus)"
+	    vwarn "no CORPUS_SRC directory specified (expect trouble if you're trying to (re-)index a corpus)"
     fi
 fi
 
@@ -489,18 +490,18 @@ fi
 ##-- sanity check(s)
 if [ \! -e "$gantry_corpus_root" ] ; then
     if [[ " ${gantry_build_args[*]} ${gantry_extra_build_args[*]} " == *" "@(checkout|build|"test"|update*|install|uninstall|publish|archive*|run)" "* ]] ; then
-	warn "CORPUS_ROOT=$gantry_corpus_root does not exist; creating"
-	runordie mkdir -p "$gantry_corpus_root"
+	    warn "CORPUS_ROOT=$gantry_corpus_root does not exist; creating"
+	    runordie mkdir -p "$gantry_corpus_root"
     else
-	warn "CORPUS_ROOT=$gantry_corpus_root does not exist (continuing anyway, YMMV)"
+	    warn "CORPUS_ROOT=$gantry_corpus_root does not exist (continuing anyway, YMMV)"
     fi
 fi
 if [ -e "$gantry_corpus_root" ] ; then
     if [ "$(stat -c'%u' "$gantry_corpus_root")" != "$gantry_uid" ] ; then
-	warn "CORPUS_ROOT=$gantry_corpus_root is not owned by user gantry_uid=$gantry_uid"
+	    warn "CORPUS_ROOT=$gantry_corpus_root is not owned by user gantry_uid=$gantry_uid"
     fi
     if [ "$(stat -c'%g' "$gantry_corpus_root")" != "$gantry_gid" ] ; then
-	warn "CORPUS_ROOT=$gantry_corpus_root is not owned by group gantry_gid=$gantry_gid"
+	    warn "CORPUS_ROOT=$gantry_corpus_root is not owned by group gantry_gid=$gantry_gid"
     fi
 fi
 
@@ -510,9 +511,9 @@ if [ "${gantry_ssh_agent:-yes}" = "no" ] ; then
     unset SSH_AUTH_SOCK
 else
     [ -n "$SSH_AUTH_SOCK" ] \
-	|| die "SSH_AUTH_SOCK variable is unset (is your ssh-agent running?)"
+	    || die "SSH_AUTH_SOCK variable is unset (is your ssh-agent running?)"
     [ -e "$SSH_AUTH_SOCK" ] \
-	|| die "SSH_AUTH_SOCK=$SSH_AUTH_SOCK is missing (is your ssh-agent still running?)"
+	    || die "SSH_AUTH_SOCK=$SSH_AUTH_SOCK is missing (is your ssh-agent still running?)"
 fi
 
 ##-- absolute paths
