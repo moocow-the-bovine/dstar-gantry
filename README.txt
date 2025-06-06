@@ -19,7 +19,7 @@ SYNOPSIS
        -R RESOURCES_DIR      # host path for persistent CAB resources (default=DSTAR_ROOT/resources/ if present)
        -RO                   # mount RESOURCES_DIR read-only (suppress resource synchronization by container)
        -f RCFILE             # read gantry variables from RCFILE (bash source; default=$HOME/.dstar-gantry.rc)
-       -i IMAGE              # use docker image IMAGE (default=docker.zdl.org/dstar/dstar-buildhost:latest)
+       -i IMAGE              # use docker image IMAGE (default=cudmuncher/dstar-buildhost:latest)
        -e VAR=VALUE          # environment variables are passed to docker-run(1) -e
        -E ENV_FILE           # environment files are passed to docker-run(1) --env-file
        -v /PATH:/MOUNT       # volume options are are passed to docker-run(1) -v
@@ -455,7 +455,7 @@ USAGE
         run" <https://docs.docker.com/engine/reference/run/>. Default is
         "docker.zdl.org/dstar/dstar-buildhost:latest". If you don't have
         either a local image or ZDL docker registry credentials, you should
-        probably set this to "cudmuncher.de/dstar-buildhost:latest".
+        probably set this to "cudmuncher/dstar-buildhost:latest".
 
     -e VAR=VALUE
         Specify an environment variable override for the container via
@@ -1807,11 +1807,11 @@ SEE ALSO
         manpage for details on docker options.
 
 AUTHOR
-    Bryan Jurish <jurish@bbaw.de> created the ddc-dstar corpus
+    Bryan Jurish <moocow@cudmuncher.de> created the ddc-dstar corpus
     administration system and the "dstar-gantry" wrappers.
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2020-2021 by Bryan Jurish
+    Copyright (C) 2020-2025 by Bryan Jurish
 
     This package is free software; you can redistribute it and/or modify it
     under the terms of the European Union Public Licence. See the file

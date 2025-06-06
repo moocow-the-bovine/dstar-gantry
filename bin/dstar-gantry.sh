@@ -2,7 +2,7 @@
 
 ##======================================================================
 ## File: dstar-gantry-build.sh
-## Author: Bryan Jurish <jurish@bbaw.de>
+## Author: Bryan Jurish <moocow@cudmuncher.de>
 ## Description:
 ##  User-level script for docker "dstar-buildhost" container operations
 ##======================================================================
@@ -26,7 +26,7 @@ gantry_svnid='
 ##--------------------------------------------------------------
 show_version() {
     cat <<EOF
-$prog v$gantry_version by Bryan Jurish <jurish@bbaw.de>
+$prog v$gantry_version by Bryan Jurish <moocow@cudmuncher.de>
 $gantry_svnid
 EOF
 }
