@@ -14,7 +14,7 @@ prog=$(basename "$0")
 dstar_root_default=~/dstar
 gantry_root=$(dirname $(dirname $(readlink -f "$0")))
 gantry_rcfiles=(/etc/dstar-gantry.rc ~/.dstar-gantry.rc)
-gantry_version="0.0.7"
+gantry_version="0.1.0"
 gantry_svnid='
   §HeadURL: https://github.com/moocow-the-bovine/dstar-gantry/blob/master/bin/dstar-gantry.sh $
   $Id: dstar-gantry.sh $
