@@ -65,6 +65,8 @@
 ##  + if you have no such repo, consider including `-e dstar_checkout_corpus_opts="-dummy"` in gantry_docker_opts
 #gantry_dstar_svnroot=svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/trunk
 #gantry_dstar_svnroot=svn+ssh://cudmuncher.de/home/svn/dev/ddc-dstar/trunk
+#gantry_dstar_svnroot=svn+ssh://mukau@svn.code.sf.net/p/ddc-dstar-core/code/ddc-dstar/trunk
+#gantry_dstar_svnroot=https://svn.code.sf.net/p/ddc-dstar-core/code/ddc-dstar/trunk
 
 ## gantry_corpus (-c)
 ## + dstar corpus label (required for most operations)

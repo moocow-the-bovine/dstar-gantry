@@ -197,13 +197,20 @@ available on dockerhub, but be aware that the dockerhub images may not be up-to-
 
 =item ssh-agent
 
+As of 2025-06-09, C<gantry_dstar_svnroot> defaults to the (read-only) public
+repo C<https://svn.code.sf.net/p/ddc-dstar-core/code/ddc-dstar/trunk>,
+so you you shouldn't need SSH for SVN checkouts anymore.  You may still
+need an SSH identity for resource-synchronization via C<rsync> (which is
+probably broken anyways).
+
 You will need an accessible L<ssh-agent|https://en.wikipedia.org/wiki/Ssh-agent>
 for your local user account as indicated by the C<SSH_AUTH_SOCK> environment variable,
 with at least one registered identity (public+private key-pair).
 
 In order to avoid password prompts during sparse subversion checkouts on the local host
 (recommended), your ssh identity should be authorized for password-free access to
-C<svn.dwds.de>, as whatever user your L<C<~/.ssh/config>|https://linux.die.net/man/5/ssh_config>
+C<$gantry_dstar_svnroot> (formerly C<svn.dwds.de>), as whatever user your
+L<C<~/.ssh/config>|https://linux.die.net/man/5/ssh_config>
 specifies (by default the same username as on your local machine).
 
 In order to avoid password prompts during implicit subversion operations in the
