@@ -2118,6 +2118,18 @@ See L<"COMMON ERRORS" in the dstar-HOWTO|$doc/HOWTO.html#COMMON-ERRORS>.
 
 =item *
 
+L<hub.docker.com/u/cudmuncher|https://hub.docker.com/u/cudmuncher> pre-built docker images
+
+=item *
+
+L<dstar-docker|https://github.com/moocow-the-bovine/dstar-docker> github repo
+
+=item *
+
+L<ddc-dstar-core|https://sourceforge.net/projects/ddc-dstar-core/> public SVN repo
+
+=item *
+
 The L<dstar README|$doc/README.html> and the references mentioned therein
 describe the D* framework in more detail.  Most of the D* documentation
 available under L<C<$doc>|$doc/> predates the existence of C<dstar-gantry>

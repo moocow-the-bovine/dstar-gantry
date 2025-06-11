@@ -174,6 +174,13 @@ INSTALLATION
         up-to-date with those from the ZDL registry.
 
     ssh-agent
+        As of 2025-06-09, "gantry_dstar_svnroot" defaults to the (read-only)
+        public repo
+        "https://svn.code.sf.net/p/ddc-dstar-core/code/ddc-dstar/trunk", so
+        you you shouldn't need SSH for SVN checkouts anymore. You may still
+        need an SSH identity for resource-synchronization via "rsync" (which
+        is probably broken anyways).
+
         You will need an accessible ssh-agent
         <https://en.wikipedia.org/wiki/Ssh-agent> for your local user
         account as indicated by the "SSH_AUTH_SOCK" environment variable,
@@ -181,9 +188,10 @@ INSTALLATION
 
         In order to avoid password prompts during sparse subversion
         checkouts on the local host (recommended), your ssh identity should
-        be authorized for password-free access to "svn.dwds.de", as whatever
-        user your "~/.ssh/config" <https://linux.die.net/man/5/ssh_config>
-        specifies (by default the same username as on your local machine).
+        be authorized for password-free access to $gantry_dstar_svnroot
+        (formerly "svn.dwds.de"), as whatever user your "~/.ssh/config"
+        <https://linux.die.net/man/5/ssh_config> specifies (by default the
+        same username as on your local machine).
 
         In order to avoid password prompts during implicit subversion
         operations in the "dstar-buildhost" container invoked by gantry
@@ -1777,6 +1785,15 @@ KNOWN BUGS AND COMMON ERRORS
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#COMMON-ERRORS>.
 
 SEE ALSO
+    *   hub.docker.com/u/cudmuncher <https://hub.docker.com/u/cudmuncher>
+        pre-built docker images
+
+    *   dstar-docker <https://github.com/moocow-the-bovine/dstar-docker>
+        github repo
+
+    *   ddc-dstar-core <https://sourceforge.net/projects/ddc-dstar-core/>
+        public SVN repo
+
     *   The dstar README <https://kaskade.dwds.de/dstar/doc/README.html> and
         the references mentioned therein describe the D* framework in more
         detail. Most of the D* documentation available under

@@ -213,9 +213,11 @@ Login Succeeded</code></pre>
 <dt id="ssh-agent">ssh-agent</dt>
 <dd>
 
+<p>As of 2025-06-09, <code>gantry_dstar_svnroot</code> defaults to the (read-only) public repo <code>https://svn.code.sf.net/p/ddc-dstar-core/code/ddc-dstar/trunk</code>, so you you shouldn&#39;t need SSH for SVN checkouts anymore. You may still need an SSH identity for resource-synchronization via <code>rsync</code> (which is probably broken anyways).</p>
+
 <p>You will need an accessible <a href="https://en.wikipedia.org/wiki/Ssh-agent">ssh-agent</a> for your local user account as indicated by the <code>SSH_AUTH_SOCK</code> environment variable, with at least one registered identity (public+private key-pair).</p>
 
-<p>In order to avoid password prompts during sparse subversion checkouts on the local host (recommended), your ssh identity should be authorized for password-free access to <code>svn.dwds.de</code>, as whatever user your <a href="https://linux.die.net/man/5/ssh_config"><code>~/.ssh/config</code></a> specifies (by default the same username as on your local machine).</p>
+<p>In order to avoid password prompts during sparse subversion checkouts on the local host (recommended), your ssh identity should be authorized for password-free access to <code>$gantry_dstar_svnroot</code> (formerly <code>svn.dwds.de</code>), as whatever user your <a href="https://linux.die.net/man/5/ssh_config"><code>~/.ssh/config</code></a> specifies (by default the same username as on your local machine).</p>
 
 <p>In order to avoid password prompts during implicit subversion operations in the <code>dstar-buildhost</code> container invoked by gantry (recommended), your ssh identity should be authorized for password-free access to <code>ddc@svn.dwds.de</code>.</p>
 
@@ -1426,6 +1428,15 @@ terminate called after throwing an instance of &#39;std::runtime_error&#39;</cod
 
 <ul>
 
+<li><p><a href="https://hub.docker.com/u/cudmuncher">hub.docker.com/u/cudmuncher</a> pre-built docker images</p>
+
+</li>
+<li><p><a href="https://github.com/moocow-the-bovine/dstar-docker">dstar-docker</a> github repo</p>
+
+</li>
+<li><p><a href="https://sourceforge.net/projects/ddc-dstar-core/">ddc-dstar-core</a> public SVN repo</p>
+
+</li>
 <li><p>The <a href="https://kaskade.dwds.de/dstar/doc/README.html">dstar README</a> and the references mentioned therein describe the D* framework in more detail. Most of the D* documentation available under <a href="https://kaskade.dwds.de/dstar/doc/"><code>https://kaskade.dwds.de/dstar/doc</code></a> predates the existence of <code>dstar-gantry</code> and of the <code>dstar-buildhost</code> image itself, and in the context of <code>dstar-gantry</code> should be interpreted relative to the running <code>dstar-buildhost</code> container.</p>
 
 </li>
