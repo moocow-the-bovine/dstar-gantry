@@ -488,7 +488,7 @@ fi
 [ -n "$gantry_gid" ] || die "unknown host group '$gantry_group'"
 
 ##-- sanity check(s)
-if [ \! -e "$gantry_corpus_root" ] ; then
+if [ -n "$gantry_corpus_root" -a \! -e "$gantry_corpus_root" ] ; then
     if [[ " ${gantry_build_args[*]} ${gantry_extra_build_args[*]} " == *" "@(checkout|build|"test"|update*|install|uninstall|publish|archive*|run)" "* ]] ; then
 	    warn "CORPUS_ROOT=$gantry_corpus_root does not exist; creating"
 	    runordie mkdir -p "$gantry_corpus_root"
@@ -496,12 +496,12 @@ if [ \! -e "$gantry_corpus_root" ] ; then
 	    warn "CORPUS_ROOT=$gantry_corpus_root does not exist (continuing anyway, YMMV)"
     fi
 fi
-if [ -e "$gantry_corpus_root" ] ; then
+if [ -n "$gantry_corpus_root" -a -e "$gantry_corpus_root" ] ; then
     if [ "$(stat -c'%u' "$gantry_corpus_root")" != "$gantry_uid" ] ; then
 	    warn "CORPUS_ROOT=$gantry_corpus_root is not owned by user gantry_uid=$gantry_uid"
     fi
     if [ "$(stat -c'%g' "$gantry_corpus_root")" != "$gantry_gid" ] ; then
-	    warn "CORPUS_ROOT=$gantry_corpus_root is not owned by group gantry_gid=$gantry_gid"
+	    warn "CORPUS_ROOT=$gantry_Root is not owned by group gantry_gid=$gantry_gid"
     fi
 fi
 
