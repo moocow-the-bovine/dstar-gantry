@@ -92,10 +92,12 @@ SYNOPSIS
 
 DESCRIPTION
     The "dstar-gantry" project provides a thin top-level wrapper script
-    ("dstar-gantry.sh") for D* corpus operations using the latest
-    "dstar-buildhost" docker image pulled from the ZDL docker registry at
-    "https://docker.zdl.org". The "dstar-buildhost" docker container invoked
-    by "dstar-gantry.sh" can simulate any of the "BUILDHOST"
+    ("dstar-gantry.sh") for D* corpus operations using the latest public
+    "dstar-buildhost" docker image from cudmuncher/dstar-buildhost
+    <https://hub.docker.com/r/cudmuncher/dstar-buildhost> (formerly pulled
+    from the private ZDL docker registry at "https://docker.zdl.org"). The
+    "dstar-buildhost" docker container invoked by "dstar-gantry.sh" can
+    simulate any of the "BUILDHOST"
     <https://kaskade.dwds.de/dstar/doc/README.html#BUILDHOST>, "RUNHOST"
     <https://kaskade.dwds.de/dstar/doc/README.html#RUNHOST>, and/or
     "WEBHOST" <https://kaskade.dwds.de/dstar/doc/README.html#WEBHOST> D*
@@ -147,8 +149,13 @@ INSTALLATION
         install docker.
 
     registry credentials
-        If you wish to make use of gantry's "pull" action to acquire the
-        latest "dstar-buildhost" docker image (recommended), you will need
+        You can skip this section if you intend to use the default public
+        <dstar-buildhost|https://hub.docker.com/r/cudmuncher/dstar-buildhost
+        > image from docker hub.
+
+        If you are using the private "docker.zdl.org" registry and wish to
+        make use of gantry's "pull" action to acquire the latest
+        "dstar-buildhost" docker image (recommended), you will need
         credentials (username and password) for the ZDL docker registry, and
         will need to manually log into the registry using "docker login"
         <https://docs.docker.com/engine/reference/commandline/login/>:
@@ -174,12 +181,15 @@ INSTALLATION
         up-to-date with those from the ZDL registry.
 
     ssh-agent
-        As of 2025-06-09, "gantry_dstar_svnroot" defaults to the (read-only)
-        public repo
+        You can skip this section if you only need to access public
+        resources. As of 2025-06-09, "gantry_dstar_svnroot" defaults to the
+        (read-only) public repo
         "https://svn.code.sf.net/p/ddc-dstar-core/code/ddc-dstar/trunk", so
         you you shouldn't need SSH for SVN checkouts anymore. You may still
         need an SSH identity for resource-synchronization via "rsync" (which
-        is probably broken anyways).
+        you shouldn't need unless you need to sync non-free resources). It's
+        always a good idea to run an "ssh-agent" though, so feel free to
+        read on if you aren't doing that already.
 
         You will need an accessible ssh-agent
         <https://en.wikipedia.org/wiki/Ssh-agent> for your local user
@@ -198,11 +208,13 @@ INSTALLATION
         (recommended), your ssh identity should be authorized for
         password-free access to "ddc@svn.dwds.de".
 
-        If you wish to make use of gantry's automatic resource
+        If you wish to make use of gantry's automatic non-free resource
         synchronization features (default, recommended), your identity
         should be authorized for password-free access to
         "${CABRC_RSYNC_USER}@${CABRC_SYNCHOST}" (typically
-        "ddc@data.dwds.de").
+        "ddc@data.dwds.de"). If you only need to access free resources, you
+        can stick with the default synchronization over HTTPS (via
+        "CABRC_FREE=yes").
 
         In order to publish corpus indices via gantry to remote RUNHOSTs
         and/or WEBHOSTs, your identity will need to be authorized for
@@ -225,6 +237,7 @@ INSTALLATION
         If you have DWDS SVN credentials, you can also use the original SVN
         repository (which is no longer maintained by the original author):
 
+         # Checkout via SVN (restricted)
          $ svn checkout svn+ssh://svn.dwds.de/home/svn/dev/ddc-dstar/docker/gantry/trunk ~/dstar-gantry
 
         Example output (trimmed):
@@ -269,10 +282,17 @@ INSTALLATION
          $ ln -sfT /home/ddc-dstar/dstar ~/dstar
 
     retrieve docker image
-        Download the latest "dstar-buildhost" image from the ZDL docker
+        Download the latest "dstar-buildhost" image from the default docker
         registry with the "pull" action:
 
+        If you don't have ZDL docker registry credentials, use the public
+        images from dockerhub (now the default):
+
          $ dstar-gantry.sh pull
+
+        If you do have ZDL docker registry credentials, you can do:
+
+         $ dstar-gantry.sh -i docker.zdl.org/dstar/dstar-buildhost:latest pull
 
         Example output (trimmed):
 
@@ -283,11 +303,6 @@ INSTALLATION
          Status: Downloaded newer image for docker.zdl.org/dstar/dstar-buildhost:latest
          docker.zdl.org/dstar/dstar-buildhost:latest
          dstar-gantry.sh: INFO: no container actions BUILD_ARG(s) specified: nothing to do.
-
-        If you don't have ZDL docker registry credentials, use the public
-        images from dockerhub:
-
-         $ dstar-gantry.sh -i cudmuncher/dstar-buildhost:latest pull
 
     run self-test
         Run rudimentary self-tests with the gantry "self-test" action:
@@ -314,6 +329,11 @@ INSTALLATION
          build INFO: TEST: publish to default runhost (ssh "ddc-admin@data.dwds.de" /bin/true)
          build INFO: TEST: publish to default webhost (ssh "ddc-admin@kaskade.dwds.de" /bin/true)
          build INFO: self-test: all tests passed (6/6)
+
+        You can ignore any warnings about failed "PUBLISH" tests ... unless
+        you want to use gantry to publish corpus builds using rsync+ssh, in
+        which case you should set your configuration variables accordingly
+        and ensure that your "ssh-agent" is serving up the right keys.
 
 USAGE
      dstar-gantry.sh [GANTRY_OPTS] [GANTRY_ACTION(s)] [-- [DOCKER_OPTS] [-- [BUILD_ARGS]]]
@@ -461,9 +481,8 @@ USAGE
     -i IMAGE
         Specifies the docker image to be pulled and/or invoked via "docker
         run" <https://docs.docker.com/engine/reference/run/>. Default is
-        "docker.zdl.org/dstar/dstar-buildhost:latest". If you don't have
-        either a local image or ZDL docker registry credentials, you should
-        probably set this to "cudmuncher/dstar-buildhost:latest".
+        "cudmuncher/dstar-buildhost:latest" (formerly
+        "docker.zdl.org/dstar/dstar-buildhost:latest").
 
     -e VAR=VALUE
         Specify an environment variable override for the container via
@@ -492,6 +511,9 @@ USAGE
         Select container-internal CAB server(s) to start for container run
         action; default="dstar-http-9096".
 
+        BROKEN 2025-06-22: the default CAB server won't run without non-free
+        resources.
+
     -p HTTP_PORT
         Map containers port 80 to host port "HTTP_PORT" for "run" action via
         "docker run -p HTTP_PORT:80"
@@ -503,10 +525,16 @@ USAGE
         present, otherwise current user). If the UID does not exist in the
         container (it probably doesn't), it will be created.
 
+        Outside of the DWDS/ZDL ecosystem, it's usually a good idea to set
+        "-u $(id -un)".
+
     -g GROUP
         Specifies group name or GID of host build user (default="ddc-admin"
         if present, otherwise current group). If the GID does not exist in
         the container (it probably doesn't), it will be created.
+
+        Outside of the DWDS/ZDL ecosystem, it's probably a good idea to set
+        "-g $(id -gn)".
 
   Gantry Actions
    init
@@ -532,8 +560,9 @@ USAGE
     Convenience alias for the "sync-host" and "sync-self" actions.
 
    pull
-    Retrieves the selected "dstar-buildhost" IMAGE from the ZDL docker
-    registry. May require a preceding "docker login".
+    Retrieves the selected "dstar-buildhost" IMAGE from the selected docker
+    registry (docker hub public or ZDL private). May require a preceding
+    "docker login".
 
    gc
     Cleans up stale "dstar-buildhost" docker images on the local host.
@@ -549,7 +578,8 @@ USAGE
     <https://docs.docker.com/engine/reference/run/> subprocess for the
     selected "dstar-buildhost" IMAGE. If you need to tweak the "docker run"
     call with more than the "-e VAR=VALUE", "-E ENV_FILE", or "-v
-    /PATH:/MOUNT" options, this is how to do it.
+    /PATH:/MOUNT" options (e.g. to bind container ports other than 80), this
+    is how to do it.
 
   Container Actions
     All arguments following the second "--" on the "dstar-gantry.sh"
@@ -680,6 +710,8 @@ USAGE
         production host(s) as selected by the dstar make variables
         "PUBLISH_DEST" and/or "WEB_PUBLISH_DEST".
 
+        Probably not meaningful outside of the DWDS/ZDL ecosystem.
+
     run Runs a "CORPUS" instance from "CORPUS_ROOT/{server,web}/" in the
         temporary container. For this action, you will probably also want to
         specify "-p HTTP_PORT". If specified, this must be the last
@@ -689,6 +721,13 @@ USAGE
         "docker logs"
         <https://docs.docker.com/engine/reference/commandline/logs/>
         command.
+
+        As of 2025-06-22, you can use the (slightly slimmer) "dstar-webhost"
+        <https://hub.docker.com/r/cudmuncher/dstar-webhost> image if you
+        only need the "run" command. You can probably get away with the
+        "dstar-runhost" <https://hub.docker.com/r/cudmuncher/dstar-runhost>
+        image if you need only DDC and CAB server(s) (i.e. no HTTP UI or
+        REST API).
 
     freeze
         Archives the "CORPUS_ROOT/build/" subdirectory to
@@ -718,6 +757,12 @@ USAGE
     The following environment variables influence operations in the embedded
     "dstar-buildhost" container, and can be customized by means of the
     gantry "-e VAR=VALUE" and/or "-E ENV_FILE" options.
+
+    CABRC_FREE
+        If set to non-empty and non-""no"", any attempt to sync CAB
+        resources will use the old "rsync+ssh" strategy for syncing non-free
+        resources. As of 2025-06-21, the default "yes" will attempt to sync
+        only publicly available CAB resources via HTTPS using "lftp".
 
     SSH_AUTH_SOCK
         The communication socket for ssh-agent on the docker host will be
@@ -817,11 +862,13 @@ USAGE
         corresponding configuration file "/dstar/cabx/*.rc". Default:
         "dstar-http-9096". Known values:
 
-         dstar-http-9096       - runtime expansion for synchronic German
-         dstar-http-dta-8088   - runtime expansion for historical German
-         dstar-http-dta-9099   - "public" web-service for historical German
-         dstar-http-en-9097    - runtime expansion for synchronic English
-         dstar-http-taghx-9098 - runtime lemma-equivalence using TAGH
+         dstar-http-9096             - runtime expansion for synchronic German (non-free)
+         dstar-http-dta-8088         - runtime expansion for historical German (non-free)
+         dstar-http-dta-9099         - "public" web-service for historical German (non-free)
+         dstar-http-de-helsinki-9094 - runtime expansion for synchronic German (slim)
+         dstar-http-de-zmorge-9095   - runtime expansion for synchronic German (recommended)
+         dstar-http-en-9097          - runtime expansion for synchronic English
+         dstar-http-taghx-9098       - runtime lemma-equivalence using TAGH (non-free)
 
     dstar_relay_conf
         Specifies container path containing "socat"
@@ -840,6 +887,10 @@ USAGE
         See "dstar-buildhost:/dstar/init/etc_default_dstar_relay"
         <https://git.zdl.org/svn-mirror/ddc-dstar/src/branch/master/init/etc
         _default_dstar_relay> for syntax and more details.
+
+    dstar_selftest_publish
+        Set to non-empty and non-""no"" to make the "self-test" action test
+        SSH access for "publish" operations. Disabled by default.
 
     VAR All environment variables are passed down to child processes (e.g.
         "dstar-nice.sh"
@@ -932,6 +983,18 @@ EXAMPLES
         "DSTAR_ROOT/config/", you will probably want to mount it as a volume
         in the embedded container by specifying ""-v
         $DSTAR_ROOT/config:/dstar/config:ro"" on the gantry command-line.
+
+        Outside of the DWDS/ZDL ecosystem, you might want to set up a corpus
+        checkout using a self-contained `config` subdirectory without any
+        SVN access at all by manually copying the "/dstar/corpus.template"
+        directory from the "dstar-buildhost" image:
+
+         $ docker run -i cudmuncher/dstar-buildhost:latest \
+          tar cCf /dstar/corpus.template . -C /dstar config \
+          | tar xC ~/dstar/corpora/MYCORPUS
+         $ emacs \
+            ~/dstar/corpora/MYCORPUS/config/corpus/MYCORPUS.mak \
+            ~/dstar/corpora/MYCORPUS/config/opt/MYCORPUS.opt
 
   Example: Corpus Build
     Before attempting to (re-)build a corpus, you should ensure that you
@@ -1028,6 +1091,8 @@ EXAMPLES
     MYCORPUS deployment
          $ dstar-gantry.sh -RO -c MYCORPUS publish
 
+        (Probably only relevant within the DWDS/ZDL ecosystem)
+
         If the corpus build is satisfactory, the next step is usually to
         install the newly indexed corpus onto the production "RUNHOST" and
         "WEBHOST"
@@ -1048,6 +1113,8 @@ EXAMPLES
         progress information will be printed to the console.
 
     MYCORPUS post-deployment
+        (Probably only relevant within the DWDS/ZDL ecosystem)
+
         If the deployment is successful, continue with the procedures
         described under "It's Alive"
         <https://kaskade.dwds.de/dstar/doc/HOWTO.html#Its-Alive>, "Nail it
@@ -1358,9 +1425,11 @@ EXAMPLES
 
   Example: Building Language Resources
     It is possible to use "dstar-gantry.sh" together with a specialized
-    "dstar-rcbuildhost"
+    (non-free) "dstar-rcbuildhost"
+    <https://github.com/moocow-the-bovine/dstar-docker/tree/main/build/dstar
+    -rcbuildhost> (ZDL: "dstar-rcbuildhost"
     <https://git.zdl.org/svn-mirror/dstar-docker/src/branch/master/build/dst
-    ar-rcbuildhost> docker image (via the "-i" option) and appropriate
+    ar-rcbuildhost>) docker image (via the "-i" option) and appropriate
     sources
     <https://git.zdl.org/svn-mirror/dstar-resources-build/src/branch/master/
     src> to compile CAB language resources
@@ -1371,7 +1440,7 @@ EXAMPLES
          HOST$ docker pull docker.zdl.org/dstar/dstar-rcbuildhost
 
          Using default tag: latest
-         45a55f753283: Pull complete 
+         45a55f753283: Pull complete
          Digest: sha256:8af79141d7d8f7f95cec0ca52d06c3e56722e3c53323d8b9caab5263f6ea1b12
          Status: Downloaded newer image for docker.zdl.org/dstar/dstar-rcbuildhost:latest
          docker.zdl.org/dstar/dstar-rcbuildhost:latest
@@ -1457,6 +1526,18 @@ EXAMPLES
     ADME.txt> for details.
 
 CAVEATS
+  ""free" !=" "non-free">
+    This document (and the underlying code) was originally written for the
+    (non-free) code-base employed by the DWDS/ZDL ecosystem. Care has been
+    taken to ensure that as much functionality as reasonably possible is
+    available via publicly accessible repositories. In the transition to
+    public maximal public accessibility, this repository -- and its
+    dependencies -- have likely diverged from whatever version(s) -- if any
+    -- are still in use in that ecosystem. Some things will be broken, Other
+    things may not work as advertised. Basic corpus compilation & runtime
+    services have been tested and appear to work, Comments, bug-reports, &
+    contributions are welcome.
+
   docker storage drivers
     Problems with runtime cross-layer copy operations have been observed in
     the past when using the "overlay2" docker storage driver, which is the
@@ -1486,6 +1567,8 @@ CAVEATS
     ... and re-starting any docker services on the host machine.
 
   build responsibly
+    (DWDS/ZDL)
+
     If you build a corpus with "dstar-gantry" in a non-standard location
     and/or on a non-production host, you implicitly assume all resonsibility
     for keeping track of the intermediate build files in
@@ -1500,6 +1583,8 @@ CAVEATS
     directory if you need to save disk space.
 
   log changes
+    (DWDS/ZDL)
+
     When making changes to a corpus configuration in SVN, remember to log
     any changes to "DSTAR_ROOT/doc/Changes.txt"
     <https://kaskade.dwds.de/dstar/doc/HOWTO.html#doc%2FChanges.txt>. If you
@@ -1786,7 +1871,7 @@ KNOWN BUGS AND COMMON ERRORS
 
 SEE ALSO
     *   hub.docker.com/u/cudmuncher <https://hub.docker.com/u/cudmuncher>
-        pre-built docker images
+        pre-built public docker images
 
     *   dstar-docker <https://github.com/moocow-the-bovine/dstar-docker>
         github repo

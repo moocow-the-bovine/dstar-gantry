@@ -116,8 +116,14 @@
 ##  + bash-array of initial options to `docker run`
 ##  + use this to set additional default volumes, environment overrides, etc.
 gantry_docker_opts=(
-    #-e DSTAR_SVN_HOST=cudmuncher.de
+    ##-- uncomment the following line to disable svn-based corpus checkouts (you'll need to do it manually)
     #-e dstar_checkout_corpus_opts="-dummy -force -all"
+
+    ##-- uncomment this if you have a real ssh-accessible PUBLISH_HOST etc.
+    #-e dstar_selftest_publish=yes
+
+    ##-- uncomment this if you have rsync+ssh access to non-free CAB resources
+    #-e CABRC_FREE=no
 )
 
 ##--------------------------------------------------------------
