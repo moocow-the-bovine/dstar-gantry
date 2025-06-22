@@ -174,7 +174,7 @@ instructions on how to install docker.
 =item registry credentials
 
 You can skip this section if you intend to use the default public
-<dstar-buildhost|https://hub.docker.com/r/cudmuncher/dstar-buildhost>
+L<C<dstar-buildhost>|https://hub.docker.com/r/cudmuncher/dstar-buildhost>
 image from docker hub.
 
 If you are using the private C<docker.zdl.org> registry and

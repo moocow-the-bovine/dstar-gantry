@@ -150,8 +150,9 @@ INSTALLATION
 
     registry credentials
         You can skip this section if you intend to use the default public
-        <dstar-buildhost|https://hub.docker.com/r/cudmuncher/dstar-buildhost
-        > image from docker hub.
+        "dstar-buildhost"
+        <https://hub.docker.com/r/cudmuncher/dstar-buildhost> image from
+        docker hub.
 
         If you are using the private "docker.zdl.org" registry and wish to
         make use of gantry's "pull" action to acquire the latest
